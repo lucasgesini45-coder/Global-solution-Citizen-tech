@@ -1,0 +1,1 @@
+Nenhuma dúvida registrada.
