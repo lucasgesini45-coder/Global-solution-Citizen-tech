@@ -1,0 +1,14 @@
+{
+  "expo": {
+    "name": "Citizen Mobilidade",
+    "slug": "citizen-mobilidade",
+    "scheme": "citizenmobilidade",
+    "version": "0.1.0",
+    "plugins": [
+      "expo-router"
+    ],
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}
