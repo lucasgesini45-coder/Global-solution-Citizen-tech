@@ -1,0 +1,29 @@
+name: Testes Citizen Mobilidade
+
+on:
+  push:
+    branches:
+      - integracao/citizen-mobilidade
+      - main
+  pull_request:
+
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r backend/requirements.txt
+          python -m pip install -r "global solution part2 - tarifas/requirements.txt"
+      - name: Testes backend e API
+        run: python -m unittest discover -s backend/tests -v
+      - name: Testes modulo de rotas e tarifas
+        working-directory: "global solution part2 - tarifas"
+        run: python -m pytest -v
