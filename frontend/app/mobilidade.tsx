@@ -5,6 +5,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
+import MapaPreview from "../components/MapaPreview";
 import { useRouter } from "expo-router";
 
 type Modal = "ferroviario" | "onibus" | "ape";
@@ -54,6 +55,7 @@ export default function Mobilidade() {
   const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
   const [buscando, setBuscando] = useState(false);
   const [erro, setErro] = useState("");
+  const [mapAtivo, setMapAtivo] = useState(false);
 
   const atual = transportes.find(t => t.id === modal);
   const [lat, lon] = coords ? [coords.latitude, coords.longitude] : [-23.5505, -46.6333];
@@ -62,10 +64,18 @@ export default function Mobilidade() {
   const bbox = [lon - zoom, lat - zoom, lon + zoom, lat + zoom].join("%2C");
   const marcador = coords ? `&marker=${lat}%2C${lon}` : "";
   const mapaPreview = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik${marcador}`;
+  const embedKey = process.env.EXPO_PUBLIC_GOOGLE_MAPS_EMBED_KEY;
+  const origemMapa = origem === "Localização atual" && coords
+    ? `${coords.latitude},${coords.longitude}` : origem.trim();
+  const modoMapa = modal === "ape" ? "walking" : "transit";
+  const mapaComRota = mapAtivo && embedKey && origemMapa && destino.trim()
+    ? `https://www.google.com/maps/embed/v1/directions?key=${encodeURIComponent(embedKey)}&origin=${encodeURIComponent(origemMapa)}&destination=${encodeURIComponent(destino.trim())}&mode=${modoMapa}`
+    : null;
 
   function escolher(id: Modal) {
     setModal(id);
     setErro("");
+    setMapAtivo(false);
   }
 
   async function usarLocalizacao() {
@@ -97,6 +107,7 @@ export default function Mobilidade() {
       return;
     }
     setErro("");
+    setMapAtivo(true);
     const params = new URLSearchParams();
     params.set("api", "1");
     params.set("origin", origem === "Localização atual" && coords
@@ -168,16 +179,13 @@ export default function Mobilidade() {
           </View>
           <View style={s.mapaTopo}>
             <Text style={s.mapaTitulo}>Mapa da região</Text>
-            <Text style={s.mapaTexto}>Prévia interativa da área de origem. O trajeto e a previsão de chegada são calculados ao abrir o Google Maps.</Text>
+            <Text style={s.mapaTexto}>{mapaComRota ? "Trajeto no Google Maps. Consulte a navegação para o melhor percurso e previsão de chegada." : "Mapa interativo da região. Para desenhar trajetos dentro do aplicativo, configure a chave Google Maps Embed; você também pode abrir o Google Maps diretamente."}</Text>
           </View>
-          <View style={s.mapa}>
-            <View style={s.mapaIcone}><Ionicons name="map-outline" size={45} color="#7481b4" /></View>
-            <Text style={s.mapaTexto}>Para visualizar o mapa interativo, abra a opção abaixo.</Text>
-            <Pressable onPress={() => Linking.openURL(mapaPreview)} style={s.mapaAbrir}>
-              <Text style={s.mapaAbrirTexto}>Abrir mapa da região</Text>
-              <Ionicons name="open-outline" color="#625ec2" size={17} />
-            </Pressable>
-          </View>
+          <MapaPreview url={mapaComRota || mapaPreview} />
+          <Pressable onPress={abrirRotas} style={s.mapaAbrir}>
+            <Text style={s.mapaAbrirTexto}>Abrir trajeto, distância e tempo no Google Maps</Text>
+            <Ionicons name="open-outline" color="#625ec2" size={17} />
+          </Pressable>
           <Pressable onPress={() => Linking.openURL(atual.mapa)} style={s.mapaOficial}>
             <Ionicons name="git-network-outline" color="#5859b0" size={20} />
             <View style={{ flex: 1 }}>
