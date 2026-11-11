@@ -179,7 +179,7 @@ export default function Home() {
         </View>
         {!!erro && <Text style={s.error}>{erro}</Text>}
         <View style={s.demoPoints}>
-          <Text style={s.demoTitle}>PONTOS DO PILOTO (SIMULADOS)</Text>
+          <Text style={s.demoTitle}>PONTOS DO PILOTO (SIMULADOS) — use os botões para escolher sua rota</Text>
           <View style={s.demoRow}>
             <Text style={s.demoLabel}>De:</Text>
             {PONTOS.map((p,i)=><Pressable key={"o"+i} onPress={()=>{setIndiceOrigem(i);setOrigem(p.nome);setPosicao(null);setResultadoRota(null);}} style={[s.demoChip,indiceOrigem===i&&s.demoChipOn]}><Text style={s.demoChipText}>{p.nome}</Text></Pressable>)}
@@ -224,9 +224,10 @@ export default function Home() {
             <Text style={s.routeNote}>Traçado baseado na geometria da rede de testes, não em operação real. Caminhada: {resultadoRota.caminhada_m} m. Baldeações: {resultadoRota.baldeacoes}. Nenhum índice de segurança disponível.</Text>
           </View> : <Text style={s.mapBottomSub}>Selecione os pontos do piloto e um modal; o percurso será desenhado aqui sem abrir outro site.</Text>}
         </View>
+      </View>
 
       <View style={s.safety}>{btnIcone("shield-checkmark-outline","#6863b6",31)}<View style={{flex:1}}><Text style={s.safetyTitle}>Indicadores de segurança por região</Text><Text style={s.safetyText}>Em desenvolvimento: futuramente serão apresentados dados agregados e suas fontes, sem promessas de trajetos seguros.</Text></View><View style={s.status}><Text style={s.statusText}>Em desenvolvimento</Text></View></View>
-      <Text style={s.footer}>Citizen Tech Mobilidade Urbana · Protótipo FIAP 2026. Dados de rotas reais são consultados em serviço externo.</Text>
+      <Text style={s.footer}>Citizen Tech Mobilidade Urbana · Protótipo FIAP 2026. Rotas e tarifas exibidas são simuladas; não use para deslocamentos reais.</Text>
     </View>
   </ScrollView>;
 }
