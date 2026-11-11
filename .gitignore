@@ -7,3 +7,21 @@ __pycache__/
 node_modules/
 .expo/
 dist/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+
+# Frontend
+node_modules/
+.expo/
+
+# Configurações privadas
+.env
+.env.*
+!.env.example
+
+# Repositório aninhado acidental
+/Global-solution-Citizen-tech/
