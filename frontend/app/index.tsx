@@ -4,6 +4,7 @@ import {
   Text, TextInput, useWindowDimensions, View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 const API = (process.env.EXPO_PUBLIC_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
 
@@ -47,6 +48,7 @@ const locais = [
 ];
 
 export default function Home() {
+  const router = useRouter();
   const { width } = useWindowDimensions();
   const compacto = width < 640;
   const [aba, setAba] = useState<Tab>("orientacoes");
@@ -153,6 +155,11 @@ export default function Home() {
 
         <View style={s.tabs}>{botaoAba("orientacoes", "Assistente cidadão", "chatbubbles-outline")}{botaoAba("rotas", "Planejar rota", "map-outline")}</View>
 
+        <Pressable onPress={() => router.push("/mobilidade")} style={s.mobilidadeLink} accessibilityRole="button">
+          <Ionicons name="train-outline" size={23} color="#6762bd" />
+          <View style={{ flex: 1 }}><Text style={s.mobilidadeTitulo}>Explorar transportes e mapas</Text><Text style={s.mobilidadeSub}>Trem, metrô, ônibus e a pé · fotos, localização e trajetos</Text></View>
+          <Ionicons name="chevron-forward" size={19} color="#6762bd" />
+        </Pressable>
         {aba === "orientacoes" ? <>
           <View style={s.secaoCabecalho}><Text style={s.secaoTitulo}>Como podemos ajudar?</Text><Text style={s.secaoDescricao}>Pesquise informações de forma simples.</Text></View>
           <View style={s.busca}>
@@ -235,6 +242,9 @@ export default function Home() {
 }
 
 const s = StyleSheet.create({
+  mobilidadeLink: { backgroundColor: "#fff", borderRadius: 18, padding: 18, marginTop: 18, flexDirection: "row", alignItems: "center", gap: 12 },
+  mobilidadeTitulo: { color: "#424a86", fontWeight: "800", fontSize: 15 },
+  mobilidadeSub: { color: "#8894b0", fontSize: 12, marginTop: 5 },
   fundo: { flex: 1, backgroundColor: "#edf1ff" },
   pagina: { minHeight: "100%", paddingVertical: 24, paddingHorizontal: 14, alignItems: "center" },
   container: { maxWidth: 1040, width: "100%", paddingBottom: 20 },
