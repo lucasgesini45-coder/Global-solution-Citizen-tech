@@ -75,7 +75,7 @@ def sugestoes(q: str = Query(min_length=4, max_length=120)):
     # Protege o servidor público de demonstração de chamadas excessivas.
     with _lock:
         agora = time.monotonic()
-        if agora - _ultima_busca < 1.1 and _buscar_cache.get(consulta) is None:
+        if agora - _ultima_busca < 1.1:
             raise HTTPException(status_code=429, detail="Aguarde antes da próxima pesquisa.")
         _ultima_busca = agora
     return {"resultados": _buscar_cache(consulta), "fonte": "OpenStreetMap/Photon"}
