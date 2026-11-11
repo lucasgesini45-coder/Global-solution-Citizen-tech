@@ -31,7 +31,7 @@ const transportes: Transporte[] = [
     icon: "bus-outline",
     foto: "https://www.sptrans.com.br/media/3672/imagem-sptrans.jpg",
     fonte: "Foto: SPTrans",
-    mapa: "https://www.sptrans.com.br/",
+    mapa: "https://www.sptrans.com.br/itinerarios/trajeto/",
     mapaNome: "Consultar linhas e itinerários na SPTrans",
   },
   {
@@ -186,6 +186,11 @@ export default function Mobilidade() {
             <Text style={s.mapaAbrirTexto}>Abrir trajeto, distância e tempo no Google Maps</Text>
             <Ionicons name="open-outline" color="#625ec2" size={17} />
           </Pressable>
+          {atual.id === "ferroviario" && <Pressable onPress={() => Linking.openURL("https://www.cptm.sp.gov.br/cptm/sua-viagem/linhas-e-estacoes")} style={s.mapaOficial}>
+            <Ionicons name="train-outline" color="#5859b0" size={20} />
+            <View style={{ flex: 1 }}><Text style={s.mapaOficialTitulo}>Consultar linhas e estações da CPTM</Text><Text style={s.mapaOficialSub}>Mapa metropolitano e informações de estações</Text></View>
+            <Ionicons name="open-outline" color="#5859b0" size={18} />
+          </Pressable>}
           <Pressable onPress={() => Linking.openURL(atual.mapa)} style={s.mapaOficial}>
             <Ionicons name="git-network-outline" color="#5859b0" size={20} />
             <View style={{ flex: 1 }}>
