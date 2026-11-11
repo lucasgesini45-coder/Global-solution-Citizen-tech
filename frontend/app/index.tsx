@@ -16,6 +16,24 @@ const MODAIS: { id: Modal; nome: string; icone: Icone; foto: string }[] = [
   { id: "onibus", nome: "Ônibus", icone: "bus-outline", foto: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=1100&q=85" },
   { id: "ape", nome: "A pé", icone: "walk-outline", foto: "https://images.unsplash.com/photo-1473448912268-2022ce9509d8?w=1100&q=85" },
 ];
+type Rota = {
+  ordem: number; tempo_total_min: number; caminhada_m: number; baldeacoes: number;
+  custo: { centavos: number | null; confirmado: boolean };
+  seguranca: { status: string; exposicao: number | null };
+  trechos: { modal: string | null; tipo: string; geometria: number[][]; linha?: string }[];
+};
+type ResultadoRotas = { resultado: { rotas: Rota[]; erro?: { mensagem: string } | null }; aviso: string };
+const RAIO = 6371000;
+const CENTRO = { lat: -23.55, lon: -46.63 };
+const P = (x: number, y: number) => ({
+  lat: CENTRO.lat + y / (RAIO * Math.PI / 180),
+  lon: CENTRO.lon + x / ((RAIO * Math.PI / 180) * Math.cos(CENTRO.lat * Math.PI / 180)),
+});
+const PONTOS = [
+  { nome: "Alfa (demonstração)", coords: P(0, -100) },
+  { nome: "Beta (demonstração)", coords: P(2000, 100) },
+  { nome: "Destino (demonstração)", coords: P(4000, 300) },
+];
 const SUGESTOES = [
   "Como emitir cartão?", "Quais são meus direitos?",
   "Como pedir gratuidade?", "Como funciona a integração?",
@@ -38,24 +56,18 @@ export default function Home() {
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState("");
   const [rotaSolicitada, setRotaSolicitada] = useState(false);
+  const [resultadoRota, setResultadoRota] = useState<Rota | null>(null);
+  const [buscandoRota, setBuscandoRota] = useState(false);
+  const [erroRota, setErroRota] = useState("");
+  const [indiceOrigem, setIndiceOrigem] = useState(0);
+  const [indiceDestino, setIndiceDestino] = useState(2);
 
-  const mapKey = process.env.EXPO_PUBLIC_GOOGLE_MAPS_EMBED_KEY;
-  const lat = posicao?.lat ?? -23.5505;
-  const lon = posicao?.lon ?? -46.6333;
-  const bbox = [lon - .035, lat - .035, lon + .035, lat + .035].join("%2C");
-  const preview = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik${posicao ? `&marker=${lat}%2C${lon}` : ""}`;
-  const origemMap = posicao && origem === "Localização atual" ? `${lat},${lon}` : origem.trim();
-  const mode = modal === "ape" ? "walking" : "transit";
-  const embed = rotaSolicitada && mapKey && origemMap && destino.trim()
-    ? `https://www.google.com/maps/embed/v1/directions?key=${encodeURIComponent(mapKey)}&origin=${encodeURIComponent(origemMap)}&destination=${encodeURIComponent(destino.trim())}&mode=${mode}`
-    : preview;
-
-  const linkRota = () => {
-    const p = new URLSearchParams({ api: "1", origin: origemMap, destination: destino.trim(), travelmode: mode });
-    if (modal === "onibus") p.set("transit_mode", "bus");
-    if (modal === "ferroviario") p.set("transit_mode", "rail");
-    return `https://www.google.com/maps/dir/?${p.toString()}`;
-  };
+  const lat = posicao?.lat ?? -23.55;
+  const lon = posicao?.lon ?? -46.63;
+  const bbox = [lon-.045,lat-.045,lon+.045,lat+.045].join("%2C");
+  const preview = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik`;
+  const geometria = resultadoRota?.trechos.flatMap(t => t.geometria || []) || [];
+  const trajeto = geometria.filter((p,i,a) => i===0 || p[0]!==a[i-1][0] || p[1]!==a[i-1][1]);
 
   async function minhaLocalizacao() {
     setEsperaLocal(true); setErro("");
@@ -71,11 +83,43 @@ export default function Home() {
     finally { setEsperaLocal(false); }
   }
 
-  function planejar() {
-    if (!origemMap || !destino.trim()) { setErro("Informe a origem e o destino para planejar a viagem."); return; }
-    setErro(""); setRotaSolicitada(true);
-    // O roteamento real e o ETA são realizados pelo Google Maps.
-    Linking.openURL(linkRota()).catch(() => setErro("Não foi possível abrir o serviço de rotas."));
+  async function planejar() {
+    setErroRota(""); setResultadoRota(null); setErro("");
+    if (origem === "Localização atual" || posicao) {
+      setErroRota("A rede piloto ainda não calcula rotas a partir da localização real. Escolha os pontos de demonstração abaixo.");
+      return;
+    }
+    if (indiceOrigem === indiceDestino) {
+      setErroRota("Selecione origem e destino diferentes."); return;
+    }
+    setBuscandoRota(true);
+    try {
+      const r = await fetch(API + "/rotas", {
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          origem:PONTOS[indiceOrigem].coords, destino:PONTOS[indiceDestino].coords,
+          partida:"2026-11-09T08:00:00", necessidades:{perfil_tarifario:"padrao"},
+        }),
+      });
+      if (!r.ok) throw new Error("O módulo de rotas não respondeu.");
+      const dados:ResultadoRotas = await r.json();
+      if (dados.resultado.erro) throw new Error(dados.resultado.erro.mensagem);
+      const candidatas = dados.resultado.rotas || [];
+      const aderentes = candidatas.filter(rota => {
+        const modais = rota.trechos.filter(t=>t.tipo==="transporte").map(t=>t.modal);
+        if (modal==="ape") return modais.length === 0;
+        if (modal==="onibus") return modais.includes("onibus");
+        return modais.includes("metro") || modais.includes("trem");
+      });
+      if (!aderentes.length) {
+        setErroRota("Nenhum trajeto desse modal disponível na rede de demonstração. Experimente outra opção de transporte.");
+      } else {
+        setResultadoRota(aderentes.reduce((a,b)=>a.tempo_total_min<=b.tempo_total_min?a:b));
+        setRotaSolicitada(true);
+      }
+    } catch(e) {
+      setErroRota(e instanceof Error ? e.message:"Não foi possível calcular.");
+    } finally { setBuscandoRota(false); }
   }
 
   async function perguntar(texto = pergunta) {
@@ -109,16 +153,19 @@ export default function Home() {
 
       <View style={[s.hero, mobile && s.heroMobile]}>
         <View style={s.heroText}>
-          <Text style={s.eyebrow}>SUA MOBILIDADE NA CIDADE</Text>
-          <Text style={[s.heroTitle, mobile && s.heroTitleMobile]}>Planeje, viaje e se{"\n"}<Text style={s.heroAccent}>informe com inteligência.</Text></Text>
-          <Text style={s.heroCopy}>Um lugar para encontrar trajetos e orientações confiáveis sobre transporte público e seus direitos.</Text>
+          <Text style={s.eyebrow}>CITIZEN TECH  ·  CIDADES INTELIGENTES</Text>
+          <Text style={[s.heroTitle, mobile && s.heroTitleMobile]}>Sua cidade. Seu caminho.{"\n"}<Text style={s.heroAccent}>Mobilidade mais inteligente.</Text></Text>
+          <Text style={s.heroCopy}>Explore conexões, compare possibilidades de deslocamento e encontre informações sobre transporte e direitos — tudo em uma única experiência.</Text>
         </View>
-        {!mobile && <View style={s.heroArt}>{btnIcone("train-outline", "#5366bb", 96)}<Text style={s.heroArtSub}>A cidade ao seu alcance</Text></View>}
+        {!mobile && <View style={s.heroArt}>
+          <View style={s.techNetwork}>{btnIcone("git-network-outline","#6b60c9",68)}<View style={s.techBadge}>{btnIcone("sparkles-outline","#665bca",22)}<Text style={s.techText}>CITIZEN AI</Text></View></View>
+          <Text style={s.heroArtSub}>Tecnologia conectando caminhos</Text>
+        </View>}
       </View>
 
       <View style={s.planner}>
         <View style={s.plannerHeading}>{btnIcone("location-outline", "#605bc0", 23)}<Text style={s.plannerTitle}>Planejador de rotas</Text></View>
-        <Text style={s.plannerCopy}>Escolha um destino e compare as opções de deslocamento.</Text>
+        <Text style={s.plannerCopy}>Simule um trajeto na rede piloto fictícia. A integração com dados reais ainda está em desenvolvimento.</Text>
         <View style={[s.planFields, mobile && s.planMobile]}>
           <View style={s.field}>
             <Pressable onPress={minhaLocalizacao} accessibilityLabel="Usar localização atual">
@@ -128,10 +175,21 @@ export default function Home() {
           </View>
           <Pressable onPress={() => {const o=origem;setOrigem(destino);setDestino(o);setPosicao(null);setRotaSolicitada(false);}} style={s.swap} accessibilityLabel="Inverter origem e destino">{btnIcone("swap-horizontal-outline")}</Pressable>
           <View style={s.field}>{btnIcone("location-outline")}<TextInput style={s.input} value={destino} onChangeText={t => {setDestino(t);setRotaSolicitada(false);}} placeholder="Para onde você quer ir?" placeholderTextColor="#8791b0" accessibilityLabel="Destino"/></View>
-          <Pressable onPress={planejar} style={s.planButton}>{btnIcone("navigate-outline", "#fff")}<Text style={s.planButtonText}>Planejar rota</Text></Pressable>
+          <Pressable onPress={planejar} style={s.planButton}>{btnIcone("navigate-outline", "#fff")}<Text style={s.planButtonText}>{buscandoRota ? "Calculando..." : "Traçar no mapa"}</Text></Pressable>
         </View>
         {!!erro && <Text style={s.error}>{erro}</Text>}
-        <Text style={s.tip}>Toque no ícone de localização para usar sua posição atual, com sua autorização.</Text>
+        <View style={s.demoPoints}>
+          <Text style={s.demoTitle}>PONTOS DO PILOTO (SIMULADOS)</Text>
+          <View style={s.demoRow}>
+            <Text style={s.demoLabel}>De:</Text>
+            {PONTOS.map((p,i)=><Pressable key={"o"+i} onPress={()=>{setIndiceOrigem(i);setOrigem(p.nome);setPosicao(null);setResultadoRota(null);}} style={[s.demoChip,indiceOrigem===i&&s.demoChipOn]}><Text style={s.demoChipText}>{p.nome}</Text></Pressable>)}
+          </View>
+          <View style={s.demoRow}>
+            <Text style={s.demoLabel}>Para:</Text>
+            {PONTOS.map((p,i)=><Pressable key={"d"+i} onPress={()=>{setIndiceDestino(i);setDestino(p.nome);setResultadoRota(null);}} style={[s.demoChip,indiceDestino===i&&s.demoChipOn]}><Text style={s.demoChipText}>{p.nome}</Text></Pressable>)}
+          </View>
+        </View>
+        <Text style={s.tip}>A localização atual apenas centraliza o mapa por enquanto. Cálculo real por endereço exige uma base de transporte validada.</Text>
       </View>
 
       <View style={[s.transportRow, mobile && s.transportMobile]}>{MODAIS.map(t =>
@@ -152,11 +210,20 @@ export default function Home() {
           <Text style={s.chatDisclaimer}>Assistente acadêmico: responde somente com orientações verificadas na base.</Text>
         </View>
         <View style={s.mapPanel}>
-          <View style={s.mapHeader}><Text style={s.mapTitle}>Mapa do trajeto</Text><View style={s.mapPill}>{btnIcone("flash-outline","#665abb",15)}<Text style={s.mapPillText}>Trajeto mais rápido: consultar</Text></View></View>
-          <MapaPreview url={embed}/>
-          <View style={s.mapBottom}><View style={{flex:1}}><Text style={s.mapBottomTitle}>{rotaSolicitada ? "Trajeto solicitado" : "Selecione origem e destino"}</Text><Text style={s.mapBottomSub}>{mapKey && rotaSolicitada ? "Mapa de direções incorporado" : "Prévia da região: tempo e melhor percurso disponíveis no Google Maps"}</Text></View><Pressable style={s.mapButton} onPress={() => origemMap && destino.trim()?Linking.openURL(linkRota()):setErro("Informe origem e destino no planejador.")}>{btnIcone("open-outline","#fff",19)}</Pressable></View>
+          <View style={s.mapHeader}><Text style={s.mapTitle}>Mapa da viagem</Text><View style={s.mapPill}>{btnIcone("analytics-outline","#665abb",15)}<Text style={s.mapPillText}>Piloto simulado</Text></View></View>
+          <MapaPreview url={preview} trajeto={trajeto}/>
+          {buscandoRota && <ActivityIndicator color="#655beb" style={{marginVertical:12}}/>}
+          {!!erroRota && <Text style={s.error}>{erroRota}</Text>}
+          {resultadoRota ? <View style={s.routeSummary}>
+            <Text style={s.routeTitle}>Trajeto {resultadoRota.ordem} · {modal==="ape"?"Caminhada":modal==="onibus"?"Ônibus":"Trem / Metrô"}</Text>
+            <View style={s.routeStats}>
+              <View style={s.routeStat}><Text style={s.routeStatLabel}>TEMPO ESTIMADO</Text><Text style={s.routeStatValue}>{resultadoRota.tempo_total_min} min</Text></View>
+              <View style={s.routeStat}><Text style={s.routeStatLabel}>TARIFA FICTÍCIA</Text><Text style={s.routeStatValue}>{resultadoRota.custo?.centavos==null?"Não confirmada":`R$ ${(resultadoRota.custo.centavos/100).toFixed(2).replace(".",",")}`}</Text></View>
+              <View style={s.routeStat}><Text style={s.routeStatLabel}>SEGURANÇA</Text><Text style={s.routeStatValue}>Não verificada</Text></View>
+            </View>
+            <Text style={s.routeNote}>Traçado baseado na geometria da rede de testes, não em operação real. Caminhada: {resultadoRota.caminhada_m} m. Baldeações: {resultadoRota.baldeacoes}. Nenhum índice de segurança disponível.</Text>
+          </View> : <Text style={s.mapBottomSub}>Selecione os pontos do piloto e um modal; o percurso será desenhado aqui sem abrir outro site.</Text>}
         </View>
-      </View>
 
       <View style={s.safety}>{btnIcone("shield-checkmark-outline","#6863b6",31)}<View style={{flex:1}}><Text style={s.safetyTitle}>Indicadores de segurança por região</Text><Text style={s.safetyText}>Em desenvolvimento: futuramente serão apresentados dados agregados e suas fontes, sem promessas de trajetos seguros.</Text></View><View style={s.status}><Text style={s.statusText}>Em desenvolvimento</Text></View></View>
       <Text style={s.footer}>Citizen Tech Mobilidade Urbana · Protótipo FIAP 2026. Dados de rotas reais são consultados em serviço externo.</Text>
@@ -165,9 +232,13 @@ export default function Home() {
 }
 
 const s=StyleSheet.create({
+  techNetwork:{width:170,height:130,borderRadius:30,alignItems:"center",justifyContent:"center",borderWidth:1,borderColor:"#bdc5f5",backgroundColor:"#e7eaff"},techBadge:{position:"absolute",right:-23,bottom:0,backgroundColor:"#fff",padding:12,borderRadius:14,alignItems:"center",flexDirection:"row",gap:7},techText:{color:"#5653ae",fontSize:12,fontWeight:"800"},
+  demoPoints:{marginTop:14,gap:8},demoTitle:{fontSize:11,fontWeight:"800",color:"#6670b3",letterSpacing:1},demoRow:{flexDirection:"row",flexWrap:"wrap",alignItems:"center",gap:6},demoLabel:{color:"#627197",fontWeight:"700",fontSize:12,minWidth:28},demoChip:{borderRadius:8,paddingVertical:6,paddingHorizontal:9,backgroundColor:"#eef1fa"},demoChipOn:{backgroundColor:"#d8dcff",borderWidth:1,borderColor:"#766dd0"},demoChipText:{fontSize:11,color:"#4d5a95"},
+  routeSummary:{marginTop:12,backgroundColor:"#f6f6ff",padding:13,borderRadius:12},routeTitle:{fontSize:14,color:"#40508a",fontWeight:"800"},routeStats:{flexDirection:"row",flexWrap:"wrap",marginTop:12,gap:9},routeStat:{flex:1,minWidth:100,backgroundColor:"#fff",padding:10,borderRadius:9},routeStatLabel:{fontSize:9,color:"#7c86a9",fontWeight:"700"},routeStatValue:{fontSize:17,color:"#393d87",fontWeight:"800",marginTop:5},routeNote:{color:"#8b91a9",fontSize:11,lineHeight:18,marginTop:11},
+
   root:{flex:1,backgroundColor:"#ecf0fe"},page:{alignItems:"center",paddingHorizontal:18,paddingVertical:22},wrap:{width:"100%",maxWidth:1320},
   header:{flexDirection:"row",alignItems:"center",gap:13,marginBottom:25},logo:{height:43,width:43,backgroundColor:"#6261ba",alignItems:"center",justifyContent:"center",borderRadius:12},brand:{fontSize:21,fontWeight:"800",color:"#263d84"},brandSub:{color:"#6475ad",fontSize:14},headerBadge:{marginLeft:"auto",borderRadius:12,padding:10,backgroundColor:"#e0e6fa"},headerBadgeText:{color:"#6572aa",fontSize:11,fontWeight:"700"},
-  hero:{padding:26,backgroundColor:"#dee6ff",borderRadius:18,flexDirection:"row",alignItems:"center",minHeight:205},heroMobile:{padding:20},heroText:{flex:1},eyebrow:{fontSize:11,letterSpacing:2,fontWeight:"800",color:"#626cb4",marginBottom:11},heroTitle:{color:"#263c76",fontSize:36,lineHeight:45,fontWeight:"800"},heroTitleMobile:{fontSize:27,lineHeight:36},heroAccent:{color:"#7567cc"},heroCopy:{color:"#6979a4",fontSize:15,lineHeight:23,marginTop:10,maxWidth:630},heroArt:{width:260,alignItems:"center"},heroArtSub:{color:"#6d78a8",fontSize:12,fontWeight:"700",marginTop:8},
+  hero:{padding:26,backgroundColor:"#dee6ff",borderRadius:14,flexDirection:"row",alignItems:"center",minHeight:205},heroMobile:{padding:20},heroText:{flex:1},eyebrow:{fontSize:11,letterSpacing:2,fontWeight:"800",color:"#626cb4",marginBottom:11},heroTitle:{color:"#263c76",fontSize:36,lineHeight:45,fontWeight:"800"},heroTitleMobile:{fontSize:27,lineHeight:36},heroAccent:{color:"#7567cc"},heroCopy:{color:"#6979a4",fontSize:15,lineHeight:23,marginTop:10,maxWidth:630},heroArt:{width:260,alignItems:"center"},heroArtSub:{color:"#6d78a8",fontSize:12,fontWeight:"700",marginTop:8},
   planner:{backgroundColor:"#fff",borderRadius:17,padding:21,marginTop:17},plannerHeading:{flexDirection:"row",alignItems:"center",gap:10},plannerTitle:{fontSize:21,color:"#273965",fontWeight:"800"},plannerCopy:{fontSize:13,color:"#7887a8",marginTop:7,marginBottom:14},
   planFields:{flexDirection:"row",alignItems:"center",gap:10},planMobile:{flexWrap:"wrap"},field:{flex:1,minWidth:185,borderWidth:1,borderColor:"#dce2f4",backgroundColor:"#f9faff",borderRadius:11,minHeight:51,flexDirection:"row",alignItems:"center",paddingHorizontal:13,gap:9},input:{flex:1,fontSize:14,color:"#354874",paddingVertical:11,minWidth:50},swap:{height:45,width:45,alignItems:"center",justifyContent:"center",backgroundColor:"#eff2ff",borderRadius:10},planButton:{backgroundColor:"#515fb4",borderRadius:11,minHeight:51,flexDirection:"row",alignItems:"center",justifyContent:"center",paddingHorizontal:18,gap:9},planButtonText:{color:"#fff",fontSize:14,fontWeight:"800"},tip:{color:"#8d97b1",fontSize:11,marginTop:10},error:{color:"#b23e55",marginTop:10,fontSize:13},
   transportRow:{flexDirection:"row",gap:15,marginTop:17},transportMobile:{flexWrap:"wrap"},transportCard:{flex:1,minWidth:185,height:170,overflow:"hidden",borderRadius:13,borderWidth:2,borderColor:"transparent"},transportActive:{borderColor:"#6453c6"},transportPhoto:{height:"100%",justifyContent:"flex-end"},transportImage:{borderRadius:10},transportShade:{position:"absolute",left:0,right:0,bottom:0,height:78,backgroundColor:"rgba(26,39,85,.72)"},transportOverlay:{flexDirection:"row",alignItems:"center",gap:12,padding:16},transportLabel:{flex:1,color:"#fff",fontWeight:"800",fontSize:19},transportArrow:{width:30,height:30,backgroundColor:"rgba(255,255,255,.2)",borderRadius:16,alignItems:"center",justifyContent:"center"},
