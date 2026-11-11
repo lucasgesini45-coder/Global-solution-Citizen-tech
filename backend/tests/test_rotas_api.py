@@ -31,6 +31,12 @@ class TestRotasAPI(unittest.TestCase):
         self.assertIn("resultado", resposta)
         self.assertIn("rotas", resposta["resultado"])
         self.assertGreater(len(resposta["resultado"]["rotas"]), 0)
+        primeira = resposta["resultado"]["rotas"][0]
+        self.assertIn("tempo_total_min", primeira)
+        self.assertIn("custo", primeira)
+        self.assertIn("seguranca", primeira)
+        self.assertIn("status", primeira["seguranca"])
+        self.assertTrue(any("geometria" in t for t in primeira["trechos"]))
 
     def test_coordenadas_invalidas(self):
         with self.assertRaises(ValidationError):
