@@ -22,7 +22,7 @@ if str(PASTA_MODULO) not in sys.path:
     sys.path.insert(0, str(PASTA_MODULO))
 
 from src.recomendar import processar_pedido
-from src.rede_demo import criar_rede_demo
+from src.rede_demo import criar_rede_demo, ponto
 from src.tarifas import carregar_regras
 
 
@@ -63,3 +63,24 @@ def calcular_rotas(pedido: PedidoRota):
         }
     except (ValueError, TypeError, KeyError, OverflowError) as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.get("/rotas/exemplo")
+def exemplo_rotas():
+    """Cenário fixo da rede fictícia para demonstrar o módulo 2.
+
+    Não representa um percurso real de São Paulo nem tarifas oficiais.
+    """
+    origem = ponto(0.0, -100.0)
+    destino = ponto(4000.0, 300.0)
+    pedido = PedidoRota(
+        origem={"lat": origem[0], "lon": origem[1]},
+        destino={"lat": destino[0], "lon": destino[1]},
+        partida="2026-11-09T08:00:00",
+    )
+    resposta = calcular_rotas(pedido)
+    return {
+        **resposta,
+        "cenario": "Exemplo acadêmico com paradas, linhas, horários e tarifas simulados",
+        "partida_exemplo": pedido.partida,
+    }
