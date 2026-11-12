@@ -2,7 +2,7 @@ import React from "react";
 import { View } from "react-native";
 import WebView from "react-native-webview";
 
-type Ponto = {lat:number;lon:number;nome?:string};
+type Ponto = {lat:number;lon:number;nome?:string;tipo?:string};
 type Props = {url:string;trajeto?:number[][];pontos?:Ponto[];height?:number};
 
 /**
@@ -53,13 +53,12 @@ export default function MapaPreview({trajeto,pontos=[],height=365}:Props){
    this.textContent=claro?"▤ Camadas · claro":"▤ Camadas · ruas";
   });
   const area=[];
-  const labels=["A","B"];
   dados.marcas.forEach(function(p,i){
    const latlng=[p.lat,p.lon];area.push(latlng);
-   const classe=i===0?"start":"end";
+   const classe=p.tipo==="destino"?"end":"start";
    const texto=String(p.nome|| (i===0?"Origem":"Destino"));
    const icon=L.divIcon({className:"",iconSize:[32,32],iconAnchor:[16,16],
-    html:'<div class="badge-pin '+classe+'">'+(labels[i]||"•")+'</div>'});
+    html:'<div class="badge-pin '+classe+'">'+(classe==="end"?"B":"A")+'</div>'});
    const marker=L.marker(latlng,{icon:icon}).addTo(mapa).bindPopup(texto);
    if(i===0)marker.setZIndexOffset(100);
   });
