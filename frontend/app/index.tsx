@@ -125,13 +125,13 @@ export default function Home(){
  }
 
  return <ScrollView style={v.bg} contentContainerStyle={v.page}>
-   <View style={v.nav}>
+   <View style={[v.nav,mobile&&v.navMobile]}>
      <Text style={[v.navBrand,mobile&&v.navBrandMobile]}>Citizen Tech <Text style={v.navBrandAccent}>Mobilidade Urbana</Text></Text>
      {!mobile&&<View style={v.navActive}><Text style={v.navActiveText}>Planejar trajeto</Text></View>}
      <Text style={v.navMeta}>Global Solution · 2026</Text>
    </View>
 
-   <View style={v.container}>
+   <View style={[v.container,mobile&&v.containerMobile]}>
      <View style={[v.intro,mobile&&v.introMobile]}>
        <Text style={v.eyebrow}>MENOS COMPLICAÇÃO. MAIS CIDADE.</Text>
        <Text style={[v.heading,mobile&&v.headingMobile]}>Seu próximo destino começa aqui.</Text>
@@ -216,10 +216,10 @@ const v=StyleSheet.create({
  bg:{flex:1,backgroundColor:"#dfefff"},
  page:{minHeight:"100%"},
  nav:{backgroundColor:"rgba(247,251,255,0.90)",minHeight:88,paddingHorizontal:48,paddingVertical:20,borderBottomWidth:1,borderBottomColor:"#bfd6ec",flexDirection:"row",alignItems:"center",gap:30,flexWrap:"wrap"},
- navBrand:{fontSize:25,fontWeight:"800",letterSpacing:-.9,color:"#1d2633"},navBrandMobile:{fontSize:19},navBrandAccent:{fontWeight:"500",color:"#0069d2"},
+ navMobile:{minHeight:68,paddingHorizontal:16,paddingVertical:15,gap:10},navBrand:{fontSize:25,fontWeight:"800",letterSpacing:-.9,color:"#1d2633"},navBrandMobile:{fontSize:19},navBrandAccent:{fontWeight:"500",color:"#0069d2"},
  navActive:{backgroundColor:"#dcebfa",borderRadius:22,paddingHorizontal:18,paddingVertical:13},navActiveText:{color:"#0069d2",fontSize:14,fontWeight:"700"},navMeta:{fontSize:11,color:"#62758a",marginLeft:"auto"},
  container:{maxWidth:1440,width:"100%",alignSelf:"center",paddingHorizontal:48,paddingBottom:28},
- intro:{minHeight:182,paddingTop:34,justifyContent:"center",position:"relative",paddingBottom:23},introMobile:{paddingTop:24,minHeight:0},
+ containerMobile:{paddingHorizontal:16},intro:{minHeight:182,paddingTop:34,justifyContent:"center",position:"relative",paddingBottom:23},introMobile:{paddingTop:24,minHeight:0},
  eyebrow:{color:"#0069d2",fontSize:11,fontWeight:"800",letterSpacing:1.7,marginBottom:12},
  heading:{color:"#1d2633",fontWeight:"800",fontSize:42,letterSpacing:-1.5,lineHeight:53},headingMobile:{fontSize:29,lineHeight:38},
  subtitle:{color:"#586c80",fontSize:15,marginTop:7,lineHeight:22},
