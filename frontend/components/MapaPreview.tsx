@@ -7,12 +7,11 @@ type Props = {url:string;trajeto?:number[][];pontos?:Ponto[];height?:number};
 
 /**
  * Mapa real com identidade visual inspirada no painel Figma.
- * Apenas os pontos escolhidos e as rotas recebidas da API são desenhados.
+ * Exibe ruas reais e os pontos selecionados, sem sobrepor linhas de rotas.
  */
 export default function MapaPreview({trajeto,pontos=[],height=365}:Props){
- const rota=(trajeto||[]).filter(p=>p.length===2&&p.every(Number.isFinite));
  const marcas=pontos.filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lon));
- const dados=JSON.stringify({rota,marcas}).replace(/</g,"\\u003c");
+ const dados=JSON.stringify({marcas}).replace(/</g,"\\u003c");
  const html=`<!doctype html><html lang="pt-BR"><head>
  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -31,7 +30,6 @@ export default function MapaPreview({trajeto,pontos=[],height=365}:Props){
  .leaflet-popup-tip{box-shadow:none}
  .badge-pin{display:flex;align-items:center;justify-content:center;border:3px solid white;box-shadow:0 3px 10px rgba(26,75,127,.28);border-radius:50%;width:29px;height:29px;font-weight:800;color:#fff;font-size:13px}
  .badge-pin.start{background:#0071e3}.badge-pin.end{background:#405fc7}
- .pin-label{position:absolute;top:37px;left:50%;transform:translateX(-50%);white-space:nowrap;padding:9px 12px;background:rgba(255,255,255,.97);color:#1d2633;font-size:11px;font-weight:650;border-radius:11px;box-shadow:0 3px 12px rgba(51,97,145,.12);max-width:220px;overflow:hidden;text-overflow:ellipsis}
  .map-chip{position:absolute;top:15px;left:15px;z-index:1000;pointer-events:none;background:rgba(255,255,255,.96);border:1px solid #e0eaf3;border-radius:13px;padding:10px 13px;box-shadow:0 4px 16px rgba(51,97,145,.09);font-size:12px;color:#37516b;font-weight:700;display:flex;align-items:center;gap:8px}
  .map-chip-dot{width:9px;height:9px;background:#0071e3;border-radius:50%}
  .layer-button{position:absolute;top:15px;right:15px;z-index:1001;border:0;border-radius:13px;background:#fff;box-shadow:0 4px 16px rgba(51,97,145,.12);padding:11px 13px;color:#1d4f8e;font:600 12px Inter,Arial,sans-serif;cursor:pointer}
@@ -45,7 +43,7 @@ export default function MapaPreview({trajeto,pontos=[],height=365}:Props){
  <script>
  (function(){
   const dados=${dados};
-  const mapa=L.map("map",{zoomControl:false,scrollWheelZoom:false}).setView([-23.5505,-46.6333],12);
+  const mapa=L.map("map",{zoomControl:false,scrollWheelZoom:true}).setView([-23.5505,-46.6333],13);
   L.control.zoom({position:"topright",zoomInTitle:"Aproximar",zoomOutTitle:"Afastar"}).addTo(mapa);
   const carto=L.tileLayer("https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",{maxZoom:19,attribution:'&copy; OpenStreetMap contributors &copy; CARTO',subdomains:"abcd"});
   const osm=L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'});
@@ -55,12 +53,6 @@ export default function MapaPreview({trajeto,pontos=[],height=365}:Props){
    this.textContent=claro?"▤ Camadas · claro":"▤ Camadas · ruas";
   });
   const area=[];
-  if(dados.rota.length>=2){
-   L.polyline(dados.rota,{color:"#fff",weight:10,opacity:.88,lineJoin:"round",lineCap:"round"}).addTo(mapa);
-   L.polyline(dados.rota,{color:"#0071e3",weight:6,opacity:1,lineJoin:"round",lineCap:"round"}).addTo(mapa);
-   area.push.apply(area,dados.rota);
-   document.getElementById("mapstatus").textContent="Trajeto calculado";
-  }
   const labels=["A","B"];
   dados.marcas.forEach(function(p,i){
    const latlng=[p.lat,p.lon];area.push(latlng);
