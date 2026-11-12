@@ -43,9 +43,17 @@ def _json_http(url: str, *, payload: dict | None = None, headers: dict | None = 
 
 @lru_cache(maxsize=128)
 def _buscar_cache(consulta: str) -> list[dict]:
-    params = urlencode({"q": consulta, "limit": 6, "lang": "pt", "lat": -23.55, "lon": -46.63})
+    global _ultima_busca
+    # Somente consultas nao encontradas no cache precisam aguardar o provedor.
+    with _lock:
+        espera = 1.1 - (time.monotonic() - _ultima_busca)
+        if espera > 0:
+            time.sleep(espera)
+        _ultima_busca = time.monotonic()
+    params = urlencode({"q": consulta, "limit": 10, "lang": "pt", "lat": -23.55, "lon": -46.63})
     dados = _json_http(PHOTON_URL + "?" + params)
     resultados = []
+    vistos = set()
     for item in dados.get("features", []):
         props = item.get("properties", {})
         coords = item.get("geometry", {}).get("coordinates", [])
@@ -57,10 +65,24 @@ def _buscar_cache(consulta: str) -> list[dict]:
         # Priorizar a região metropolitana de São Paulo e evitar propostas em outros países.
         if not (-24.2 <= lat <= -23.0 and -47.4 <= lon <= -45.8):
             continue
-        parts = [props.get("name"), props.get("housenumber"), props.get("street"),
-                 props.get("district"), props.get("city"), props.get("state")]
-        nome = ", ".join(str(p) for p in parts if p and str(p).strip())
-        if nome:
+        rua = props.get("street")
+        nome_local = props.get("name")
+        numero = props.get("housenumber")
+        partes = []
+        if nome_local:
+            partes.append(str(nome_local))
+        if rua and str(rua).casefold() != str(nome_local or "").casefold():
+            partes.append(str(rua))
+        if numero:
+            partes.append(str(numero))
+        for campo in ("district", "city", "state"):
+            valor = props.get(campo)
+            if valor and str(valor).casefold() not in {parte.casefold() for parte in partes}:
+                partes.append(str(valor))
+        nome = ", ".join(partes)
+        chave = (round(lat, 6), round(lon, 6), nome.casefold())
+        if nome and chave not in vistos:
+            vistos.add(chave)
             resultados.append({"nome": nome, "lat": lat, "lon": lon,
                                "fonte": "OpenStreetMap/Photon"})
     return resultados
@@ -72,12 +94,6 @@ def sugestoes(q: str = Query(min_length=4, max_length=120)):
     consulta = " ".join(q.strip().split())
     if len(consulta) < 4:
         return {"resultados": [], "fonte": "OpenStreetMap/Photon"}
-    # Protege o servidor público de demonstração de chamadas excessivas.
-    with _lock:
-        agora = time.monotonic()
-        if agora - _ultima_busca < 1.1:
-            raise HTTPException(status_code=429, detail="Aguarde antes da próxima pesquisa.")
-        _ultima_busca = agora
     return {"resultados": _buscar_cache(consulta), "fonte": "OpenStreetMap/Photon"}
 
 
