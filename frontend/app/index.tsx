@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, ImageBackground, Pressable, ScrollView, StyleSheet,
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet,
  Text, TextInput, View, useWindowDimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
@@ -7,7 +7,7 @@ import MapaPreview from "../components/MapaPreview";
 
 const API = (process.env.EXPO_PUBLIC_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
 type Icon = React.ComponentProps<typeof Ionicons>["name"];
-type Modal = "ferroviario"|"onibus"|"ape";
+type Modal = "todos"|"ferroviario"|"onibus"|"ape";
 type Endereco = {nome:string;lat:number;lon:number;fonte:string};
 type Resultado = {tipo:string;fonte:string;tempo_min:number;distancia_m:number;tarifa_centavos:number|null;seguranca:{status:string};trajeto:number[][];aviso:string};
 type Consulta = {resposta:string;fontes:{referencia:string;data_verificacao:string}[]};
@@ -66,7 +66,7 @@ function CampoEndereco({titulo,valor,mudar,selecionar,escolhido,placeholder}:{
 
 export default function Home(){
  const {width}=useWindowDimensions();const mobile=width<820;
- const [modal,setModal]=useState<Modal>("ferroviario");
+ const [modal,setModal]=useState<Modal>("todos");
  const [origem,setOrigem]=useState("");const [destino,setDestino]=useState("");
  const [origemGeo,setOrigemGeo]=useState<Endereco|null>(null);const [destinoGeo,setDestinoGeo]=useState<Endereco|null>(null);
  const [localizando,setLocalizando]=useState(false);const [carregando,setCarregando]=useState(false);
@@ -123,68 +123,82 @@ export default function Home(){
    }catch{setChat(c=>[...c,{autor:"agente",texto:"Não foi possível consultar as orientações neste momento."}]);}
    finally{setChatCarregando(false);}
  }
- return <ScrollView style={s.bg} contentContainerStyle={s.page}><View style={s.container}>
-   <View style={s.header}>
-     <View style={s.logo}><Icone name="layers-outline" color="#fff" size={22}/></View>
-     <View><Text style={s.brand}>Citizen Tech</Text><Text style={s.brandSub}>Mobilidade Urbana</Text></View>
-     <Text style={s.headerRight}>Global Solution · 2026</Text>
+
+ return <ScrollView style={v.bg} contentContainerStyle={v.page}>
+   <View style={v.nav}>
+     <Text style={[v.navBrand,mobile&&v.navBrandMobile]}>Citizen Tech <Text style={v.navBrandAccent}>Mobilidade Urbana</Text></Text>
+     {!mobile&&<View style={v.navActive}><Text style={v.navActiveText}>Planejar trajeto</Text></View>}
+     <Text style={v.navMeta}>Global Solution · 2026</Text>
    </View>
-   <View style={[s.hero,mobile&&s.heroMobile]}>
-     <View style={s.heroContent}>
-       <Text style={s.eyebrow}>CIDADANIA • TECNOLOGIA • MOBILIDADE</Text>
-       <Text style={[s.title,mobile&&s.titleMobile]}>O melhor caminho começa <Text style={s.titleAccent}>com informação.</Text></Text>
-       <Text style={s.lead}>Encontre destinos, explore opções de transporte e esclareça suas dúvidas com uma experiência simples, conectada e feita para a cidade.</Text>
-       <View style={s.heroChips}><View style={s.heroChip}><Icone name="location-outline" size={15}/><Text style={s.heroChipText}>Endereços inteligentes</Text></View><View style={s.heroChip}><Icone name="shield-checkmark-outline" size={15}/><Text style={s.heroChipText}>Fontes identificadas</Text></View></View>
+
+   <View style={v.container}>
+     <View style={[v.intro,mobile&&v.introMobile]}>
+       <Text style={v.eyebrow}>MENOS COMPLICAÇÃO. MAIS CIDADE.</Text>
+       <Text style={[v.heading,mobile&&v.headingMobile]}>Seu próximo destino começa aqui.</Text>
+       <Text style={v.subtitle}>Combine metrô, ônibus e caminhada. Encontre o melhor caminho para você.</Text>
+       {!mobile&&<View style={v.cityBadge}><Icone name="location-outline" size={17} color="#0069d2"/><Text style={v.cityText}>São Paulo, SP</Text></View>}
      </View>
-     {!mobile&&<View style={s.heroGraphic}><View style={s.glowA}/><View style={s.glowB}/><View style={s.circuitCircle}><Icone name="planet-outline" color="#5a59c5" size={62}/></View><View style={s.heroGraphicTag}><Icone name="sparkles" size={18}/><Text style={s.heroGraphicText}>Cidade conectada</Text></View></View>}
-   </View>
-   <View style={s.planner}>
-     <View style={s.plannerHeading}><Icone name="navigate-outline" size={23}/><Text style={s.sectionTitle}>Planeje sua rota</Text></View>
-     <Text style={s.sectionSub}>Digite um endereço e escolha uma das sugestões para marcar a origem e o destino.</Text>
-     <View style={[s.inputs,mobile&&s.inputsMobile]}>
-       <View style={s.flexField}><CampoEndereco titulo="Ponto de partida" valor={origem} escolhido={origemGeo} mudar={atualizarOrigem} selecionar={e=>{setOrigem(e.nome);setOrigemGeo(e);setResultado(null);}} placeholder="Rua, número, bairro ou estação"/></View>
-       <View style={s.actionsOrigin}><Pressable onPress={obterPosicao} accessibilityLabel="Usar localização atual" style={s.locationButton}>{localizando?<ActivityIndicator color="#665ec4"/>:<Icone name="locate-outline" size={21}/>}</Pressable><Pressable onPress={()=>{setOrigem(destino);setDestino(origem);setOrigemGeo(destinoGeo);setDestinoGeo(origemGeo);setResultado(null);}} style={s.locationButton} accessibilityLabel="Inverter origem e destino"><Icone name="swap-horizontal" size={21}/></Pressable></View>
-       <View style={s.flexField}><CampoEndereco titulo="Destino" valor={destino} escolhido={destinoGeo} mudar={atualizarDestino} selecionar={e=>{setDestino(e.nome);setDestinoGeo(e);setResultado(null);}} placeholder="Ex.: Rua Maracá, 270, São Paulo"/></View>
+
+     <View style={[v.main,mobile&&v.mainMobile]}>
+       <View style={[v.sidebar,mobile&&v.sidebarMobile]}>
+         <View style={v.searchCard}>
+           <Text style={v.searchTitle}>Para onde vamos?</Text>
+           <View style={v.modeBar}>
+             <Pressable onPress={()=>{setModal("todos");setResultado(null);setErro("");}} style={[v.modeItem,modal==="todos"&&v.modeActive]} accessibilityRole="button" accessibilityState={{selected:modal==="todos"}}><Text style={[v.modeText,modal==="todos"&&v.modeTextActive]}>Todos</Text></Pressable>
+             {transportes.map(t=><Pressable key={t.id} onPress={()=>{setModal(t.id);setResultado(null);setErro("");}} style={[v.modeItem,modal===t.id&&v.modeActive]} accessibilityRole="button" accessibilityState={{selected:modal===t.id}}>
+               <Icone name={t.icone} size={15} color={modal===t.id?"#0069d2":"#667c92"}/><Text style={[v.modeText,modal===t.id&&v.modeTextActive]}>{t.id==="ferroviario"?"Metrô":t.nome}</Text>
+             </Pressable>)}
+           </View>
+           <View style={v.addresses}>
+             <CampoEndereco titulo="ORIGEM" valor={origem} escolhido={origemGeo} mudar={atualizarOrigem} selecionar={e=>{setOrigem(e.nome);setOrigemGeo(e);setResultado(null);}} placeholder="Informe seu ponto de partida"/>
+             <View style={v.middleActions}>
+               <Pressable onPress={obterPosicao} style={v.smallAction} accessibilityLabel="Usar minha localização">{localizando?<ActivityIndicator size="small" color="#0069d2"/>:<Icone name="locate-outline" color="#0069d2" size={17}/>}</Pressable>
+               <Pressable onPress={()=>{setOrigem(destino);setDestino(origem);setOrigemGeo(destinoGeo);setDestinoGeo(origemGeo);setResultado(null);setErro("");}} style={v.smallAction} accessibilityLabel="Inverter origem e destino"><Icone name="swap-vertical-outline" color="#0069d2" size={17}/></Pressable>
+             </View>
+             <CampoEndereco titulo="DESTINO" valor={destino} escolhido={destinoGeo} mudar={atualizarDestino} selecionar={e=>{setDestino(e.nome);setDestinoGeo(e);setResultado(null);}} placeholder="Para onde você quer ir?"/>
+           </View>
+           <Pressable onPress={planejar} disabled={carregando} style={v.searchButton} accessibilityRole="button">
+             {carregando?<ActivityIndicator color="#fff" size="small"/>:<Icone name="navigate-outline" size={18} color="#fff"/>}
+             <Text style={v.searchButtonText}>{carregando?"Calculando...":"Encontrar trajeto"}</Text>
+             <Icone name="arrow-forward-outline" size={18} color="#fff"/>
+           </Pressable>
+           {!!erro&&<View style={v.warning}><Icone name="information-circle-outline" size={17} color="#94602c"/><Text style={v.warningText}>{erro}</Text></View>}
+         </View>
+
+         <View style={v.resultsHeader}><Text style={v.resultsTitle}>Trajetos sugeridos</Text><Icone name="options-outline" size={20} color="#667c92"/></View>
+         <View style={v.departure}><Icone name="time-outline" size={15} color="#667c92"/><Text style={v.departureText}>Saída agora</Text><Text style={v.departureCount}>{resultado?"1 opção validada":"Aguardando busca"}</Text></View>
+         {resultado?<View style={v.recommended}>
+            <Text style={v.recommendedBadge}>TRAJETO DISPONÍVEL · A PÉ</Text>
+            <View style={v.recommendedTop}><Text style={v.duration}>{resultado.tempo_min} min</Text><Text style={v.fare}>Gratuito</Text></View>
+            <View style={v.routeSequence}><Icone name="walk-outline" color="#0069d2" size={20}/><Text style={v.routeSequenceText}>{(resultado.distancia_m/1000).toFixed(1)} km · {resultado.fonte}</Text></View>
+            <Text style={v.routeDisclaimer}>Estimativa de caminhada; segurança não verificada.</Text>
+          </View>:<View style={v.emptyResults}><Icone name="git-compare-outline" size={27} color="#8ba2bd"/><Text style={v.emptyResultsTitle}>Seu trajeto aparecerá aqui</Text><Text style={v.emptyResultsCopy}>Selecione endereços sugeridos e um modo de transporte para consultar as opções disponíveis. Os trajetos de transporte público ainda não possuem dados operacionais integrados.</Text></View>}
+       </View>
+
+       <View style={[v.mapCard,mobile&&v.mapCardMobile]}>
+         <View style={v.mapHeader}><Text style={v.mapTitle}>Mapa do trajeto</Text><View style={v.mapBadge}><Icone name="map-outline" size={15} color="#0069d2"/><Text style={v.mapBadgeText}>Mapa interativo</Text></View></View>
+         <MapaPreview url={preview} pontos={pontos} trajeto={resultado?.trajeto} height={mobile?390:560}/>
+         <View style={v.mapBottom}>
+           <Icone name="information-circle-outline" color="#63778c" size={17}/>
+           <Text style={v.mapBottomText}>{resultado?"Percurso a pé calculado a partir da origem e do destino selecionados.":"Escolha origem e destino para visualizar os pontos no mapa. Rotas reais de metrô e ônibus ainda não estão disponíveis."}</Text>
+         </View>
+       </View>
      </View>
-     <Pressable onPress={planejar} style={s.planButton} disabled={carregando} accessibilityRole="button"><Icone name="navigate-outline" color="#fff" size={20}/><Text style={s.planButtonText}>{carregando?"Calculando percurso...":"Traçar rota no mapa"}</Text></Pressable>
-     {!!erro&&<View style={s.warning}><Icone name="information-circle-outline" color="#986b2d"/><Text style={s.warningText}>{erro}</Text></View>}
-   </View>
-   <Text style={s.modesTitle}>Escolha como deseja se deslocar</Text>
-   <View style={[s.transportRow,mobile&&s.transportMobile]}>
-     {transportes.map(t=><Pressable key={t.id} style={[s.transportCard,modal===t.id&&s.transportActive]} onPress={()=>{setModal(t.id);setResultado(null);setErro("");}} accessibilityRole="button" accessibilityState={{selected:modal===t.id}}>
-       <ImageBackground
-          source={t.foto}
-          style={s.transportPhoto}
-          imageStyle={s.transportImage}
-          resizeMode="contain"
-        >
-         <View style={s.transportShade}/>
-         <View style={s.transportLabel}><Icone name={t.icone} color="#fff" size={25}/><Text style={s.transportText}>{t.nome}</Text><Icone name="chevron-forward-circle" color="#fff" size={23}/></View>
-       </ImageBackground>
-     </Pressable>)}
-   </View>
-   <View style={[s.content,mobile&&s.contentMobile]}>
-     <View style={s.chatPanel}>
-       <View style={s.chatHeader}><View style={s.chatIcon}><Icone name="sparkles-outline" color="#655aca" size={26}/></View><View style={{flex:1}}><Text style={s.chatTitle}>Seu assistente de mobilidade</Text><Text style={s.chatIntro}>Informações sobre transporte, cartões, benefícios e direitos.</Text></View></View>
-       <View style={s.suggestions}>{sugestoesChat.map(t=><Pressable key={t} style={s.suggestion} onPress={()=>perguntar(t)}><Text style={s.suggestionText}>{t}</Text></Pressable>)}</View>
-       <ScrollView style={s.chatHistory} nestedScrollEnabled><View style={{gap:9}}>{chat.length===0?<Text style={s.empty}>Escolha uma sugestão ou digite sua pergunta.</Text>:chat.map((m,i)=><View key={i} style={[s.bubble,m.autor==="pessoa"?s.bubbleUser:s.bubbleAi]}><Text style={[s.bubbleText,m.autor==="pessoa"&&{color:"#fff"}]}>{m.texto}</Text>{m.fonte&&<Text style={s.source}>{m.fonte}</Text>}</View>)}</View></ScrollView>
-       <View style={s.chatInput}><TextInput accessibilityLabel="Pergunta para o assistente" value={chatTexto} onChangeText={setChatTexto} style={s.chatTextInput} placeholder="Pergunte sobre sua mobilidade..." placeholderTextColor="#959eb9" onSubmitEditing={()=>perguntar()} returnKeyType="send"/><Pressable onPress={()=>perguntar()} style={s.send}>{chatCarregando?<ActivityIndicator color="#fff"/>:<Icone name="send" color="#fff" size={19}/>}</Pressable></View>
-       <Text style={s.disclaimer}>Orientações limitadas às fontes verificadas na base acadêmica.</Text>
+
+     <View style={v.assistant}>
+       <View style={v.assistantHeader}>
+         <View style={v.assistantHeaderLeft}><Icone name="chatbubble-ellipses-outline" color="#0069d2" size={23}/><View style={{flex:1}}><Text style={v.assistantTitle}>Pergunte ao agente de IA</Text><Text style={v.assistantSubtitle}>Orientações sobre cartões, benefícios, integração e transporte</Text></View></View>
+         <Text style={v.assistantTag}>ASSISTENTE CIDADÃO</Text>
+       </View>
+       <View style={v.suggestions}>{sugestoesChat.map(t=><Pressable key={t} style={v.suggestion} onPress={()=>perguntar(t)}><Text style={v.suggestionText}>{t}</Text></Pressable>)}</View>
+       <ScrollView style={v.chatHistory} nestedScrollEnabled><View style={{gap:10}}>{chat.length===0?<Text style={v.chatEmpty}>Selecione uma sugestão ou escreva sua dúvida sobre mobilidade.</Text>:chat.map((m,i)=><View key={i} style={[v.chatBubble,m.autor==="pessoa"?v.chatBubbleUser:v.chatBubbleAi]}><Text style={[v.chatBubbleText,m.autor==="pessoa"&&{color:"#fff"}]}>{m.texto}</Text>{!!m.fonte&&<Text style={v.chatSource}>{m.fonte}</Text>}</View>)}</View></ScrollView>
+       <View style={v.chatInput}><TextInput accessibilityLabel="Pergunta para o agente de IA" value={chatTexto} onChangeText={setChatTexto} placeholder="Escreva sua pergunta..." placeholderTextColor="#9baec2" onSubmitEditing={()=>perguntar()} returnKeyType="send" style={v.chatField}/><Pressable style={v.chatSend} onPress={()=>perguntar()} accessibilityLabel="Enviar pergunta">{chatCarregando?<ActivityIndicator color="#fff"/>:<Icone name="send" size={18} color="#fff"/>}</Pressable></View>
+       <Text style={v.assistantFootnote}>Respostas baseadas nas informações disponíveis na base acadêmica, com referências quando disponíveis.</Text>
      </View>
-     <View style={s.mapPanel}>
-       <View style={s.mapHeading}><Text style={s.mapTitle}>Mapa da região</Text><View style={s.mapTag}><Icone name="map-outline" size={15}/><Text style={s.mapTagText}>Mapa interativo</Text></View></View>
-       <MapaPreview url={preview} pontos={pontos} trajeto={resultado?.trajeto}/>
-       {resultado?<View style={s.result}>
-         <Text style={s.resultHeading}>Rota a pé · {resultado.fonte}</Text>
-         <View style={s.stats}><View style={s.stat}><Text style={s.statSmall}>TEMPO</Text><Text style={s.statValue}>{resultado.tempo_min} min</Text></View><View style={s.stat}><Text style={s.statSmall}>DISTÂNCIA</Text><Text style={s.statValue}>{(resultado.distancia_m/1000).toFixed(1)} km</Text></View><View style={s.stat}><Text style={s.statSmall}>TARIFA</Text><Text style={s.statValue}>Gratuito</Text></View></View>
-         <View style={s.safetyInfo}><Icone name="shield-outline" size={17}/><Text style={s.safetyInfoText}>Segurança: não verificada. Não há dados de ocorrências integrados à rota.</Text></View>
-         <Text style={s.mapFoot}>Estimativa de caminhada, não inclui trânsito ou alterações da via.</Text>
-       </View>:<Text style={s.mapFoot}>Selecione dois endereços para ver os marcadores. Rotas reais de ônibus, metrô e trem precisam de dados operacionais, ainda não integrados.</Text>}
-     </View>
+
+     <Text style={v.footer}>Citizen Tech Mobilidade Urbana · FIAP Global Solution 2026 · Indicadores de segurança não verificados; rotas reais de transporte público em desenvolvimento.</Text>
    </View>
-   <View style={s.safetyBlock}><Icone name="shield-checkmark-outline" size={29}/><View style={{flex:1}}><Text style={s.safetyTitle}>Indicadores de segurança por região</Text><Text style={s.safetyCopy}>Em preparação: dados agregados de ocorrências, com fonte, período e limitações.</Text></View><Text style={s.pending}>Em desenvolvimento</Text></View>
-   <Text style={s.footer}>Citizen Tech Mobilidade Urbana • Projeto acadêmico FIAP. Informações de segurança não verificadas e rotas de transporte público ainda não operacionais.</Text>
- </View></ScrollView>;
+ </ScrollView>;
 }
 
 const s=StyleSheet.create({
@@ -198,4 +212,61 @@ const s=StyleSheet.create({
  content:{flexDirection:"row",gap:14,marginTop:18,alignItems:"stretch"},contentMobile:{flexWrap:"wrap"},chatPanel:{flex:1,minWidth:290,borderRadius:29,backgroundColor:"#faf9ff",borderColor:"#deddfa",borderWidth:1,padding:20},chatHeader:{flexDirection:"row",gap:12,alignItems:"center"},chatIcon:{width:47,height:47,borderRadius:24,backgroundColor:"#e8e5ff",alignItems:"center",justifyContent:"center"},chatTitle:{fontSize:18,color:"#34457a",fontWeight:"800"},chatIntro:{color:"#8790ac",fontSize:12,marginTop:6,lineHeight:17},suggestions:{flexDirection:"row",flexWrap:"wrap",gap:7,marginTop:17},suggestion:{backgroundColor:"#eceefe",paddingVertical:8,paddingHorizontal:12,borderRadius:23},suggestionText:{fontSize:12,color:"#5964a7"},chatHistory:{maxHeight:230,minHeight:60,marginVertical:13},empty:{color:"#8795b3",fontSize:13},bubble:{padding:11,maxWidth:"90%",borderRadius:18},bubbleUser:{backgroundColor:"#6666bd",alignSelf:"flex-end"},bubbleAi:{backgroundColor:"#e9ecfb",alignSelf:"flex-start"},bubbleText:{color:"#45598b",fontSize:13,lineHeight:20},source:{fontSize:10,color:"#667bb1",marginTop:5},chatInput:{flexDirection:"row",alignItems:"center",backgroundColor:"#fff",borderRadius:29,borderWidth:1,borderColor:"#cfd5f2",paddingLeft:15,paddingRight:5,minHeight:51},chatTextInput:{flex:1,fontSize:13,color:"#354777",paddingVertical:12},send:{width:40,height:40,backgroundColor:"#7571d2",borderRadius:22,alignItems:"center",justifyContent:"center"},disclaimer:{fontSize:10,color:"#9ba6c0",marginTop:9},
  mapPanel:{flex:1.13,minWidth:290,backgroundColor:"#fff",borderRadius:12,padding:13},mapHeading:{flexDirection:"row",alignItems:"center",justifyContent:"space-between",marginBottom:11},mapTitle:{fontSize:18,fontWeight:"800",color:"#344475"},mapTag:{backgroundColor:"#eeedff",borderRadius:10,padding:8,flexDirection:"row",gap:6,alignItems:"center"},mapTagText:{fontSize:11,color:"#6664ad"},mapFoot:{color:"#8c97ae",fontSize:11,lineHeight:19,marginTop:12},result:{backgroundColor:"#f5f6ff",borderRadius:11,padding:12,marginTop:9},resultHeading:{fontSize:13,color:"#485995",fontWeight:"800"},stats:{flexDirection:"row",flexWrap:"wrap",gap:8,marginTop:10},stat:{flex:1,minWidth:88,backgroundColor:"#fff",borderRadius:8,padding:9},statSmall:{fontSize:10,color:"#8490ad",fontWeight:"700"},statValue:{fontSize:17,color:"#394784",fontWeight:"800",marginTop:6},safetyInfo:{flexDirection:"row",alignItems:"center",gap:9,marginTop:11},safetyInfoText:{color:"#66759d",fontSize:11,lineHeight:18,flex:1},
  safetyBlock:{backgroundColor:"#e4e8fb",borderRadius:12,marginTop:18,padding:16,flexDirection:"row",gap:14,alignItems:"center",flexWrap:"wrap"},safetyTitle:{fontSize:16,fontWeight:"800",color:"#3d4b82"},safetyCopy:{fontSize:12,color:"#7484ab",marginTop:5},pending:{fontSize:11,color:"#6565ad",padding:9,backgroundColor:"#d7dcf6",borderRadius:12},footer:{fontSize:10,color:"#93a0bc",textAlign:"center",marginTop:22}
+});
+
+
+const v=StyleSheet.create({
+ bg:{flex:1,backgroundColor:"#dfefff"},
+ page:{minHeight:"100%"},
+ nav:{backgroundColor:"rgba(247,251,255,0.90)",minHeight:88,paddingHorizontal:48,paddingVertical:20,borderBottomWidth:1,borderBottomColor:"#bfd6ec",flexDirection:"row",alignItems:"center",gap:30,flexWrap:"wrap"},
+ navBrand:{fontSize:25,fontWeight:"800",letterSpacing:-.9,color:"#1d2633"},navBrandMobile:{fontSize:19},navBrandAccent:{fontWeight:"500",color:"#0069d2"},
+ navActive:{backgroundColor:"#dcebfa",borderRadius:22,paddingHorizontal:18,paddingVertical:13},navActiveText:{color:"#0069d2",fontSize:14,fontWeight:"700"},navMeta:{fontSize:11,color:"#62758a",marginLeft:"auto"},
+ container:{maxWidth:1440,width:"100%",alignSelf:"center",paddingHorizontal:48,paddingBottom:28},
+ intro:{minHeight:182,paddingTop:34,justifyContent:"center",position:"relative",paddingBottom:23},introMobile:{paddingTop:24,minHeight:0},
+ eyebrow:{color:"#0069d2",fontSize:11,fontWeight:"800",letterSpacing:1.7,marginBottom:12},
+ heading:{color:"#1d2633",fontWeight:"800",fontSize:42,letterSpacing:-1.5,lineHeight:53},headingMobile:{fontSize:29,lineHeight:38},
+ subtitle:{color:"#586c80",fontSize:15,marginTop:7,lineHeight:22},
+ cityBadge:{position:"absolute",right:0,top:70,flexDirection:"row",alignItems:"center",gap:8,backgroundColor:"rgba(255,255,255,.7)",borderRadius:24,paddingHorizontal:16,paddingVertical:13},cityText:{color:"#1d2633",fontSize:13,fontWeight:"600"},
+ main:{flexDirection:"row",alignItems:"stretch",gap:24},mainMobile:{flexDirection:"column"},
+ sidebar:{width:408,maxWidth:"100%"},sidebarMobile:{width:"100%"},
+ searchCard:{backgroundColor:"rgba(255,255,255,.96)",padding:24,borderRadius:24,shadowColor:"#336191",shadowOpacity:.08,shadowRadius:26,elevation:2},
+ searchTitle:{fontSize:21,fontWeight:"800",color:"#1d2633",marginBottom:16},
+ modeBar:{flexDirection:"row",backgroundColor:"#eef3f8",borderRadius:13,padding:4,gap:1,justifyContent:"space-between",marginBottom:16},
+ modeItem:{paddingHorizontal:9,minHeight:34,justifyContent:"center",alignItems:"center",flexDirection:"row",gap:4,borderRadius:10,flexGrow:1},
+ modeActive:{backgroundColor:"#fff",shadowColor:"#336191",shadowOpacity:.08,shadowRadius:4,elevation:1},
+ modeText:{fontSize:12,color:"#586c80",fontWeight:"500"},modeTextActive:{fontWeight:"700",color:"#0069d2"},
+ addresses:{gap:7},middleActions:{alignSelf:"flex-end",flexDirection:"row",gap:7,marginVertical:1},
+ smallAction:{borderWidth:1,borderColor:"#d2e2f1",backgroundColor:"#fff",height:32,width:36,borderRadius:16,alignItems:"center",justifyContent:"center"},
+ searchButton:{marginTop:17,backgroundColor:"#0071e3",borderRadius:24,minHeight:48,flexDirection:"row",justifyContent:"center",alignItems:"center",gap:11},
+ searchButtonText:{color:"#fff",fontSize:14,fontWeight:"800"},
+ warning:{marginTop:12,backgroundColor:"#fff7e9",borderRadius:10,padding:10,flexDirection:"row",gap:8,alignItems:"center"},
+ warningText:{flex:1,fontSize:12,color:"#94602c",lineHeight:18},
+ resultsHeader:{marginTop:24,marginBottom:11,flexDirection:"row",alignItems:"center",justifyContent:"space-between"},resultsTitle:{fontWeight:"800",color:"#1d2633",fontSize:18},
+ departure:{flexDirection:"row",alignItems:"center",gap:7,marginBottom:14},departureText:{fontSize:12,color:"#586c80"},departureCount:{marginLeft:"auto",fontSize:12,color:"#586c80"},
+ recommended:{backgroundColor:"#f6faff",borderRadius:22,borderWidth:1.5,borderColor:"#6ca9eb",padding:20,shadowColor:"#336191",shadowOpacity:.08,shadowRadius:16,elevation:2},
+ recommendedBadge:{color:"#0069d2",fontWeight:"800",fontSize:10,letterSpacing:1},
+ recommendedTop:{flexDirection:"row",justifyContent:"space-between",alignItems:"center",marginTop:6},duration:{fontWeight:"800",fontSize:26,color:"#1d2633"},fare:{fontWeight:"700",fontSize:14,color:"#1d2633"},
+ routeSequence:{flexDirection:"row",alignItems:"center",gap:9,marginTop:10},routeSequenceText:{color:"#586c80",fontSize:12},
+ routeDisclaimer:{color:"#667c92",fontSize:11,marginTop:8},
+ emptyResults:{backgroundColor:"rgba(255,255,255,.86)",borderRadius:24,minHeight:200,padding:23,justifyContent:"center",alignItems:"center",gap:10},
+ emptyResultsTitle:{fontWeight:"700",color:"#1d2633",fontSize:14},emptyResultsCopy:{color:"#667c92",fontSize:12,textAlign:"center",lineHeight:19},
+ mapCard:{backgroundColor:"#eff5fb",borderRadius:26,padding:15,flex:1,minWidth:0,borderWidth:1,borderColor:"rgba(255,255,255,.8)",shadowColor:"#336191",shadowOpacity:.10,shadowRadius:36,elevation:2},
+ mapCardMobile:{flex:0,width:"100%"},
+ mapHeader:{flexDirection:"row",alignItems:"center",justifyContent:"space-between",marginBottom:13,paddingHorizontal:2},
+ mapTitle:{color:"#1d2633",fontSize:18,fontWeight:"800"},mapBadge:{backgroundColor:"#fff",paddingHorizontal:11,paddingVertical:8,borderRadius:16,flexDirection:"row",alignItems:"center",gap:6},mapBadgeText:{color:"#0069d2",fontSize:12,fontWeight:"600"},
+ mapBottom:{backgroundColor:"rgba(255,255,255,.88)",borderRadius:15,padding:13,marginTop:12,flexDirection:"row",alignItems:"center",gap:9},
+ mapBottomText:{flex:1,fontSize:12,lineHeight:18,color:"#63778c"},
+ assistant:{marginTop:24,backgroundColor:"rgba(255,255,255,.93)",borderRadius:25,padding:24,shadowColor:"#336191",shadowOpacity:.07,shadowRadius:20,elevation:1},
+ assistantHeader:{flexDirection:"row",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12},
+ assistantHeaderLeft:{flexDirection:"row",alignItems:"center",gap:11,flex:1},
+ assistantTitle:{fontSize:19,fontWeight:"800",color:"#1d2633"},assistantSubtitle:{fontSize:12,color:"#586c80",marginTop:4},
+ assistantTag:{fontWeight:"800",fontSize:10,letterSpacing:1,color:"#0069d2"},
+ suggestions:{flexDirection:"row",gap:8,flexWrap:"wrap",marginTop:17},suggestion:{borderRadius:18,paddingHorizontal:13,paddingVertical:8,backgroundColor:"#e8f2fd"},suggestionText:{color:"#0069d2",fontSize:12,fontWeight:"600"},
+ chatHistory:{minHeight:65,maxHeight:230,marginVertical:15},chatEmpty:{fontSize:12,color:"#7388a0",paddingTop:12},
+ chatBubble:{borderRadius:18,padding:12,maxWidth:"90%"},chatBubbleUser:{backgroundColor:"#0071e3",alignSelf:"flex-end"},chatBubbleAi:{backgroundColor:"#eaf3fc",alignSelf:"flex-start"},
+ chatBubbleText:{color:"#1d2633",fontSize:13,lineHeight:20},chatSource:{color:"#586c80",fontSize:10,marginTop:8},
+ chatInput:{flexDirection:"row",alignItems:"center",minHeight:49,backgroundColor:"#f0f5fa",borderRadius:25,paddingLeft:15,paddingRight:5},
+ chatField:{flex:1,color:"#1d2633",fontSize:14,paddingVertical:11},chatSend:{height:39,width:39,borderRadius:20,backgroundColor:"#0071e3",alignItems:"center",justifyContent:"center"},
+ assistantFootnote:{fontSize:10,color:"#71859b",marginTop:9},
+ footer:{marginVertical:22,textAlign:"center",fontSize:11,color:"#667c92"}
 });
