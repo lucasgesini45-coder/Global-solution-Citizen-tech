@@ -2,9 +2,9 @@ import React from "react";
 import { View } from "react-native";
 import WebView from "react-native-webview";
 
-type Props = {url:string;trajeto?:number[][];pontos?:{lat:number;lon:number;nome?:string}[]};
+type Props = {url:string;trajeto?:number[][];pontos?:{lat:number;lon:number;nome?:string}[];height?:number};
 const key=process.env.EXPO_PUBLIC_CARTO_KEY || "";
-export default function MapaPreview({trajeto,pontos=[]}:Props){
+export default function MapaPreview({trajeto,pontos=[],height=365}:Props){
  const rota=(trajeto||[]).filter(p=>p.length===2&&p.every(Number.isFinite));
  const marcas=pontos.filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lon));
  const dados=JSON.stringify({rota,marcas}).replace(/</g,"\\u003c");
@@ -16,5 +16,5 @@ export default function MapaPreview({trajeto,pontos=[]}:Props){
  v.marcas.forEach(p=>{let x=[p.lat,p.lon];b.push(x);L.circleMarker(x,{radius:8,color:"#fff",weight:3,fillColor:"#7262cf",fillOpacity:1}).bindPopup(p.nome||"Endereço").addTo(m)});
  if(b.length===1)m.setView(b[0],15);else if(b.length>1)m.fitBounds(b,{padding:[28,28],maxZoom:16});
  </script></body></html>`;
- return <View style={{height:365,borderRadius:12,overflow:"hidden"}}><WebView originWhitelist={["*"]} source={{html,baseUrl:"https://localhost/"}} style={{flex:1}}/></View>;
+ return <View style={{height,borderRadius:18,overflow:"hidden"}}><WebView originWhitelist={["*"]} source={{html,baseUrl:"https://localhost/"}} style={{flex:1}}/></View>;
 }
