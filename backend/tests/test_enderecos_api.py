@@ -2,7 +2,7 @@
 import unittest
 from unittest.mock import patch
 from fastapi import HTTPException
-from backend.src.enderecos_api import Coordenadas, RotaRealPedido, sugestoes, rota_real
+from backend.src.enderecos_api import Coordenadas, RotaRealPedido, sugestoes, rota_real, _buscar_cache
 
 class EnderecosTestes(unittest.TestCase):
     def test_busca_apresenta_resultados(self):
@@ -10,6 +10,26 @@ class EnderecosTestes(unittest.TestCase):
         with patch("backend.src.enderecos_api._buscar_cache",return_value=fake):
             resposta=sugestoes("Rua Maraca 270")
         self.assertEqual(resposta["resultados"][0]["nome"],fake[0]["nome"])
+
+    def test_consultas_sucessivas_nao_recebem_429(self):
+        fake = [{"nome": "FIAP Aclimacao, Sao Paulo", "lat": -23.57,
+                 "lon": -46.63, "fonte": "OpenStreetMap/Photon"}]
+        with patch("backend.src.enderecos_api._buscar_cache", return_value=fake):
+            self.assertEqual(len(sugestoes("FIAP Aclimacao")["resultados"]), 1)
+            self.assertEqual(len(sugestoes("FIAP Aclimacao SP")["resultados"]), 1)
+
+    def test_resultados_photon_filtram_area_e_repeticoes(self):
+        valido = {"properties": {"name": "FIAP Aclimacao", "city": "Sao Paulo"},
+                  "geometry": {"coordinates": [-46.63, -23.57]}}
+        fora = {"properties": {"name": "Fora da regiao"},
+                "geometry": {"coordinates": [-43.2, -22.9]}}
+        _buscar_cache.cache_clear()
+        with patch("backend.src.enderecos_api._json_http",
+                   return_value={"features": [valido, valido, fora]}):
+            resultados = _buscar_cache("teste coordenadas bairro")
+        self.assertEqual(len(resultados), 1)
+        self.assertEqual(resultados[0]["nome"], "FIAP Aclimacao, Sao Paulo")
+        _buscar_cache.cache_clear()
 
     def test_modal_ferrovia_nao_finge_suporte(self):
         with self.assertRaises(HTTPException) as e:
