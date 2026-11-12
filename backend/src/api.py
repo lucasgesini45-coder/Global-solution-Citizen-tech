@@ -7,7 +7,7 @@ from .rotas_api import router as rotas_router
 from .enderecos_api import router as enderecos_router
 
 app = FastAPI(title="Citizen Mobilidade", version="0.1.0")
-app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:8081", "http://127.0.0.1:8081", "http://localhost:8082", "http://127.0.0.1:8082", "http://localhost:19006"], allow_methods=["GET","POST"], allow_headers=["Content-Type"])
+app.add_middleware(\n    CORSMiddleware,\n    allow_origins=[],\n    allow_origin_regex=r"^https?://(localhost|127\\.0\\.0\\.1):[0-9]+$",\n    allow_methods=["GET", "POST"],\n    allow_headers=["Content-Type"],\n)
 
 app.include_router(rotas_router)
 app.include_router(enderecos_router)
