@@ -1,60 +1,145 @@
-import React from "react";
-import { View } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Text, View } from "react-native";
 
-type Ponto={lat:number;lon:number;nome?:string;tipo?:string};
-type Props={url:string;trajeto?:number[][];pontos?:Ponto[];height?:number};
+type Ponto = {lat:number;lon:number;nome?:string;tipo?:string};
+type Props = {url:string;trajeto?:number[][];pontos?:Ponto[];height?:number};
 
-export default function MapaPreview({pontos=[],height=365}:Props){
+type MapLibreApi = {
+ Map: new (options: Record<string, unknown>) => any;
+ Marker: new (options: Record<string, unknown>) => any;
+ Popup: new (options: Record<string, unknown>) => any;
+ NavigationControl: new (options: Record<string, unknown>) => any;
+ LngLatBounds: new () => any;
+};
+
+const SCRIPT_ID = "citizen-maplibre-script";
+const CSS_ID = "citizen-maplibre-css";
+const SCRIPT_URL = "https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js";
+const CSS_URL = "https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css";
+const STYLE_URL = "https://tiles.openfreemap.org/styles/positron";
+
+function getMapLibre(): MapLibreApi | undefined {
+ return (window as unknown as {maplibregl?:MapLibreApi}).maplibregl;
+}
+
+let loadingScript: Promise<MapLibreApi> | null = null;
+function loadMapLibre(): Promise<MapLibreApi> {
+ const loaded = getMapLibre();
+ if (loaded) return Promise.resolve(loaded);
+ if (loadingScript) return loadingScript;
+ loadingScript = new Promise<MapLibreApi>((resolve,reject)=>{
+   if (!document.getElementById(CSS_ID)) {
+     const css=document.createElement("link");css.id=CSS_ID;css.rel="stylesheet";css.href=CSS_URL;
+     document.head.appendChild(css);
+   }
+   const finish=()=>{const lib=getMapLibre();lib?resolve(lib):reject(new Error("Biblioteca de mapas não carregada."));};
+   let script=document.getElementById(SCRIPT_ID) as HTMLScriptElement|null;
+   if (!script) {
+     script=document.createElement("script");
+     script.id=SCRIPT_ID;
+     script.src=SCRIPT_URL;
+     script.async=true;
+     script.onload=finish;
+     script.onerror=()=>reject(new Error("Não foi possível baixar a biblioteca MapLibre."));
+     document.head.appendChild(script);
+   } else {
+     script.addEventListener("load",finish,{once:true});
+     script.addEventListener("error",()=>reject(new Error("Não foi possível baixar a biblioteca MapLibre.")),{once:true});
+   }
+ });
+ loadingScript.catch(()=>{loadingScript=null;document.getElementById(SCRIPT_ID)?.remove();});
+ return loadingScript;
+}
+
+/** Usa DOM direto no Expo Web: MapLibre não funciona com segurança em iframe srcDoc. */
+export default function MapaPreview({pontos=[],height=365}:Props) {
+ const containerRef=useRef<HTMLDivElement|null>(null);
+ const mapRef=useRef<any>(null);
+ const markersRef=useRef<any[]>([]);
+ const [erro,setErro]=useState("");
+ const [pronto,setPronto]=useState(false);
  const marcas=pontos.filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lon));
- const payload=JSON.stringify({marcas}).replace(/</g,"\\u003c");
- const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
-<style>
-html,body,#map{margin:0;width:100%;height:100%;background:#eff3f7;font-family:Inter,Arial,sans-serif}
-.maplibregl-control-container .maplibregl-ctrl-top-right{top:48px;right:7px}
-.maplibregl-ctrl-group{border-radius:12px!important;overflow:hidden;box-shadow:0 4px 16px rgba(51,97,145,.14)!important}
-.maplibregl-ctrl-attrib{font-size:10px!important}
-.pin{width:30px;height:30px;box-sizing:border-box;border:3px solid #fff;border-radius:50%;background:#0071e3;color:white;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;box-shadow:0 3px 9px rgba(25,74,135,.27)}
-.pin.end{background:#405fc7}
-.tag{position:absolute;top:15px;left:15px;z-index:2;background:#fffffff0;color:#37516b;border-radius:12px;padding:10px 13px;font-weight:700;font-size:12px;box-shadow:0 4px 12px rgba(51,97,145,.12);pointer-events:none}
-#error{display:none;position:absolute;left:12px;bottom:28px;right:12px;background:#fff4e9;color:#8f4e22;padding:11px;border-radius:10px;z-index:5;font-size:12px}
-.maplibregl-popup-content{border-radius:12px;padding:12px;font-size:12px}
-</style></head><body>
-<div id="map" aria-label="Mapa interativo OpenFreeMap Positron"></div>
-<div class="tag">OpenFreeMap · Positron</div><div id="error" role="alert"></div>
-<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-<script>
-(function(){
- const data=${payload};
- const errorBox=document.getElementById("error");
- function showError(message){errorBox.textContent=message;errorBox.style.display="block";}
- if(!window.maplibregl){showError("Biblioteca do mapa indisponível. Verifique sua conexão.");return;}
- try {
-  const map=new maplibregl.Map({container:"map",style:"https://tiles.openfreemap.org/styles/positron",center:[-46.6333,-23.5505],zoom:12.5,attributionControl:true});
-  map.addControl(new maplibregl.NavigationControl({showCompass:false}),"top-right");
-  map.on("error",function(event){if(!map.loaded())showError("Não foi possível carregar o mapa. Verifique o acesso ao OpenFreeMap.");});
-  map.on("load",function(){
-   errorBox.style.display="none";
-   const bounds=new maplibregl.LngLatBounds();
-   data.marcas.forEach(function(p){
-    if(!Number.isFinite(p.lat)||!Number.isFinite(p.lon))return;
-    const isEnd=p.tipo==="destino";
-    const pin=document.createElement("div");
-    pin.className="pin"+(isEnd?" end":"");
-    pin.textContent=isEnd?"B":"A";
-    const popup=new maplibregl.Popup({offset:18}).setText(String(p.nome|| (isEnd?"Destino":"Origem")));
-    new maplibregl.Marker({element:pin,anchor:"center"}).setLngLat([p.lon,p.lat]).setPopup(popup).addTo(map);
-    bounds.extend([p.lon,p.lat]);
-   });
-   if(data.marcas.length===1&& !bounds.isEmpty())map.jumpTo({center:bounds.getCenter(),zoom:15});
-   else if(data.marcas.length>1&& !bounds.isEmpty())map.fitBounds(bounds,{padding:65,maxZoom:16,duration:0});
-   map.resize();
-  });
- }catch(e){showError("Falha ao iniciar o mapa Positron.");}
-})();
-</script></body></html>`;
- return <View style={{height,width:"100%",borderRadius:18,overflow:"hidden",backgroundColor:"#eff3f7"}}>
-   {React.createElement("iframe",{srcDoc:html,title:"Mapa OpenFreeMap Positron",style:{width:"100%",height:"100%",border:0},loading:"eager",allow:"fullscreen"})}
+ const marcadores=JSON.stringify(marcas.map(p=>({lat:p.lat,lon:p.lon,nome:p.nome,tipo:p.tipo})));
+
+ useEffect(()=>{
+   let active=true;
+   let timeout:ReturnType<typeof setTimeout>|null=null;
+   setErro("");setPronto(false);
+   loadMapLibre().then(lib=>{
+     if(!active||!containerRef.current)return;
+     if(!lib.Map || !lib.Marker)throw new Error("Biblioteca MapLibre incompleta.");
+     const map=new lib.Map({
+       container:containerRef.current,
+       style:STYLE_URL,
+       center:[-46.6333,-23.5505],
+       zoom:12.5,
+       attributionControl:true
+     });
+     mapRef.current=map;
+     map.addControl(new lib.NavigationControl({showCompass:false}),"top-right");
+     map.on("load",()=>{
+       if(!active)return;
+       setPronto(true);setErro("");
+       map.resize();
+     });
+     map.on("error",(event:{error?:{message?:string}})=>{
+       if(active&&!map.loaded())setErro("Falha ao carregar o Positron. Confira sua conexão e o acesso ao OpenFreeMap. "+(event?.error?.message||""));
+     });
+     timeout=setTimeout(()=>{
+       if(active&&!map.loaded())setErro("O mapa não carregou. Confira no navegador se o OpenFreeMap e o MapLibre estão acessíveis.");
+     },12000);
+   }).catch(e=>{if(active)setErro(e instanceof Error?e.message:"Erro ao iniciar o mapa.");});
+   return ()=>{
+     active=false;
+     if(timeout)clearTimeout(timeout);
+     markersRef.current.forEach(marker=>marker.remove());markersRef.current=[];
+     mapRef.current?.remove();mapRef.current=null;
+   };
+ },[]);
+
+ useEffect(()=>{
+   if(!pronto||!mapRef.current)return;
+   let cancelled=false;
+   loadMapLibre().then(lib=>{
+     if(cancelled||!mapRef.current)return;
+     markersRef.current.forEach(marker=>marker.remove());markersRef.current=[];
+     const bounds=new lib.LngLatBounds();
+     const lista=JSON.parse(marcadores) as Ponto[];
+     lista.forEach(p=>{
+       const destino=p.tipo==="destino";
+       const el=document.createElement("div");
+       el.textContent=destino?"B":"A";
+       Object.assign(el.style,{
+         display:"flex",alignItems:"center",justifyContent:"center",
+         width:"30px",height:"30px",boxSizing:"border-box",border:"3px solid white",
+         borderRadius:"50%",background:destino?"#405fc7":"#0071e3",
+         color:"#fff",fontSize:"12px",fontWeight:"800",boxShadow:"0 3px 9px rgba(25,74,135,.27)"
+       });
+       const marker=new lib.Marker({element:el,anchor:"center"})
+         .setLngLat([p.lon,p.lat])
+         .setPopup(new lib.Popup({offset:18}).setText(p.nome||(destino?"Destino":"Origem")))
+         .addTo(mapRef.current);
+       markersRef.current.push(marker);
+       bounds.extend([p.lon,p.lat]);
+     });
+     if(lista.length===1)mapRef.current.jumpTo({center:bounds.getCenter(),zoom:15});
+     else if(lista.length>1)mapRef.current.fitBounds(bounds,{padding:65,maxZoom:16,duration:0});
+     mapRef.current.resize();
+   }).catch(e=>{if(!cancelled)setErro(e instanceof Error?e.message:"Falha ao marcar endereços.");});
+   return ()=>{cancelled=true;};
+ },[marcadores,pronto]);
+
+ return <View style={{height,width:"100%",borderRadius:18,overflow:"hidden",backgroundColor:"#eff3f7",position:"relative"}}>
+   {React.createElement("div",{
+     ref:containerRef,
+     "aria-label":"Mapa OpenFreeMap Positron",
+     style:{width:"100%",height:"100%"}
+   })}
+   <View pointerEvents="none" style={{position:"absolute",top:15,left:15,backgroundColor:"rgba(255,255,255,.95)",paddingHorizontal:12,paddingVertical:9,borderRadius:12}}>
+     <Text style={{color:"#37516b",fontWeight:"700",fontSize:12}}>OpenFreeMap · Positron</Text>
+   </View>
+   {!!erro&&<View style={{position:"absolute",left:14,right:14,bottom:18,backgroundColor:"#fff4e9",padding:12,borderRadius:10,borderWidth:1,borderColor:"#f3d4b6"}}>
+      <Text style={{color:"#8f4e22",fontSize:12}}>{erro}</Text>
+   </View>}
  </View>;
 }
