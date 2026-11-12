@@ -11,6 +11,9 @@ type Modal = "todos"|"ferroviario"|"onibus"|"ape";
 type Endereco = {nome:string;lat:number;lon:number;fonte:string};
 type Resultado = {tipo:string;fonte:string;tempo_min:number;distancia_m:number;tarifa_centavos:number|null;seguranca:{status:string};trajeto:number[][];aviso:string};
 type Consulta = {resposta:string;fontes:{referencia:string;data_verificacao:string}[]};
+type RotaDemo = {ordem:number;tempo_total_min:number;espera_min:number;caminhada_m:number;baldeacoes:number;saida:string;chegada:string;custo:{centavos:number|null;confirmado:boolean};seguranca:{status:string};acessibilidade:string;trechos:{tipo:string;modal:string|null;linha:string|null}[]};
+type RespostaDemo = {modo:string;origem_dados:string;cenario:string;partida_exemplo:string;aviso:string;resultado:{rotas:RotaDemo[];erro?:{mensagem:string}|null}};
+
 
 const transportes: {id:Modal;nome:string;icone:Icon}[] = [
  {id:"ferroviario",nome:"Metrô",icone:"train-outline"},
@@ -73,6 +76,9 @@ export default function Home(){
  const [erro,setErro]=useState("");const [resultado,setResultado]=useState<Resultado|null>(null);
  const [chatTexto,setChatTexto]=useState("");const [chat,setChat]=useState<{autor:"pessoa"|"agente";texto:string;fonte?:string}[]>([]);
  const [chatCarregando,setChatCarregando]=useState(false);
+ const [demo,setDemo]=useState<RespostaDemo|null>(null);
+ const [demoCarregando,setDemoCarregando]=useState(false);
+ const [demoErro,setDemoErro]=useState("");
  const [fotoBase,setFotoBase]=useState(false);
 
  const pontos=[origemGeo,destinoGeo].filter((p):p is Endereco=>p!==null);
@@ -110,6 +116,19 @@ export default function Home(){
      setResultado(data);
    }catch(e){setErro(e instanceof Error?e.message:"Não foi possível calcular a rota.");}
    finally{setCarregando(false);}
+ }
+ async function executarDemo(){
+   if(demoCarregando)return;
+   setDemoCarregando(true);setDemoErro("");setDemo(null);
+   try{
+     const resposta=await fetch(API+"/rotas/exemplo");
+     const dados:RespostaDemo=await resposta.json();
+     if(!resposta.ok)throw new Error("Serviço de demonstração indisponível.");
+     if(dados.modo!=="demonstracao" || !dados.resultado || !Array.isArray(dados.resultado.rotas))throw new Error("Resposta de demonstração inválida.");
+     if(dados.resultado.erro)throw new Error(dados.resultado.erro.mensagem);
+     setDemo(dados);
+   }catch(e){setDemoErro(e instanceof Error?e.message:"Falha ao executar a simulação.");}
+   finally{setDemoCarregando(false);}
  }
  async function perguntar(pergunta=chatTexto){
    const texto=pergunta.trim();if(!texto || chatCarregando)return;
@@ -173,6 +192,26 @@ export default function Home(){
             <View style={v.routeSequence}><Icone name="walk-outline" color="#0069d2" size={20}/><Text style={v.routeSequenceText}>{(resultado.distancia_m/1000).toFixed(1)} km · {resultado.fonte}</Text></View>
             <Text style={v.routeDisclaimer}>Estimativa de caminhada; segurança não verificada.</Text>
           </View>:<View style={v.emptyResults}><Icone name="git-compare-outline" size={27} color="#8ba2bd"/><Text style={v.emptyResultsTitle}>Seu trajeto aparecerá aqui</Text><Text style={v.emptyResultsCopy}>Selecione endereços sugeridos e um modo de transporte para consultar as opções disponíveis. Os trajetos de transporte público ainda não possuem dados operacionais integrados.</Text></View>}
+         <View style={v.demoPanel}>
+           <View style={v.demoHead}><Icone name="flask-outline" color="#0069d2" size={21}/><Text style={v.demoTitle}>Laboratório de rotas e tarifas</Text></View>
+           <Text style={v.demoDescription}>Teste o algoritmo do grupo com uma rede fictícia. Os horários, trajetos e preços desta simulação não representam o transporte real.</Text>
+           <Pressable style={v.demoButton} onPress={executarDemo} disabled={demoCarregando} accessibilityRole="button">
+             {demoCarregando?<ActivityIndicator color="#fff" size="small"/>:<Icone name="play-outline" color="#fff" size={17}/>}
+             <Text style={v.demoButtonText}>{demoCarregando?"Executando...":"Executar simulação"}</Text>
+           </Pressable>
+           {!!demoErro&&<Text style={v.demoError}>{demoErro}</Text>}
+           {demo&&<View style={v.demoResults}>
+             <Text style={v.demoLabel}>RESULTADOS SIMULADOS · NÃO OFICIAIS</Text>
+             <Text style={v.demoDetail}>Cenário acadêmico: 09/11/2026, 08:00 · {demo.resultado.rotas.length} alternativas</Text>
+             {demo.resultado.rotas.map((rota,i)=><View style={v.demoRoute} key={i}>
+               <View style={v.demoRouteHeader}><Text style={v.demoRouteTitle}>Alternativa {rota.ordem||i+1}</Text><Text style={v.demoMinutes}>{rota.tempo_total_min} min</Text></View>
+               <Text style={v.demoDetail}>{rota.saida} – {rota.chegada} · {rota.baldeacoes} baldeação(ões)</Text>
+               <Text style={v.demoCost}>{rota.custo.confirmado&&rota.custo.centavos!==null?"Tarifa simulada: R$ "+(rota.custo.centavos/100).toFixed(2).replace(".",","):"Tarifa não confirmada"}</Text>
+               <Text style={v.demoDetail}>{rota.trechos.filter(t=>t.tipo==="transporte").map(t=>t.linha||t.modal||"Transporte").join(" · ")||"Somente caminhada"}</Text>
+             </View>)}
+             {!!demo.aviso&&<Text style={v.demoDetail}>{demo.aviso}</Text>}
+           </View>}
+         </View>
        </View>
 
        <View style={[v.mapCard,mobile&&v.mapCardMobile]}>
@@ -253,6 +292,16 @@ const v=StyleSheet.create({
  mapTitle:{color:"#1d2633",fontSize:18,fontWeight:"800"},mapBadge:{backgroundColor:"#fff",paddingHorizontal:11,paddingVertical:8,borderRadius:16,flexDirection:"row",alignItems:"center",gap:6},mapBadgeText:{color:"#0069d2",fontSize:12,fontWeight:"600"},
  mapBottom:{backgroundColor:"rgba(255,255,255,.88)",borderRadius:15,padding:13,marginTop:12,flexDirection:"row",alignItems:"center",gap:9},
  mapBottomText:{flex:1,fontSize:12,lineHeight:18,color:"#63778c"},
+ demoPanel:{marginTop:18,backgroundColor:"#fff",borderRadius:23,padding:18,borderWidth:1,borderColor:"#d2e2f1"},
+ demoHead:{flexDirection:"row",gap:9,alignItems:"center"},demoTitle:{fontSize:15,fontWeight:"800",color:"#1d2633",flex:1},
+ demoDescription:{fontSize:12,color:"#667c92",lineHeight:19,marginTop:9},
+ demoButton:{backgroundColor:"#0069d2",borderRadius:16,marginTop:13,minHeight:41,flexDirection:"row",alignItems:"center",justifyContent:"center",gap:8},
+ demoButtonText:{color:"#fff",fontWeight:"800",fontSize:12},demoError:{color:"#98602a",marginTop:9,fontSize:12},
+ demoResults:{marginTop:14,gap:9},demoLabel:{color:"#0069d2",fontSize:10,fontWeight:"800",letterSpacing:.7},
+ demoRoute:{padding:12,backgroundColor:"#eef5fd",borderRadius:12,gap:4},
+ demoRouteHeader:{flexDirection:"row",justifyContent:"space-between",alignItems:"center",gap:6},demoRouteTitle:{fontSize:12,color:"#1d2633",fontWeight:"800"},
+ demoMinutes:{fontSize:16,color:"#0069d2",fontWeight:"800"},demoDetail:{fontSize:11,color:"#667c92",lineHeight:17},
+ demoCost:{fontSize:12,color:"#1d2633",fontWeight:"700"},
  assistant:{marginTop:24,backgroundColor:"rgba(255,255,255,.93)",borderRadius:25,padding:24,shadowColor:"#336191",shadowOpacity:.07,shadowRadius:20,elevation:1},
  assistantHeader:{flexDirection:"row",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12},
  assistantHeaderLeft:{flexDirection:"row",alignItems:"center",gap:11,flex:1},
