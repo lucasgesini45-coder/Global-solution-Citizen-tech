@@ -34,19 +34,24 @@ function CampoEndereco({titulo,valor,mudar,selecionar,escolhido,placeholder}:{
  const [buscando,setBuscando]=useState(false);
  const [mensagem,setMensagem]=useState("");
  useEffect(()=>{
-   if(escolhido || valor.trim().length<4){setLista([]);setMensagem("");return;}
+   if(escolhido || valor.trim().length<4){setLista([]);setMensagem("");setBuscando(false);return;}
    const controller=new AbortController();
    const timer=setTimeout(async()=>{
      setBuscando(true);setMensagem("");
      try{
        const resp=await fetch(API+"/enderecos/sugestoes?q="+encodeURIComponent(valor.trim()),{signal:controller.signal});
-       if(!resp.ok){setMensagem(resp.status===429?"Aguarde um momento antes de pesquisar.":"Serviço de endereços indisponível.");return;}
+       if(!resp.ok){
+         const detalhe=await resp.json().catch(()=>null);
+         setLista([]);
+         setMensagem(resp.status===429?"Muitas pesquisas seguidas. Tente novamente em alguns segundos.":(detalhe?.detail||"Não foi possível consultar os endereços. Confira o backend."));
+         return;
+       }
        const data=await resp.json();
-       setLista(Array.isArray(data.resultados)?data.resultados:[]);
-       if(!data.resultados?.length)setMensagem("Nenhum endereço encontrado. Inclua cidade e número.");
-     }catch(e){if(!controller.signal.aborted)setMensagem("Falha na consulta de endereços.");}
+       setLista(Array.isArray(data.resultados)?data.resultados.filter((p:Endereco)=>Number.isFinite(p.lat)&&Number.isFinite(p.lon)).slice(0,8):[]);
+       if(!data.resultados?.length)setMensagem("Nenhum endereço encontrado. Experimente informar rua e bairro ou cidade.");
+     }catch(e){if(!controller.signal.aborted){setLista([]);setMensagem("Não foi possível acessar a busca em "+API+". Verifique se a API está iniciada.");}}
      finally{if(!controller.signal.aborted)setBuscando(false);}
-   },1250);
+   },850);
    return ()=>{clearTimeout(timer);controller.abort();};
  },[valor,escolhido]);
  return <View style={s.autocomplete}>
@@ -57,8 +62,8 @@ function CampoEndereco({titulo,valor,mudar,selecionar,escolhido,placeholder}:{
        placeholder={placeholder} placeholderTextColor="#99a4c0" style={s.textInput}/>
      {buscando && <ActivityIndicator size="small" color="#635fbe"/>}
    </View>
-   {!!lista.length && <View style={s.drop}>
-     {lista.map((end,i)=><Pressable key={i} style={s.dropItem} onPress={()=>{selecionar(end);setLista([]);setMensagem("");}} accessibilityRole="button">
+   {!!lista.length && <View style={s.drop} accessibilityLabel={"Sugestões de "+titulo}>
+     {lista.map((end,i)=><Pressable key={i} style={s.dropItem} onPress={()=>{selecionar(end);setLista([]);setMensagem("");}} accessibilityRole="button" accessibilityLabel={"Selecionar "+end.nome}>
        <Icone name="location-outline" color="#5b67b2" size={17}/>
        <Text style={s.dropText} numberOfLines={2}>{end.nome}</Text>
      </Pressable>)}
@@ -81,7 +86,7 @@ export default function Home(){
  const [demoErro,setDemoErro]=useState("");
  const [fotoBase,setFotoBase]=useState(false);
 
- const pontos=[origemGeo,destinoGeo].filter((p):p is Endereco=>p!==null);
+ const pontos=[origemGeo?{...origemGeo,tipo:"origem"}:null,destinoGeo?{...destinoGeo,tipo:"destino"}:null].filter((p):p is Endereco & {tipo:string}=>p!==null);
  const lat=origemGeo?.lat||destinoGeo?.lat||-23.55,lon=origemGeo?.lon||destinoGeo?.lon||-46.63;
  const bbox=[lon-.06,lat-.06,lon+.06,lat+.06].join("%2C");
  const preview="https://www.openstreetmap.org/export/embed.html?bbox="+bbox+"&layer=mapnik";
@@ -247,11 +252,11 @@ export default function Home(){
 }
 
 const s=StyleSheet.create({
- autocomplete:{position:"relative"},
+ autocomplete:{position:"relative",zIndex:10},
  inputLabel:{fontSize:10,fontWeight:"800",color:"#586c80",marginBottom:6,letterSpacing:.8},
  inputWrap:{minHeight:58,borderRadius:14,backgroundColor:"#f0f5fa",flexDirection:"row",alignItems:"center",paddingHorizontal:14,gap:9},
  textInput:{flex:1,fontSize:14,fontWeight:"500",color:"#1d2633",paddingVertical:10,minWidth:0},
- drop:{backgroundColor:"#fff",borderWidth:1,borderColor:"#c7ddeb",borderRadius:12,marginTop:4,overflow:"hidden"},
+ drop:{backgroundColor:"#fff",borderWidth:1,borderColor:"#c7ddeb",borderRadius:12,marginTop:4,overflow:"hidden",zIndex:20,elevation:5},
  dropItem:{padding:11,flexDirection:"row",gap:8,borderBottomWidth:1,borderBottomColor:"#f0f5fa",alignItems:"center"},
  dropText:{color:"#1d2633",fontSize:13,flex:1},
  hint:{fontSize:11,color:"#71859b",marginTop:5}
