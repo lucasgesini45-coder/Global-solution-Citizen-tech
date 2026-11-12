@@ -122,12 +122,12 @@ export default function Home(){
    setDemoCarregando(true);setDemoErro("");setDemo(null);
    try{
      const resposta=await fetch(API+"/rotas/exemplo");
-     const dados=await resposta.json().catch(()=>null) as RespostaDemo | {detail?:string} | null;
-     if(!resposta.ok)throw new Error("Erro HTTP "+resposta.status+": "+((dados&&"detail" in dados&&dados.detail)||"verifique o terminal do backend."));
-     if(!dados||!("modo" in dados)||dados.modo!=="demonstracao"||!dados.resultado||!Array.isArray(dados.resultado.rotas))
+     const dados=await resposta.json().catch(()=>null) as (Partial<RespostaDemo> & {detail?:string}) | null;
+     if(!resposta.ok)throw new Error("Erro HTTP "+resposta.status+": "+(dados?.detail||"verifique o terminal do backend."));
+     if(!dados||dados.modo!=="demonstracao"||!dados.resultado||!Array.isArray(dados.resultado.rotas))
        throw new Error("O backend respondeu, mas o formato da simulação está incorreto.");
      if(dados.resultado.erro)throw new Error(dados.resultado.erro.mensagem);
-     setDemo(dados);
+     setDemo(dados as RespostaDemo);
    }catch(e){
      const mensagem=e instanceof Error?e.message:"Erro desconhecido";
      setDemoErro(/failed to fetch|network request failed|networkerror|load failed/i.test(mensagem)
