@@ -12,10 +12,10 @@ type Endereco = {nome:string;lat:number;lon:number;fonte:string};
 type Resultado = {tipo:string;fonte:string;tempo_min:number;distancia_m:number;tarifa_centavos:number|null;seguranca:{status:string};trajeto:number[][];aviso:string};
 type Consulta = {resposta:string;fontes:{referencia:string;data_verificacao:string}[]};
 
-const transportes: {id:Modal;nome:string;icone:Icon;foto:any}[] = [
- {id:"ferroviario",nome:"Trem e Metrô",icone:"train-outline",foto:require("../assets/metro_futurista.jpg")},
-  {id:"onibus",nome:"Ônibus",icone:"bus-outline",foto:require("../assets/onibus_futurista.jpg")},
-  {id:"ape",nome:"A pé",icone:"walk-outline",foto:require("../assets/caminhada_futurista.jpg")},
+const transportes: {id:Modal;nome:string;icone:Icon}[] = [
+ {id:"ferroviario",nome:"Metrô",icone:"train-outline"},
+ {id:"onibus",nome:"Ônibus",icone:"bus-outline"},
+ {id:"ape",nome:"A pé",icone:"walk-outline"},
 ];
 const sugestoesChat=["Como emitir cartão?","Quem tem direito à gratuidade?","Quais são meus direitos?","Como funciona a integração?"];
 
