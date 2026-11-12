@@ -5,7 +5,7 @@ from unittest.mock import patch
 from pydantic import ValidationError
 
 from backend.src.api import app
-from backend.src.rotas_api import PedidoRota, calcular_rotas
+from backend.src.rotas_api import PedidoRota, calcular_rotas, exemplo_rotas
 from src.rede_demo import ponto
 
 
@@ -37,6 +37,19 @@ class TestRotasAPI(unittest.TestCase):
         self.assertIn("seguranca", primeira)
         self.assertIn("status", primeira["seguranca"])
         self.assertTrue(any("geometria" in t for t in primeira["trechos"]))
+
+    def test_endpoint_exemplo_registrado(self):
+        rotas = {route.path: route for route in app.routes}
+        self.assertIn("/rotas/exemplo", rotas)
+        self.assertIn("GET", rotas["/rotas/exemplo"].methods)
+
+    def test_exemplo_identificado_como_simulacao(self):
+        resposta = exemplo_rotas()
+        self.assertEqual(resposta["modo"], "demonstracao")
+        self.assertIn("simulado", resposta["cenario"])
+        self.assertEqual(resposta["partida_exemplo"], "2026-11-09T08:00:00")
+        self.assertGreater(len(resposta["resultado"]["rotas"]), 0)
+        self.assertIn("ficticios", resposta["origem_dados"])
 
     def test_coordenadas_invalidas(self):
         with self.assertRaises(ValidationError):
