@@ -248,10 +248,10 @@ export default function Home(){
                   </Text>
                   <Text style={{color:"#60768f",fontSize:11}}>{t.tempo_min} min</Text>
                 </View>
-                <Text style={{color:"#526a82",fontSize:12,marginTop:6}}>
+                <Text numberOfLines={mostrarDetalhes?undefined:3} style={{color:"#526a82",fontSize:12,marginTop:6,lineHeight:18}}>
                   {walk?"Caminhe de "+t.de+" até "+t.para:bus?"Pegue o ônibus em "+t.de+" e desça em "+t.para:"Embarque em "+t.de+" e desça em "+t.para}
                 </Text>
-                {!!t.destino_linha&&<Text style={{color:"#60768f",fontSize:11,marginTop:4}}>Sentido {t.destino_linha}</Text>}
+                {!!t.destino_linha&&<Text numberOfLines={2} style={{color:"#60768f",fontSize:11,marginTop:4}}>Sentido {t.destino_linha}</Text>}
                 {rail&&t.paradas&&t.paradas.length>2&&mostrarDetalhes&&<Text style={{color:"#60768f",fontSize:11,marginTop:4}}>Estações: {t.paradas.map(p=>p.nome).join(" · ")}</Text>}
               </View>;
             })}
@@ -338,7 +338,7 @@ const v=StyleSheet.create({
  cityBadge:{position:"absolute",right:0,top:70,flexDirection:"row",alignItems:"center",gap:8,backgroundColor:"rgba(255,255,255,.7)",borderRadius:24,paddingHorizontal:16,paddingVertical:13},cityText:{color:"#1d2633",fontSize:13,fontWeight:"600"},
  main:{flexDirection:"row",alignItems:"flex-start",gap:14},mainMobile:{flexDirection:"column"},
  sidebar:{width:272,maxWidth:"100%",flexShrink:0},sidebarMobile:{width:"100%"},
- routesPanel:{width:320,maxWidth:"100%",flexShrink:0,backgroundColor:"rgba(255,255,255,.97)",borderRadius:20,padding:15,borderWidth:1,borderColor:"#d9e6f5"},routesPanelMobile:{width:"100%"},
+ routesPanel:{width:324,maxWidth:"100%",flexShrink:0,backgroundColor:"rgba(255,255,255,.97)",borderRadius:20,padding:15,borderWidth:1,borderColor:"#d9e6f5"},routesPanelMobile:{width:"100%"},
  searchCard:{backgroundColor:"rgba(255,255,255,.96)",padding:18,borderRadius:20,shadowColor:"#336191",shadowOpacity:.08,shadowRadius:26,elevation:2},
  searchTitle:{fontSize:21,fontWeight:"800",color:"#1d2633",marginBottom:16},
  modeBar:{flexDirection:"row",backgroundColor:"#eef3f8",borderRadius:11,padding:3,gap:0,justifyContent:"space-between",marginBottom:14},
