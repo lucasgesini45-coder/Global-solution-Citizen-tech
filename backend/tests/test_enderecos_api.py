@@ -46,6 +46,20 @@ class EnderecosTestes(unittest.TestCase):
                 _json_http("https://photon.komoot.io/api?q=teste")
         self.assertIn("conectar ao Photon", e.exception.detail)
 
+    def test_busca_photon_nao_envia_idioma_incompativel(self):
+        _buscar_cache.cache_clear()
+        mock_resposta = {"features": [
+            {"properties": {"name": "Avenida Paulista", "city": "São Paulo"},
+             "geometry": {"coordinates": [-46.65, -23.56]}}
+        ]}
+        with patch("backend.src.enderecos_api._json_http", return_value=mock_resposta) as request:
+            resposta = _buscar_cache("Avenida Paulista")
+        url = request.call_args.args[0]
+        self.assertIn("q=Avenida+Paulista", url)
+        self.assertNotIn("lang=", url)
+        self.assertEqual(len(resposta), 1)
+        _buscar_cache.cache_clear()
+
     def test_modal_ferrovia_nao_finge_suporte(self):
         with self.assertRaises(HTTPException) as e:
             rota_real(RotaRealPedido(origem=Coordenadas(lat=-23.55,lon=-46.63),
