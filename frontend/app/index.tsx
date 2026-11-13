@@ -7,9 +7,11 @@ import MapaPreview from "../components/MapaPreview";
 
 const API = (process.env.EXPO_PUBLIC_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
 
-// Tipografia geométrica do modelo visual. No mobile preserva a fonte do
-// sistema até os arquivos nativos serem incorporados ao bundle do Expo.
-const fonteInterface = Platform.OS === "web" ? "Sora" : undefined;
+// Aparência iOS: usa a fonte de sistema (SF Pro em Apple) sem baixar fontes.
+// No Windows, usa Segoe UI; no Android/iOS, mantém a fonte nativa.
+const fonteInterface = Platform.OS === "web"
+  ? "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Arial, sans-serif"
+  : undefined;
 function Text(props: React.ComponentProps<typeof RNText>) {
   return <RNText {...props} style={[fonteInterface?{fontFamily:fonteInterface}:null,props.style]} />;
 }
@@ -203,10 +205,10 @@ export default function Home(){
              <CampoEndereco titulo="DESTINO" valor={destino} escolhido={destinoGeo} mudar={atualizarDestino} selecionar={e=>{setDestino(e.nome);setDestinoGeo(e);setResultado(null);}} placeholder="Para onde você quer ir?"/>
              <View style={{flexDirection:"row",gap:8,flexWrap:"wrap",marginTop:8}}>
                <Pressable onPress={()=>setSelecionarNoMapa(t=>t==="origem"?null:"origem")} accessibilityRole="button" style={{backgroundColor:selecionarNoMapa==="origem"?"#d5eaff":"#f0f5fa",borderRadius:12,padding:10,flexGrow:1}}>
-                 <Text style={{color:"#0069d2",fontSize:11,fontWeight:"700"}}>{selecionarNoMapa==="origem"?"Cancelar origem":"Marcar origem no mapa"}</Text>
+                 <Text style={{color:"#0069d2",fontSize:11,fontWeight:"600"}}>{selecionarNoMapa==="origem"?"Cancelar origem":"Marcar origem no mapa"}</Text>
                </Pressable>
                <Pressable onPress={()=>setSelecionarNoMapa(t=>t==="destino"?null:"destino")} accessibilityRole="button" style={{backgroundColor:selecionarNoMapa==="destino"?"#d5eaff":"#f0f5fa",borderRadius:12,padding:10,flexGrow:1}}>
-                 <Text style={{color:"#0069d2",fontSize:11,fontWeight:"700"}}>{selecionarNoMapa==="destino"?"Cancelar destino":"Marcar destino no mapa"}</Text>
+                 <Text style={{color:"#0069d2",fontSize:11,fontWeight:"600"}}>{selecionarNoMapa==="destino"?"Cancelar destino":"Marcar destino no mapa"}</Text>
                </Pressable>
              </View>
            </View>
@@ -249,9 +251,9 @@ export default function Home(){
               return <View key={i} style={{marginTop:12,paddingLeft:12,borderLeftWidth:5,borderLeftColor:cor,paddingVertical:5}}>
                 <View style={{flexDirection:"row",alignItems:"center",gap:7,flexWrap:"wrap"}}>
                   <View style={{backgroundColor:cor,borderRadius:6,paddingVertical:4,paddingHorizontal:7}}>
-                    <Text style={{color:"#fff",fontWeight:"800",fontSize:11}}>{nome}</Text>
+                    <Text style={{color:"#fff",fontWeight:"700",fontSize:11}}>{nome}</Text>
                   </View>
-                  <Text style={{color:"#1d2633",fontWeight:"800",fontSize:13,flexShrink:1}}>
+                  <Text style={{color:"#1d2633",fontWeight:"700",fontSize:13,flexShrink:1}}>
                     {walk?"Caminhar":t.linha|| (bus?"Linha de ônibus não informada":"Linha ferroviária não informada")}
                   </Text>
                   <Text style={{color:"#60768f",fontSize:11}}>{t.tempo_min} min</Text>
@@ -268,7 +270,7 @@ export default function Home(){
               <Icone name={mostrarDetalhes?"chevron-up":"chevron-down"} color="#0069d2" size={15}/>
             </Pressable>
             {resultado.caminhada_m!==null&&resultado.caminhada_m!==undefined&&resultado.modal!=="ape"&&<View style={{marginTop:9,padding:10,backgroundColor:resultado.caminhada_longa?"#FFF2DE":"#EDF5FC",borderRadius:10}}>
-              <Text style={{color:resultado.caminhada_longa?"#87521A":"#234C77",fontWeight:"700",fontSize:12}}>
+              <Text style={{color:resultado.caminhada_longa?"#87521A":"#234C77",fontWeight:"600",fontSize:12}}>
                 {"Caminhada total: "+(resultado.caminhada_m>=1000?(resultado.caminhada_m/1000).toFixed(1).replace(".",",")+" km":resultado.caminhada_m+" m")}
                 {resultado.caminhada_longa?" · Atenção: trecho longo a pé":""}
               </Text>
@@ -323,7 +325,7 @@ export default function Home(){
 
 const s=StyleSheet.create({
  autocomplete:{position:"relative",zIndex:10},
- inputLabel:{fontSize:10,fontWeight:"800",color:"#586c80",marginBottom:6,letterSpacing:.8},
+ inputLabel:{fontSize:10,fontWeight:"700",color:"#586c80",marginBottom:6,letterSpacing:.8},
  inputWrap:{minHeight:58,borderRadius:14,backgroundColor:"#f0f5fa",flexDirection:"row",alignItems:"center",paddingHorizontal:14,gap:9},
  textInput:{flex:1,fontFamily:fonteInterface,fontSize:13,fontWeight:"500",color:"#1d2633",paddingVertical:10,minWidth:0},
  drop:{backgroundColor:"#fff",borderWidth:1,borderColor:"#c7ddeb",borderRadius:12,marginTop:4,overflow:"hidden",zIndex:20,elevation:5},
@@ -336,68 +338,68 @@ const v=StyleSheet.create({
  bg:{flex:1,backgroundColor:"#dfefff"},
  page:{minHeight:"100%"},
  nav:{backgroundColor:"rgba(247,251,255,0.90)",minHeight:88,paddingHorizontal:48,paddingVertical:20,borderBottomWidth:1,borderBottomColor:"#bfd6ec",flexDirection:"row",alignItems:"center",gap:30,flexWrap:"wrap"},
- navMobile:{minHeight:68,paddingHorizontal:16,paddingVertical:15,gap:10},navBrand:{fontSize:25,fontWeight:"800",letterSpacing:-1.1,color:"#1d2633"},navBrandMobile:{fontSize:19},navBrandAccent:{fontWeight:"500",color:"#0069d2"},
- navActive:{backgroundColor:"#dcebfa",borderRadius:22,paddingHorizontal:18,paddingVertical:13},navActiveText:{color:"#0069d2",fontSize:14,fontWeight:"700"},navMeta:{fontSize:11,color:"#62758a",marginLeft:"auto"},
+ navMobile:{minHeight:68,paddingHorizontal:16,paddingVertical:15,gap:10},navBrand:{fontSize:24,fontWeight:"600",letterSpacing:-1.1,color:"#1d2633"},navBrandMobile:{fontSize:19},navBrandAccent:{fontWeight:"500",color:"#0069d2"},
+ navActive:{backgroundColor:"#dcebfa",borderRadius:22,paddingHorizontal:18,paddingVertical:13},navActiveText:{color:"#0069d2",fontSize:14,fontWeight:"600"},navMeta:{fontSize:11,color:"#62758a",marginLeft:"auto"},
  container:{maxWidth:1440,width:"100%",alignSelf:"center",paddingHorizontal:48,paddingBottom:28},
  containerMobile:{paddingHorizontal:16},intro:{minHeight:140,paddingTop:22,justifyContent:"center",position:"relative",paddingBottom:18},introMobile:{paddingTop:24,minHeight:0},
- eyebrow:{color:"#0069d2",fontSize:11,fontWeight:"800",letterSpacing:1.7,marginBottom:12},
- heading:{color:"#1d2633",fontWeight:"800",fontSize:34,letterSpacing:-1.3,lineHeight:45},headingMobile:{fontSize:29,lineHeight:38},
+ eyebrow:{color:"#0069d2",fontSize:11,fontWeight:"700",letterSpacing:1.7,marginBottom:12},
+ heading:{color:"#1d2633",fontWeight:"700",fontSize:32,letterSpacing:-0.8,lineHeight:43},headingMobile:{fontSize:29,lineHeight:38},
  subtitle:{color:"#586c80",fontSize:15,marginTop:7,lineHeight:22},
- cityBadge:{position:"absolute",right:0,top:70,flexDirection:"row",alignItems:"center",gap:8,backgroundColor:"rgba(255,255,255,.7)",borderRadius:24,paddingHorizontal:16,paddingVertical:13},cityText:{color:"#1d2633",fontSize:13,fontWeight:"600"},
+ cityBadge:{position:"absolute",right:0,top:70,flexDirection:"row",alignItems:"center",gap:8,backgroundColor:"rgba(255,255,255,.7)",borderRadius:24,paddingHorizontal:16,paddingVertical:13},cityText:{color:"#1d2633",fontSize:13,fontWeight:"500"},
  main:{flexDirection:"row",alignItems:"flex-start",gap:14},mainMobile:{flexDirection:"column"},
  sidebar:{width:272,maxWidth:"100%",flexShrink:0},sidebarMobile:{width:"100%"},
  routesPanel:{width:324,maxWidth:"100%",flexShrink:0,backgroundColor:"rgba(255,255,255,.97)",borderRadius:20,padding:15,borderWidth:1,borderColor:"#d9e6f5"},routesPanelMobile:{width:"100%"},
  searchCard:{backgroundColor:"rgba(255,255,255,.96)",padding:18,borderRadius:20,shadowColor:"#336191",shadowOpacity:.08,shadowRadius:26,elevation:2},
- searchTitle:{fontSize:21,fontWeight:"800",color:"#1d2633",marginBottom:16},
+ searchTitle:{fontSize:21,fontWeight:"700",color:"#1d2633",marginBottom:16},
  modeBar:{flexDirection:"row",backgroundColor:"#eef3f8",borderRadius:11,padding:3,gap:0,justifyContent:"space-between",marginBottom:14},
  modeItem:{paddingHorizontal:5,minHeight:34,justifyContent:"center",alignItems:"center",flexDirection:"row",gap:4,borderRadius:10,flexGrow:1},
  modeActive:{backgroundColor:"#fff",shadowColor:"#336191",shadowOpacity:.08,shadowRadius:4,elevation:1},
- modeText:{fontSize:12,color:"#586c80",fontWeight:"500"},modeTextActive:{fontWeight:"700",color:"#0069d2"},
+ modeText:{fontSize:12,color:"#586c80",fontWeight:"500"},modeTextActive:{fontWeight:"600",color:"#0069d2"},
  addresses:{gap:7},middleActions:{alignSelf:"flex-end",flexDirection:"row",gap:7,marginVertical:1},
  smallAction:{borderWidth:1,borderColor:"#d2e2f1",backgroundColor:"#fff",height:32,width:36,borderRadius:16,alignItems:"center",justifyContent:"center"},
  searchButton:{marginTop:17,backgroundColor:"#0071e3",borderRadius:24,minHeight:48,flexDirection:"row",justifyContent:"center",alignItems:"center",gap:11},
- searchButtonText:{color:"#fff",fontSize:14,fontWeight:"800"},
+ searchButtonText:{color:"#fff",fontSize:14,fontWeight:"700"},
  warning:{marginTop:12,backgroundColor:"#fff7e9",borderRadius:10,padding:10,flexDirection:"row",gap:8,alignItems:"center"},
  warningText:{flex:1,fontSize:12,color:"#94602c",lineHeight:18},
- resultsHeader:{marginTop:2,marginBottom:11,flexDirection:"row",alignItems:"center",justifyContent:"space-between"},resultsTitle:{fontWeight:"800",color:"#1d2633",fontSize:18},
+ resultsHeader:{marginTop:2,marginBottom:11,flexDirection:"row",alignItems:"center",justifyContent:"space-between"},resultsTitle:{fontWeight:"700",color:"#1d2633",fontSize:18},
  departure:{flexDirection:"row",alignItems:"center",gap:7,marginBottom:14},departureText:{fontSize:12,color:"#586c80"},departureCount:{marginLeft:"auto",fontSize:12,color:"#586c80"},
  recommended:{backgroundColor:"#f9fcff",borderRadius:15,borderWidth:1,borderColor:"#d4e4f5",padding:14,shadowColor:"#336191",shadowOpacity:.08,shadowRadius:16,elevation:2},
- recommendedBadge:{color:"#0069d2",fontWeight:"800",fontSize:10,letterSpacing:1},
- recommendedTop:{flexDirection:"row",justifyContent:"space-between",alignItems:"center",marginTop:8,flexWrap:"wrap",gap:5},duration:{fontWeight:"800",fontSize:26,color:"#1d2633"},fare:{fontWeight:"700",fontSize:14,color:"#1d2633"},
+ recommendedBadge:{color:"#0069d2",fontWeight:"700",fontSize:10,letterSpacing:1},
+ recommendedTop:{flexDirection:"row",justifyContent:"space-between",alignItems:"center",marginTop:8,flexWrap:"wrap",gap:5},duration:{fontWeight:"700",fontSize:26,color:"#1d2633"},fare:{fontWeight:"600",fontSize:14,color:"#1d2633"},
  routeSequence:{flexDirection:"row",alignItems:"center",gap:9,marginTop:10},routeSequenceText:{color:"#586c80",fontSize:12},
  routeDisclaimer:{color:"#667c92",fontSize:11,marginTop:8},
  emptyResults:{backgroundColor:"rgba(255,255,255,.86)",borderRadius:24,minHeight:200,padding:23,justifyContent:"center",alignItems:"center",gap:10},
- emptyResultsTitle:{fontWeight:"700",color:"#1d2633",fontSize:14},emptyResultsCopy:{color:"#667c92",fontSize:12,textAlign:"center",lineHeight:19},
+ emptyResultsTitle:{fontWeight:"600",color:"#1d2633",fontSize:14},emptyResultsCopy:{color:"#667c92",fontSize:12,textAlign:"center",lineHeight:19},
  mapCard:{backgroundColor:"#eff5fb",borderRadius:20,padding:12,flex:1,minWidth:0,borderWidth:1,borderColor:"rgba(255,255,255,.8)",shadowColor:"#336191",shadowOpacity:.10,shadowRadius:36,elevation:2},
  mapCardMobile:{flex:0,width:"100%"},
  mapHeader:{flexDirection:"row",alignItems:"center",justifyContent:"space-between",marginBottom:13,paddingHorizontal:2},
- mapTitle:{color:"#1d2633",fontSize:18,fontWeight:"800"},mapBadge:{backgroundColor:"#fff",paddingHorizontal:11,paddingVertical:8,borderRadius:16,flexDirection:"row",alignItems:"center",gap:6},mapBadgeText:{color:"#0069d2",fontSize:12,fontWeight:"600"},
+ mapTitle:{color:"#1d2633",fontSize:18,fontWeight:"700"},mapBadge:{backgroundColor:"#fff",paddingHorizontal:11,paddingVertical:8,borderRadius:16,flexDirection:"row",alignItems:"center",gap:6},mapBadgeText:{color:"#0069d2",fontSize:12,fontWeight:"500"},
  mapBottom:{backgroundColor:"rgba(255,255,255,.88)",borderRadius:15,padding:13,marginTop:12,flexDirection:"row",alignItems:"center",gap:9},
  mapBottomText:{flex:1,fontSize:12,lineHeight:18,color:"#63778c"},
  demoPanel:{marginTop:18,backgroundColor:"#fff",borderRadius:23,padding:18,borderWidth:1,borderColor:"#d2e2f1"},
- demoHead:{flexDirection:"row",gap:9,alignItems:"center"},demoTitle:{fontSize:15,fontWeight:"800",color:"#1d2633",flex:1},
+ demoHead:{flexDirection:"row",gap:9,alignItems:"center"},demoTitle:{fontSize:15,fontWeight:"700",color:"#1d2633",flex:1},
  demoDescription:{fontSize:12,color:"#667c92",lineHeight:19,marginTop:9},
  demoButton:{backgroundColor:"#0069d2",borderRadius:16,marginTop:13,minHeight:41,flexDirection:"row",alignItems:"center",justifyContent:"center",gap:8},
- demoButtonText:{color:"#fff",fontWeight:"800",fontSize:12},demoError:{color:"#98602a",marginTop:9,fontSize:12},
- demoResults:{marginTop:14,gap:9},demoLabel:{color:"#0069d2",fontSize:10,fontWeight:"800",letterSpacing:.7},
+ demoButtonText:{color:"#fff",fontWeight:"700",fontSize:12},demoError:{color:"#98602a",marginTop:9,fontSize:12},
+ demoResults:{marginTop:14,gap:9},demoLabel:{color:"#0069d2",fontSize:10,fontWeight:"700",letterSpacing:.7},
  demoRoute:{padding:12,backgroundColor:"#eef5fd",borderRadius:12,gap:4},
- demoRouteHeader:{flexDirection:"row",justifyContent:"space-between",alignItems:"center",gap:6},demoRouteTitle:{fontSize:12,color:"#1d2633",fontWeight:"800"},
- demoMinutes:{fontSize:16,color:"#0069d2",fontWeight:"800"},demoDetail:{fontSize:11,color:"#667c92",lineHeight:17},
- demoCost:{fontSize:12,color:"#1d2633",fontWeight:"700"},
+ demoRouteHeader:{flexDirection:"row",justifyContent:"space-between",alignItems:"center",gap:6},demoRouteTitle:{fontSize:12,color:"#1d2633",fontWeight:"700"},
+ demoMinutes:{fontSize:16,color:"#0069d2",fontWeight:"700"},demoDetail:{fontSize:11,color:"#667c92",lineHeight:17},
+ demoCost:{fontSize:12,color:"#1d2633",fontWeight:"600"},
  itineraryHeader:{marginTop:18,flexDirection:"row",justifyContent:"space-between",alignItems:"center"},
- itineraryHeading:{fontSize:13,fontWeight:"800",color:"#253750"},
+ itineraryHeading:{fontSize:13,fontWeight:"700",color:"#253750"},
  itineraryCount:{fontSize:11,color:"#657b94"},
  detailsToggle:{marginTop:10,paddingVertical:10,flexDirection:"row",justifyContent:"center",alignItems:"center",gap:6,borderTopWidth:1,borderTopColor:"#e0eafa"},
- detailsToggleText:{fontWeight:"700",fontSize:11,color:"#0069d2"},
+ detailsToggleText:{fontWeight:"600",fontSize:11,color:"#0069d2"},
  labSection:{marginTop:18},
  labToggle:{backgroundColor:"#f4f8fe",borderWidth:1,borderColor:"#cfdff1",borderRadius:12,paddingHorizontal:18,paddingVertical:14,flexDirection:"row",alignItems:"center",justifyContent:"space-between"},
- labToggleText:{fontSize:13,fontWeight:"700",color:"#56739a"},
+ labToggleText:{fontSize:13,fontWeight:"600",color:"#56739a"},
  assistant:{marginTop:24,backgroundColor:"rgba(255,255,255,.93)",borderRadius:25,padding:24,shadowColor:"#336191",shadowOpacity:.07,shadowRadius:20,elevation:1},
  assistantHeader:{flexDirection:"row",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12},
  assistantHeaderLeft:{flexDirection:"row",alignItems:"center",gap:11,flex:1},
- assistantTitle:{fontSize:19,fontWeight:"800",color:"#1d2633"},assistantSubtitle:{fontSize:12,color:"#586c80",marginTop:4},
- assistantTag:{fontWeight:"800",fontSize:10,letterSpacing:1,color:"#0069d2"},
- suggestions:{flexDirection:"row",gap:8,flexWrap:"wrap",marginTop:17},suggestion:{borderRadius:18,paddingHorizontal:13,paddingVertical:8,backgroundColor:"#e8f2fd"},suggestionText:{color:"#0069d2",fontSize:12,fontWeight:"600"},
+ assistantTitle:{fontSize:19,fontWeight:"700",color:"#1d2633"},assistantSubtitle:{fontSize:12,color:"#586c80",marginTop:4},
+ assistantTag:{fontWeight:"700",fontSize:10,letterSpacing:1,color:"#0069d2"},
+ suggestions:{flexDirection:"row",gap:8,flexWrap:"wrap",marginTop:17},suggestion:{borderRadius:18,paddingHorizontal:13,paddingVertical:8,backgroundColor:"#e8f2fd"},suggestionText:{color:"#0069d2",fontSize:12,fontWeight:"500"},
  chatHistory:{minHeight:65,maxHeight:230,marginVertical:15},chatEmpty:{fontSize:12,color:"#7388a0",paddingTop:12},
  chatBubble:{borderRadius:18,padding:12,maxWidth:"90%"},chatBubbleUser:{backgroundColor:"#0071e3",alignSelf:"flex-end"},chatBubbleAi:{backgroundColor:"#eaf3fc",alignSelf:"flex-start"},
  chatBubbleText:{color:"#1d2633",fontSize:13,lineHeight:20},chatSource:{color:"#586c80",fontSize:10,marginTop:8},
