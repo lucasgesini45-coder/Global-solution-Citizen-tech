@@ -68,7 +68,9 @@ def _buscar_cache(consulta: str) -> list[dict]:
         if espera > 0:
             time.sleep(espera)
         _ultima_busca = time.monotonic()
-    params = urlencode({"q": consulta, "limit": 10, "lang": "pt", "lat": -23.55, "lon": -46.63})
+    # Não enviar lang=pt: algumas instâncias Photon rejeitam idioma não indexado com HTTP 400.
+    # O idioma é opcional; nomes locais são preservados sem o parâmetro.
+    params = urlencode({"q": consulta, "limit": 10, "lat": -23.55, "lon": -46.63})
     dados = _json_http(PHOTON_URL + "?" + params)
     resultados = []
     vistos = set()
