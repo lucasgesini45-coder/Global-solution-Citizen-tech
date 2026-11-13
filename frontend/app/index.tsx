@@ -208,13 +208,47 @@ export default function Home(){
            {!!erro&&<View style={v.warning}><Icone name="information-circle-outline" size={17} color="#94602c"/><Text style={v.warningText}>{erro}</Text></View>}
          </View>
 
+       </View>
+
+       <View style={[v.mapCard,mobile&&v.mapCardMobile]}>
+         <View style={v.mapHeader}><Text style={v.mapTitle}>Mapa do trajeto</Text><View style={v.mapBadge}><Icone name="map-outline" size={15} color="#0069d2"/><Text style={v.mapBadgeText}>Mapa interativo</Text></View></View>
+         <MapaPreview url={preview} pontos={pontos} trajeto={resultado?.trajeto} trechos={resultado?.trechos} height={mobile?390:560} pickMode={selecionarNoMapa} onMapPick={marcarNoMapa}/>
+         <View style={v.mapBottom}>
+           <Icone name="information-circle-outline" color="#63778c" size={17}/>
+           <Text style={v.mapBottomText}>{resultado?"Trajeto calculado a partir dos dados de "+resultado.fonte+". Consulte as etapas e confira horários antes de sair.":"Selecione origem e destino e clique em Encontrar trajeto. O percurso só aparece quando o provedor retornar a geometria real."}</Text>
+         </View>
+       </View>
+
+       <View style={[v.routesPanel,mobile&&v.routesPanelMobile]}>
          <View style={v.resultsHeader}><Text style={v.resultsTitle}>Trajetos sugeridos</Text><Icone name="options-outline" size={20} color="#667c92"/></View>
          <View style={v.departure}><Icone name="time-outline" size={15} color="#667c92"/><Text style={v.departureText}>Saída agora</Text><Text style={v.departureCount}>{resultado?"1 opção validada":"Aguardando busca"}</Text></View>
          {resultado?<View style={v.recommended}>
             <Text style={v.recommendedBadge}>{"TRAJETO DISPONÍVEL · "+(resultado.modal==="onibus"?"ÔNIBUS":resultado.modal==="ferroviario"?"METRÔ / TREM":resultado.modal==="todos"?"TRANSPORTE PÚBLICO":"A PÉ")}</Text>
             <View style={v.recommendedTop}><Text style={v.duration}>{resultado.tempo_min} min</Text><Text style={v.fare}>{resultado.tarifa_centavos===null?"Tarifa não informada":resultado.tarifa_centavos===0?"Gratuito":"R$ "+(resultado.tarifa_centavos/100).toFixed(2).replace(".",",")}</Text></View>
             <View style={v.routeSequence}><Icone name="walk-outline" color="#0069d2" size={20}/><Text style={v.routeSequenceText}>{resultado.distancia_m!==null?(resultado.distancia_m/1000).toFixed(1)+" km · ":""}{resultado.fonte}</Text></View>
-            {(resultado.trechos||[]).map((t,i)=><View key={i} style={{marginTop:8,borderTopWidth:i===0?0:1,borderTopColor:"#dde8f4",paddingTop:8}}><Text style={{color:"#1f4f88",fontWeight:"700",fontSize:12}}>{t.modal==="WALK"?"Caminhar":t.modal==="BUS"?"Ônibus":t.modal==="SUBWAY"?"Metrô":t.modal==="SUBURBAN"?"Trem":"Transporte"}{t.linha?" · "+t.linha:""} · {t.tempo_min} min</Text><Text style={{color:"#60768f",fontSize:11}}>{t.de} → {t.para}{t.destino_linha?" · Sentido "+t.destino_linha:""}</Text></View>)}
+            {(resultado.trechos||[]).map((t,i)=>{
+              const walk=t.modal==="WALK";
+              const bus=t.modal==="BUS";
+              const rail=!walk&&!bus;
+              const cor=walk?"#5F6D7E":bus?"#0071e3":t.cor_linha||"#7155c8";
+              const nome=walk?"A pé":bus?"Ônibus":t.modal==="SUBWAY"||t.modal==="METRO"?"Metrô":"Trem";
+              return <View key={i} style={{marginTop:12,paddingLeft:12,borderLeftWidth:5,borderLeftColor:cor,paddingVertical:5}}>
+                <View style={{flexDirection:"row",alignItems:"center",gap:7,flexWrap:"wrap"}}>
+                  <View style={{backgroundColor:cor,borderRadius:6,paddingVertical:4,paddingHorizontal:7}}>
+                    <Text style={{color:"#fff",fontWeight:"800",fontSize:11}}>{nome}</Text>
+                  </View>
+                  <Text style={{color:"#1d2633",fontWeight:"800",fontSize:13,flexShrink:1}}>
+                    {walk?"Caminhar":t.linha|| (bus?"Linha de ônibus não informada":"Linha ferroviária não informada")}
+                  </Text>
+                  <Text style={{color:"#60768f",fontSize:11}}>{t.tempo_min} min</Text>
+                </View>
+                <Text style={{color:"#526a82",fontSize:12,marginTop:6}}>
+                  {walk?"Caminhe de "+t.de+" até "+t.para:bus?"Pegue o ônibus em "+t.de+" e desça em "+t.para:"Embarque em "+t.de+" e desça em "+t.para}
+                </Text>
+                {!!t.destino_linha&&<Text style={{color:"#60768f",fontSize:11,marginTop:4}}>Sentido {t.destino_linha}</Text>}
+                {rail&&t.paradas&&t.paradas.length>2&&<Text style={{color:"#60768f",fontSize:11,marginTop:4}}>Estações: {t.paradas.map(p=>p.nome).join(" · ")}</Text>}
+              </View>;
+            })}
             {resultado.caminhada_m!==null&&resultado.caminhada_m!==undefined&&resultado.modal!=="ape"&&<View style={{marginTop:9,padding:10,backgroundColor:resultado.caminhada_longa?"#FFF2DE":"#EDF5FC",borderRadius:10}}>
               <Text style={{color:resultado.caminhada_longa?"#87521A":"#234C77",fontWeight:"700",fontSize:12}}>
                 {"Caminhada total: "+(resultado.caminhada_m>=1000?(resultado.caminhada_m/1000).toFixed(1).replace(".",",")+" km":resultado.caminhada_m+" m")}
@@ -242,15 +276,6 @@ export default function Home(){
              </View>)}
              {!!demo.aviso&&<Text style={v.demoDetail}>{demo.aviso}</Text>}
            </View>}
-         </View>
-       </View>
-
-       <View style={[v.mapCard,mobile&&v.mapCardMobile]}>
-         <View style={v.mapHeader}><Text style={v.mapTitle}>Mapa do trajeto</Text><View style={v.mapBadge}><Icone name="map-outline" size={15} color="#0069d2"/><Text style={v.mapBadgeText}>Mapa interativo</Text></View></View>
-         <MapaPreview url={preview} pontos={pontos} trajeto={resultado?.trajeto} trechos={resultado?.trechos} height={mobile?390:560} pickMode={selecionarNoMapa} onMapPick={marcarNoMapa}/>
-         <View style={v.mapBottom}>
-           <Icone name="information-circle-outline" color="#63778c" size={17}/>
-           <Text style={v.mapBottomText}>{resultado?"Trajeto calculado a partir dos dados de "+resultado.fonte+". Consulte as etapas e confira horários antes de sair.":"Selecione origem e destino e clique em Encontrar trajeto. O percurso só aparece quando o provedor retornar a geometria real."}</Text>
          </View>
        </View>
      </View>
@@ -294,8 +319,9 @@ const v=StyleSheet.create({
  heading:{color:"#1d2633",fontWeight:"800",fontSize:42,letterSpacing:-1.5,lineHeight:53},headingMobile:{fontSize:29,lineHeight:38},
  subtitle:{color:"#586c80",fontSize:15,marginTop:7,lineHeight:22},
  cityBadge:{position:"absolute",right:0,top:70,flexDirection:"row",alignItems:"center",gap:8,backgroundColor:"rgba(255,255,255,.7)",borderRadius:24,paddingHorizontal:16,paddingVertical:13},cityText:{color:"#1d2633",fontSize:13,fontWeight:"600"},
- main:{flexDirection:"row",alignItems:"stretch",gap:24},mainMobile:{flexDirection:"column"},
- sidebar:{width:408,maxWidth:"100%"},sidebarMobile:{width:"100%"},
+ main:{flexDirection:"row",alignItems:"flex-start",gap:16},mainMobile:{flexDirection:"column"},
+ sidebar:{width:295,maxWidth:"100%",flexShrink:0},sidebarMobile:{width:"100%"},
+ routesPanel:{width:340,maxWidth:"100%",flexShrink:0,backgroundColor:"rgba(255,255,255,.93)",borderRadius:22,padding:16},routesPanelMobile:{width:"100%"},
  searchCard:{backgroundColor:"rgba(255,255,255,.96)",padding:24,borderRadius:24,shadowColor:"#336191",shadowOpacity:.08,shadowRadius:26,elevation:2},
  searchTitle:{fontSize:21,fontWeight:"800",color:"#1d2633",marginBottom:16},
  modeBar:{flexDirection:"row",backgroundColor:"#eef3f8",borderRadius:13,padding:4,gap:1,justifyContent:"space-between",marginBottom:16},
@@ -308,7 +334,7 @@ const v=StyleSheet.create({
  searchButtonText:{color:"#fff",fontSize:14,fontWeight:"800"},
  warning:{marginTop:12,backgroundColor:"#fff7e9",borderRadius:10,padding:10,flexDirection:"row",gap:8,alignItems:"center"},
  warningText:{flex:1,fontSize:12,color:"#94602c",lineHeight:18},
- resultsHeader:{marginTop:24,marginBottom:11,flexDirection:"row",alignItems:"center",justifyContent:"space-between"},resultsTitle:{fontWeight:"800",color:"#1d2633",fontSize:18},
+ resultsHeader:{marginTop:2,marginBottom:11,flexDirection:"row",alignItems:"center",justifyContent:"space-between"},resultsTitle:{fontWeight:"800",color:"#1d2633",fontSize:18},
  departure:{flexDirection:"row",alignItems:"center",gap:7,marginBottom:14},departureText:{fontSize:12,color:"#586c80"},departureCount:{marginLeft:"auto",fontSize:12,color:"#586c80"},
  recommended:{backgroundColor:"#f6faff",borderRadius:22,borderWidth:1.5,borderColor:"#6ca9eb",padding:20,shadowColor:"#336191",shadowOpacity:.08,shadowRadius:16,elevation:2},
  recommendedBadge:{color:"#0069d2",fontWeight:"800",fontSize:10,letterSpacing:1},
