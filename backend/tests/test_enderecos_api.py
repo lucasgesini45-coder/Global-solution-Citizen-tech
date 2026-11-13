@@ -145,6 +145,35 @@ class EnderecosTestes(unittest.TestCase):
         self.assertEqual(http.call_count, 2)
         self.assertEqual(e.exception.status_code, 404)
 
+    def test_cores_oficiais_varginha_esmeralda_e_caminhada(self):
+        from backend.src.transitous_api import identificar_linha, CORES_LINHAS
+        linha, cor = identificar_linha({"mode": "SUBURBAN", "displayName": "METRÔ L9",
+                                         "routeColor": "55AAAA"})
+        self.assertEqual(linha, "Linha 9 – Esmeralda")
+        self.assertEqual(cor, CORES_LINHAS[9][1])
+        self.assertNotEqual(cor, "#5F6D7E")
+        self.assertEqual(identificar_linha({"mode": "WALK", "routeColor": "008A72"}), (None, None))
+        self.assertEqual(identificar_linha({"mode": "SUBWAY", "routeShortName": "L2"}), ("Linha 2 – Verde", CORES_LINHAS[2][1]))
+
+    def test_prioriza_alternativa_com_menos_caminhada(self):
+        from backend.src.transitous_api import consultar_transitous
+        geom = {"points": "vww|k@fj__xAhk@io@", "precision": 6}
+        def viagem(tempo, caminhada):
+            return {"duration": tempo * 60, "legs": [
+                {"mode": "WALK", "distance": caminhada, "legGeometry": geom},
+                {"mode": "SUBURBAN", "duration": 1200, "displayName": "METRO L9",
+                 "legGeometry": geom, "from":{"name":"Varginha"}, "to":{"name":"Pinheiros"}}
+            ]}
+        with patch("backend.src.transitous_api._json_http", return_value={
+            "itineraries": [viagem(55, 4000), viagem(65, 500)]
+        }):
+            rota = consultar_transitous(Coordenadas(lat=-23.55, lon=-46.63),
+                         Coordenadas(lat=-23.56, lon=-46.64), "ferroviario")
+        self.assertEqual(rota["tempo_min"], 65)
+        self.assertEqual(rota["caminhada_m"], 500)
+        self.assertFalse(rota["caminhada_longa"])
+        self.assertEqual(rota["trechos"][1]["cor_linha"], "#008A72")
+
     def test_modo_ferroviario_nao_aceita_itinerario_so_onibus(self):
         from backend.src.transitous_api import consultar_transitous
         dados = {"itineraries":[{"duration":600,"legs":[
