@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Text, View } from "react-native";
 
 type Ponto = {lat:number;lon:number;nome?:string;tipo?:string};
-type Trecho = {modal:string;trajeto:number[][];linha?:string|null;paradas?:{nome:string;lat:number;lon:number}[]};
+type Trecho = {modal:string;trajeto:number[][];linha?:string|null;cor_linha?:string|null;paradas?:{nome:string;lat:number;lon:number}[]};
 type Props = {url:string;trajeto?:number[][];trechos?:Trecho[];pontos?:Ponto[];height?:number;pickMode?:"origem"|"destino"|null;onMapPick?:(lat:number,lon:number)=>void};
 
 type MapLibreApi = {
@@ -133,8 +133,10 @@ export default function MapaPreview({pontos=[],height=365,trajeto=[],trechos=[],
        markersRef.current.push(marker);
        bounds.extend([p.lon,p.lat]);
      });
-     if(lista.length===1)mapRef.current.jumpTo({center:bounds.getCenter(),zoom:15});
-     else if(lista.length>1)mapRef.current.fitBounds(bounds,{padding:65,maxZoom:16,duration:0});
+     if(!mapRef.current.getSource("citizen-route")){
+       if(lista.length===1)mapRef.current.jumpTo({center:bounds.getCenter(),zoom:15});
+       else if(lista.length>1)mapRef.current.fitBounds(bounds,{padding:65,maxZoom:16,duration:0});
+     }
      mapRef.current.resize();
    }).catch(e=>{if(!cancelled)setErro(e instanceof Error?e.message:"Falha ao marcar endereços.");});
    return ()=>{cancelled=true;};
@@ -147,7 +149,7 @@ export default function MapaPreview({pontos=[],height=365,trajeto=[],trechos=[],
    const lista=JSON.parse(linhas) as Trecho[];
    const cores:Record<string,string>={WALK:"#2596a9",BUS:"#0071e3",SUBWAY:"#7155c8",SUBURBAN:"#7155c8",REGIONAL_RAIL:"#7155c8",RAIL:"#7155c8",TRAM:"#7155c8"};
    const features=lista.filter(t=>Array.isArray(t.trajeto)&&t.trajeto.length>=2).map((t,i)=>({
-     type:"Feature",properties:{cor:cores[t.modal]||"#7155c8",modo:t.modal,linha:t.linha||"",index:i},
+     type:"Feature",properties:{cor:t.cor_linha||cores[t.modal]||"#7155c8",modo:t.modal,linha:t.linha||"",index:i},
      geometry:{type:"LineString",coordinates:t.trajeto.filter(p=>Array.isArray(p)&&p.length===2&&p.every(Number.isFinite)).map(p=>[p[1],p[0]])}
    })).filter(f=>f.geometry.coordinates.length>=2);
    if(map.getLayer(id+"-stations-labels"))map.removeLayer(id+"-stations-labels");
@@ -160,7 +162,7 @@ export default function MapaPreview({pontos=[],height=365,trajeto=[],trechos=[],
    map.addSource(id,{type:"geojson",data:{type:"FeatureCollection",features}});
    map.addLayer({id:id+"-stroke",type:"line",source:id,paint:{"line-color":"#ffffff","line-width":9,"line-opacity":0.9},layout:{"line-join":"round","line-cap":"round"}});
    map.addLayer({id:id+"-line",type:"line",source:id,paint:{"line-color":["get","cor"],"line-width":5,"line-opacity":0.95},layout:{"line-join":"round","line-cap":"round"}});
-   const pontos=lista.flatMap(t=>(t.paradas||[]).map(p=>({type:"Feature",properties:{nome:p.nome,modal:t.modal,cor:cores[t.modal]||"#7155c8"},geometry:{type:"Point",coordinates:[p.lon,p.lat]}}))).filter(f=>f.geometry.coordinates.every(Number.isFinite));
+   const pontos=lista.flatMap(t=>(t.paradas||[]).map(p=>({type:"Feature",properties:{nome:p.nome,modal:t.modal,cor:t.cor_linha||cores[t.modal]||"#7155c8"},geometry:{type:"Point",coordinates:[p.lon,p.lat]}}))).filter(f=>f.geometry.coordinates.every(Number.isFinite));
    if(pontos.length){
      map.addSource(id+"-stations",{type:"geojson",data:{type:"FeatureCollection",features:pontos}});
      map.addLayer({id:id+"-stations",type:"circle",source:id+"-stations",paint:{"circle-radius":5,"circle-color":["get","cor"],"circle-stroke-width":2,"circle-stroke-color":"#fff"}});
