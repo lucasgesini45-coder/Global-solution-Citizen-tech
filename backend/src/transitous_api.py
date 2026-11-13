@@ -99,7 +99,7 @@ def consultar_transitous(origem, destino, modal: str) -> dict:
         params["directModes"] = ""
     url = TRANSITOUS_URL + "?" + urlencode(params)
     try:
-        resposta = _json_http(url, headers={
+        resposta = _json_http(url, max_bytes=3_000_000, headers={
             "User-Agent": os.getenv(
                 "CITIZEN_TRANSIT_USER_AGENT",
                 "CitizenTechFIAP/0.3 (https://github.com/lucasgesini45-coder/Global-solution-Citizen-tech)"
