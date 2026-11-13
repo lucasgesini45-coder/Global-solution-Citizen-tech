@@ -10,7 +10,7 @@ type Icon = React.ComponentProps<typeof Ionicons>["name"];
 type Modal = "todos"|"ferroviario"|"onibus"|"ape";
 type Endereco = {nome:string;lat:number;lon:number;fonte:string};
 type Trecho = {modal:string;linha?:string|null;cor_linha?:string|null;paradas?:{nome:string;lat:number;lon:number}[];destino_linha?:string|null;de:string;para:string;tempo_min:number;trajeto:number[][]};
-type Resultado = {tipo:string;fonte:string;tempo_min:number;distancia_m:number|null;tarifa_centavos:number|null;seguranca:{status:string};trajeto:number[][];trechos?:Trecho[];aviso:string;modal?:string};
+type Resultado = {tipo:string;fonte:string;tempo_min:number;distancia_m:number|null;tarifa_centavos:number|null;seguranca:{status:string};trajeto:number[][];trechos?:Trecho[];aviso:string;modal?:string;caminhada_m?:number|null;caminhada_longa?:boolean};
 type Consulta = {resposta:string;fontes:{referencia:string;data_verificacao:string}[]};
 type RotaDemo = {ordem:number;tempo_total_min:number;espera_min:number;caminhada_m:number;baldeacoes:number;saida:string;chegada:string;custo:{centavos:number|null;confirmado:boolean};seguranca:{status:string};acessibilidade:string;trechos:{tipo:string;modal:string|null;linha:string|null}[]};
 type RespostaDemo = {modo:string;origem_dados:string;cenario:string;partida_exemplo:string;aviso:string;resultado:{rotas:RotaDemo[];erro?:{mensagem:string}|null}};
@@ -215,6 +215,12 @@ export default function Home(){
             <View style={v.recommendedTop}><Text style={v.duration}>{resultado.tempo_min} min</Text><Text style={v.fare}>{resultado.tarifa_centavos===null?"Tarifa não informada":resultado.tarifa_centavos===0?"Gratuito":"R$ "+(resultado.tarifa_centavos/100).toFixed(2).replace(".",",")}</Text></View>
             <View style={v.routeSequence}><Icone name="walk-outline" color="#0069d2" size={20}/><Text style={v.routeSequenceText}>{resultado.distancia_m!==null?(resultado.distancia_m/1000).toFixed(1)+" km · ":""}{resultado.fonte}</Text></View>
             {(resultado.trechos||[]).map((t,i)=><View key={i} style={{marginTop:8,borderTopWidth:i===0?0:1,borderTopColor:"#dde8f4",paddingTop:8}}><Text style={{color:"#1f4f88",fontWeight:"700",fontSize:12}}>{t.modal==="WALK"?"Caminhar":t.modal==="BUS"?"Ônibus":t.modal==="SUBWAY"?"Metrô":t.modal==="SUBURBAN"?"Trem":"Transporte"}{t.linha?" · "+t.linha:""} · {t.tempo_min} min</Text><Text style={{color:"#60768f",fontSize:11}}>{t.de} → {t.para}{t.destino_linha?" · Sentido "+t.destino_linha:""}</Text></View>)}
+            {resultado.caminhada_m!==null&&resultado.caminhada_m!==undefined&&resultado.modal!=="ape"&&<View style={{marginTop:9,padding:10,backgroundColor:resultado.caminhada_longa?"#FFF2DE":"#EDF5FC",borderRadius:10}}>
+              <Text style={{color:resultado.caminhada_longa?"#87521A":"#234C77",fontWeight:"700",fontSize:12}}>
+                {"Caminhada total: "+(resultado.caminhada_m>=1000?(resultado.caminhada_m/1000).toFixed(1).replace(".",",")+" km":resultado.caminhada_m+" m")}
+                {resultado.caminhada_longa?" · Atenção: trecho longo a pé":""}
+              </Text>
+            </View>}
             <Text style={v.routeDisclaimer}>{resultado.aviso}</Text>
           </View>:<View style={v.emptyResults}><Icone name="git-compare-outline" size={27} color="#8ba2bd"/><Text style={v.emptyResultsTitle}>Seu trajeto aparecerá aqui</Text><Text style={v.emptyResultsCopy}>Selecione endereços sugeridos e um modo de transporte para consultar as opções disponíveis. As rotas são consultadas em serviços externos e podem não estar disponíveis em alguns horários e locais.</Text></View>}
          <View style={v.demoPanel}>
