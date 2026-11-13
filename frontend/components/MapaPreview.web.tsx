@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Text, View } from "react-native";
 
 type Ponto = {lat:number;lon:number;nome?:string;tipo?:string};
-type Props = {url:string;trajeto?:number[][];pontos?:Ponto[];height?:number};
+type Props = {url:string;trajeto?:number[][];pontos?:Ponto[];height?:number;pickMode?:"origem"|"destino"|null;onMapPick?:(lat:number,lon:number)=>void};
 
 type MapLibreApi = {
  Map: new (options: Record<string, unknown>) => any;
@@ -52,10 +52,14 @@ function loadMapLibre(): Promise<MapLibreApi> {
 }
 
 /** Usa DOM direto no Expo Web: MapLibre não funciona com segurança em iframe srcDoc. */
-export default function MapaPreview({pontos=[],height=365}:Props) {
+export default function MapaPreview({pontos=[],height=365,pickMode=null,onMapPick}:Props) {
  const containerRef=useRef<HTMLDivElement|null>(null);
  const mapRef=useRef<any>(null);
  const markersRef=useRef<any[]>([]);
+ const pickModeRef=useRef(pickMode);
+ const onMapPickRef=useRef(onMapPick);
+ pickModeRef.current=pickMode;
+ onMapPickRef.current=onMapPick;
  const [erro,setErro]=useState("");
  const [pronto,setPronto]=useState(false);
  const marcas=pontos.filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lon));
@@ -77,6 +81,11 @@ export default function MapaPreview({pontos=[],height=365}:Props) {
      });
      mapRef.current=map;
      map.addControl(new lib.NavigationControl({showCompass:false}),"top-right");
+     map.on("click",(event:{lngLat:{lat:number;lng:number}})=>{
+       if(pickModeRef.current&&onMapPickRef.current){
+         onMapPickRef.current(event.lngLat.lat,event.lngLat.lng);
+       }
+     });
      map.on("load",()=>{
        if(!active)return;
        setPronto(true);setErro("");
@@ -133,11 +142,12 @@ export default function MapaPreview({pontos=[],height=365}:Props) {
    {React.createElement("div",{
      ref:containerRef,
      "aria-label":"Mapa OpenFreeMap Positron",
-     style:{width:"100%",height:"100%"}
+     style:{width:"100%",height:"100%",cursor:pickMode?"crosshair":"grab"}
    })}
    <View pointerEvents="none" style={{position:"absolute",top:15,left:15,backgroundColor:"rgba(255,255,255,.95)",paddingHorizontal:12,paddingVertical:9,borderRadius:12}}>
      <Text style={{color:"#37516b",fontWeight:"700",fontSize:12}}>OpenFreeMap · Positron</Text>
    </View>
+   {!!pickMode&&<View pointerEvents="none" style={{position:"absolute",left:14,right:14,bottom:18,backgroundColor:"#e8f3ff",padding:12,borderRadius:10,borderWidth:1,borderColor:"#afcdf0"}}><Text style={{color:"#12568c",fontSize:12,fontWeight:"700"}}>{"Clique no mapa para marcar "+(pickMode==="origem"?"a origem":"o destino")}</Text></View>}
    {!!erro&&<View style={{position:"absolute",left:14,right:14,bottom:18,backgroundColor:"#fff4e9",padding:12,borderRadius:10,borderWidth:1,borderColor:"#f3d4b6"}}>
       <Text style={{color:"#8f4e22",fontSize:12}}>{erro}</Text>
    </View>}
