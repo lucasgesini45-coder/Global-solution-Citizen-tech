@@ -112,6 +112,8 @@ class EnderecosTestes(unittest.TestCase):
         self.assertEqual(rota["trajeto"], pontos)
         self.assertIsNone(rota["tarifa_centavos"])
         self.assertIn("transitModes=BUS", http.call_args.args[0])
+        self.assertIn("maxDirectTime=0", http.call_args.args[0])
+        self.assertNotIn("directModes=", http.call_args.args[0])
 
     def test_modo_ferroviario_nao_aceita_itinerario_so_onibus(self):
         from backend.src.transitous_api import consultar_transitous
