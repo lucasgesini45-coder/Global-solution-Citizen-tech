@@ -1,8 +1,9 @@
 """Testes dos contratos da API de endereços e caminhada."""
 import unittest
 from unittest.mock import patch
+from urllib.error import HTTPError, URLError
 from fastapi import HTTPException
-from backend.src.enderecos_api import Coordenadas, RotaRealPedido, sugestoes, rota_real, _buscar_cache
+from backend.src.enderecos_api import Coordenadas, RotaRealPedido, sugestoes, rota_real, _buscar_cache, _json_http
 
 class EnderecosTestes(unittest.TestCase):
     def test_busca_apresenta_resultados(self):
@@ -30,6 +31,20 @@ class EnderecosTestes(unittest.TestCase):
         self.assertEqual(len(resultados), 1)
         self.assertEqual(resultados[0]["nome"], "FIAP Aclimacao, Sao Paulo")
         _buscar_cache.cache_clear()
+
+    def test_photon_limite_mostra_erro_especifico(self):
+        erro = HTTPError("https://photon.komoot.io/api", 429, "rate limit", None, None)
+        with patch("backend.src.enderecos_api.urlopen", side_effect=erro), patch("backend.src.enderecos_api.time.sleep"):
+            with self.assertRaises(HTTPException) as e:
+                _json_http("https://photon.komoot.io/api?q=teste")
+        self.assertEqual(e.exception.status_code, 503)
+        self.assertIn("limite", e.exception.detail)
+
+    def test_photon_falha_conexao_mostra_diagnostico(self):
+        with patch("backend.src.enderecos_api.urlopen", side_effect=URLError("sem rede")), patch("backend.src.enderecos_api.time.sleep"):
+            with self.assertRaises(HTTPException) as e:
+                _json_http("https://photon.komoot.io/api?q=teste")
+        self.assertIn("conectar ao Photon", e.exception.detail)
 
     def test_modal_ferrovia_nao_finge_suporte(self):
         with self.assertRaises(HTTPException) as e:
