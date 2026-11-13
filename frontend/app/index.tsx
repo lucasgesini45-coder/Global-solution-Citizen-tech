@@ -84,6 +84,7 @@ export default function Home(){
  const [demo,setDemo]=useState<RespostaDemo|null>(null);
  const [demoCarregando,setDemoCarregando]=useState(false);
  const [demoErro,setDemoErro]=useState("");
+ const [selecionarNoMapa,setSelecionarNoMapa]=useState<"origem"|"destino"|null>(null);
  const [fotoBase,setFotoBase]=useState(false);
 
  const pontos=[origemGeo?{...origemGeo,tipo:"origem"}:null,destinoGeo?{...destinoGeo,tipo:"destino"}:null].filter((p):p is Endereco & {tipo:string}=>p!==null);
@@ -92,6 +93,13 @@ export default function Home(){
  const preview="https://www.openstreetmap.org/export/embed.html?bbox="+bbox+"&layer=mapnik";
 
  const atualizarOrigem=(t:string)=>{setOrigem(t);setOrigemGeo(null);setResultado(null);setErro("");};
+ const marcarNoMapa=(lat:number,lon:number)=>{
+   const tipo=selecionarNoMapa;
+   if(!tipo||!Number.isFinite(lat)||!Number.isFinite(lon))return;
+   const ponto:Endereco={nome:"Ponto marcado no mapa ("+lat.toFixed(5)+", "+lon.toFixed(5)+")",lat,lon,fonte:"Positron / coordenadas selecionadas"};
+   if(tipo==="origem"){setOrigem(ponto.nome);setOrigemGeo(ponto);}else{setDestino(ponto.nome);setDestinoGeo(ponto);}
+   setSelecionarNoMapa(null);setResultado(null);setErro("");
+ };
  const atualizarDestino=(t:string)=>{setDestino(t);setDestinoGeo(null);setResultado(null);setErro("");};
  async function obterPosicao(){
    setLocalizando(true);setErro("");
@@ -186,6 +194,14 @@ export default function Home(){
                <Pressable onPress={()=>{setOrigem(destino);setDestino(origem);setOrigemGeo(destinoGeo);setDestinoGeo(origemGeo);setResultado(null);setErro("");}} style={v.smallAction} accessibilityLabel="Inverter origem e destino"><Icone name="swap-vertical-outline" color="#0069d2" size={17}/></Pressable>
              </View>
              <CampoEndereco titulo="DESTINO" valor={destino} escolhido={destinoGeo} mudar={atualizarDestino} selecionar={e=>{setDestino(e.nome);setDestinoGeo(e);setResultado(null);}} placeholder="Para onde você quer ir?"/>
+             <View style={{flexDirection:"row",gap:8,flexWrap:"wrap",marginTop:8}}>
+               <Pressable onPress={()=>setSelecionarNoMapa(t=>t==="origem"?null:"origem")} accessibilityRole="button" style={{backgroundColor:selecionarNoMapa==="origem"?"#d5eaff":"#f0f5fa",borderRadius:12,padding:10,flexGrow:1}}>
+                 <Text style={{color:"#0069d2",fontSize:11,fontWeight:"700"}}>{selecionarNoMapa==="origem"?"Cancelar origem":"Marcar origem no mapa"}</Text>
+               </Pressable>
+               <Pressable onPress={()=>setSelecionarNoMapa(t=>t==="destino"?null:"destino")} accessibilityRole="button" style={{backgroundColor:selecionarNoMapa==="destino"?"#d5eaff":"#f0f5fa",borderRadius:12,padding:10,flexGrow:1}}>
+                 <Text style={{color:"#0069d2",fontSize:11,fontWeight:"700"}}>{selecionarNoMapa==="destino"?"Cancelar destino":"Marcar destino no mapa"}</Text>
+               </Pressable>
+             </View>
            </View>
            <Pressable onPress={planejar} disabled={carregando} style={v.searchButton} accessibilityRole="button">
              {carregando?<ActivityIndicator color="#fff" size="small"/>:<Icone name="navigate-outline" size={18} color="#fff"/>}
@@ -227,7 +243,7 @@ export default function Home(){
 
        <View style={[v.mapCard,mobile&&v.mapCardMobile]}>
          <View style={v.mapHeader}><Text style={v.mapTitle}>Mapa do trajeto</Text><View style={v.mapBadge}><Icone name="map-outline" size={15} color="#0069d2"/><Text style={v.mapBadgeText}>Mapa interativo</Text></View></View>
-         <MapaPreview url={preview} pontos={pontos} trajeto={resultado?.trajeto} height={mobile?390:560}/>
+         <MapaPreview url={preview} pontos={pontos} trajeto={resultado?.trajeto} height={mobile?390:560} pickMode={selecionarNoMapa} onMapPick={marcarNoMapa}/>
          <View style={v.mapBottom}>
            <Icone name="information-circle-outline" color="#63778c" size={17}/>
            <Text style={v.mapBottomText}>{resultado?"Percurso a pé calculado a partir da origem e do destino selecionados.":"Escolha origem e destino para visualizar os pontos no mapa. Rotas reais de metrô e ônibus ainda não estão disponíveis."}</Text>
