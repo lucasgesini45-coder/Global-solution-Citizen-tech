@@ -27,6 +27,7 @@ _ultima_busca = 0.0
 
 
 def _json_http(url: str, *, payload: dict | None = None, headers: dict | None = None, max_bytes: int = 400_000) -> dict:
+    provedor = "Transitous" if "transitous.org" in url else "Photon"
     body = json.dumps(payload).encode("utf-8") if payload is not None else None
     h = {"User-Agent": AGENTE, "Accept": "application/json"}
     if body is not None:
@@ -44,7 +45,7 @@ def _json_http(url: str, *, payload: dict | None = None, headers: dict | None = 
                 if indice + 1 < tentativas:
                     time.sleep(2)
                     continue
-                raise HTTPException(status_code=503, detail="O serviço de busca de endereços atingiu seu limite temporário de consultas (Photon). Tente novamente em alguns instantes.") from exc
+                raise HTTPException(status_code=503, detail=f"O serviço {provedor} atingiu seu limite temporário de consultas. Tente novamente em alguns instantes.") from exc
             if exc.code in (502, 503, 504) and indice + 1 < tentativas:
                 time.sleep(1)
                 continue
@@ -57,14 +58,14 @@ def _json_http(url: str, *, payload: dict | None = None, headers: dict | None = 
                     detalhe = " " + " ".join(resposta_erro.split())[:160] if resposta_erro else ""
                 except (OSError, ValueError, AttributeError):
                     pass
-            raise HTTPException(status_code=503, detail=f"Photon rejeitou a busca (HTTP {exc.code}).{detalhe} Tente novamente ou marque os pontos diretamente no mapa.") from exc
+            raise HTTPException(status_code=503, detail=f"{provedor} rejeitou a busca (HTTP {exc.code}).{detalhe} Tente novamente ou marque os pontos diretamente no mapa.") from exc
         except (URLError, TimeoutError, OSError) as exc:
             if indice + 1 < tentativas:
                 time.sleep(1)
                 continue
-            raise HTTPException(status_code=503, detail="Não foi possível conectar ao Photon. Verifique a internet do computador onde roda o backend e o acesso a photon.komoot.io.") from exc
+            raise HTTPException(status_code=503, detail=f"Não foi possível conectar ao {provedor}. Verifique a internet do computador onde roda o backend.") from exc
         except (ValueError, UnicodeError) as exc:
-            raise HTTPException(status_code=503, detail="O serviço de endereços respondeu com dados inválidos.") from exc
+            raise HTTPException(status_code=503, detail=f"O serviço {provedor} respondeu com dados inválidos.") from exc
     raise HTTPException(status_code=503, detail="Busca de endereços indisponível.")
 
 
