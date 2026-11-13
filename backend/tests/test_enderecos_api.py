@@ -70,11 +70,13 @@ class EnderecosTestes(unittest.TestCase):
         self.assertEqual(len(resposta), 1)
         _buscar_cache.cache_clear()
 
-    def test_modal_ferrovia_nao_finge_suporte(self):
-        with self.assertRaises(HTTPException) as e:
-            rota_real(RotaRealPedido(origem=Coordenadas(lat=-23.55,lon=-46.63),
+    def test_modal_ferrovia_consulta_provedor_real(self):
+        resposta = {"tipo": "rota_real", "modal": "ferroviario", "trechos": []}
+        with patch("backend.src.transitous_api.consultar_transitous", return_value=resposta) as provedor:
+            rota = rota_real(RotaRealPedido(origem=Coordenadas(lat=-23.55,lon=-46.63),
               destino=Coordenadas(lat=-23.56,lon=-46.64),modal="ferroviario"))
-        self.assertEqual(e.exception.status_code,422)
+        self.assertEqual(rota["modal"], "ferroviario")
+        self.assertEqual(provedor.call_args.args[2], "ferroviario")
 
     def test_falha_transitous_sem_chave_ors_nao_finge_rota(self):
         with patch.dict("os.environ",{},clear=True), patch(
