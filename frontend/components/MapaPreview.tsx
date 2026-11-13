@@ -3,7 +3,7 @@ import { View } from "react-native";
 import WebView from "react-native-webview";
 
 type Ponto={lat:number;lon:number;nome?:string;tipo?:string};
-type Trecho={modal:string;trajeto:number[][];linha?:string|null};
+type Trecho={modal:string;trajeto:number[][];linha?:string|null;paradas?:{nome:string;lat:number;lon:number}[]};
 type Props={url:string;trajeto?:number[][];trechos?:Trecho[];pontos?:Ponto[];height?:number;pickMode?:"origem"|"destino"|null;onMapPick?:(lat:number,lon:number)=>void};
 
 export default function MapaPreview({pontos=[],height=365,trajeto=[],trechos=[],pickMode=null,onMapPick}:Props){
@@ -64,6 +64,12 @@ html,body,#map{margin:0;width:100%;height:100%;background:#eff3f7;font-family:In
      map.addSource("citizen-route",{type:"geojson",data:{type:"FeatureCollection",features:geometria}});
      map.addLayer({id:"citizen-route-outline",type:"line",source:"citizen-route",paint:{"line-color":"#fff","line-width":9},layout:{"line-join":"round","line-cap":"round"}});
      map.addLayer({id:"citizen-route-lines",type:"line",source:"citizen-route",paint:{"line-color":["get","cor"],"line-width":5},layout:{"line-join":"round","line-cap":"round"}});
+     const paradas=trechos.flatMap(t=>(t.paradas||[]).map(p=>({type:"Feature",properties:{nome:p.nome,cor:cores[t.modal]||"#7155c8"},geometry:{type:"Point",coordinates:[p.lon,p.lat]}}))).filter(p=>p.geometry.coordinates.every(Number.isFinite));
+     if(paradas.length){
+       map.addSource("citizen-stations",{type:"geojson",data:{type:"FeatureCollection",features:paradas}});
+       map.addLayer({id:"citizen-stations-markers",type:"circle",source:"citizen-stations",paint:{"circle-radius":5,"circle-color":["get","cor"],"circle-stroke-color":"#fff","circle-stroke-width":2}});
+       map.addLayer({id:"citizen-stations-names",type:"symbol",source:"citizen-stations",layout:{"text-field":["get","nome"],"text-size":11,"text-offset":[0,1.1],"text-anchor":"top","text-optional":true},paint:{"text-color":"#244263","text-halo-color":"#fff","text-halo-width":1.5}});
+     }
      geometria.forEach(g=>g.geometry.coordinates.forEach(pos=>bounds.extend(pos)));
    }
    if(geometria.length&&!bounds.isEmpty())map.fitBounds(bounds,{padding:65,maxZoom:16,duration:0});
