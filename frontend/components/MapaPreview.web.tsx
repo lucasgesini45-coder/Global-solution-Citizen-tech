@@ -148,15 +148,15 @@ export default function MapaPreview({pontos=[],height=365,trajeto=[],trechos=[],
    if(!pronto||!map)return;
    const lista=JSON.parse(linhas) as Trecho[];
    const id="citizen-route";
-   const cores:Record<string,string>={WALK:"#2596a9",BUS:"#0071e3",SUBWAY:"#7155c8",SUBURBAN:"#7155c8",REGIONAL_RAIL:"#7155c8",RAIL:"#7155c8",TRAM:"#7155c8",METRO:"#7155c8"};
+   const cores:Record<string,string>={WALK:"#5F6D7E",BUS:"#0071e3",SUBWAY:"#7155c8",SUBURBAN:"#7155c8",REGIONAL_RAIL:"#7155c8",RAIL:"#7155c8",TRAM:"#7155c8",METRO:"#7155c8"};
    const featureList=lista.flatMap((t,i)=>{
      if(!Array.isArray(t.trajeto))return [];
      const coords=t.trajeto.filter(p=>Array.isArray(p)&&p.length>=2&&p.slice(0,2).every(Number.isFinite)&&Math.abs(p[0])<=90&&Math.abs(p[1])<=180).map(p=>[p[1],p[0]]);
      if(coords.length<2)return [];
      const rotulo=t.modal==="WALK"?"A pé":t.modal==="BUS"?"Ônibus"+(t.linha?" · "+t.linha:""):"Metrô / trem"+(t.linha?" · "+t.linha:"");
-     return [{type:"Feature",properties:{cor:t.cor_linha||cores[t.modal]||"#7155c8",rotulo,index:i},geometry:{type:"LineString",coordinates:coords}}];
+     return [{type:"Feature",properties:{cor:t.modal==="WALK"?cores.WALK:(t.cor_linha||cores[t.modal]||"#7155c8"),rotulo,index:i,ape:t.modal==="WALK"},geometry:{type:"LineString",coordinates:coords}}];
    });
-   const stationList=lista.flatMap(t=>(t.paradas||[]).filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lon)).map(p=>({type:"Feature",properties:{nome:p.nome,cor:t.cor_linha||cores[t.modal]||"#7155c8"},geometry:{type:"Point",coordinates:[p.lon,p.lat]}})));
+   const stationList=lista.flatMap(t=>(t.paradas||[]).filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lon)).map(p=>({type:"Feature",properties:{nome:p.nome,cor:t.modal==="WALK"?cores.WALK:(t.cor_linha||cores[t.modal]||"#7155c8")},geometry:{type:"Point",coordinates:[p.lon,p.lat]}})));
    const data={type:"FeatureCollection",features:featureList};
    const stationData={type:"FeatureCollection",features:stationList};
    if(lista.length>0&&featureList.length===0){
@@ -169,6 +169,7 @@ export default function MapaPreview({pontos=[],height=365,trajeto=[],trechos=[],
        else map.addSource(id,{type:"geojson",data});
        if(!map.getLayer(id+"-stroke"))map.addLayer({id:id+"-stroke",type:"line",source:id,layout:{"line-join":"round","line-cap":"round"},paint:{"line-color":"#fff","line-width":9,"line-opacity":0.9}});
        if(!map.getLayer(id+"-line"))map.addLayer({id:id+"-line",type:"line",source:id,layout:{"line-join":"round","line-cap":"round"},paint:{"line-color":["get","cor"],"line-width":5,"line-opacity":0.95}});
+       if(!map.getLayer(id+"-walk"))map.addLayer({id:id+"-walk",type:"line",source:id,filter:["==",["get","ape"],true],layout:{"line-join":"round","line-cap":"round"},paint:{"line-color":"#5F6D7E","line-width":5,"line-dasharray":[1.2,1.2]}});
        // Labels never block rendering the line: styles can lack a font family.
        try{
          if(!map.getLayer(id+"-modal-labels"))map.addLayer({id:id+"-modal-labels",type:"symbol",source:id,
@@ -208,7 +209,7 @@ export default function MapaPreview({pontos=[],height=365,trajeto=[],trechos=[],
    </View>
    {trechos.length>0&&<View pointerEvents="none" style={{position:"absolute",top:54,left:14,backgroundColor:"rgba(255,255,255,.96)",borderRadius:10,padding:9,gap:5}}>
      {Array.from(new Set(trechos.map(t=>t.modal==="WALK"?"A pé":t.modal==="BUS"?"Ônibus":"Metrô / trem"))).map(tipo=><View key={tipo} style={{flexDirection:"row",alignItems:"center",gap:6}}>
-       <View style={{height:4,width:20,backgroundColor:tipo==="A pé"?"#2596a9":tipo==="Ônibus"?"#0071e3":"#7155c8",borderRadius:3}}/>
+       <View style={{height:4,width:20,backgroundColor:tipo==="A pé"?"#5F6D7E":tipo==="Ônibus"?"#0071e3":"#7155c8",borderRadius:3}}/>
        <Text style={{fontSize:11,fontWeight:"700",color:"#244263"}}>{tipo}</Text>
      </View>)}
    </View>}
