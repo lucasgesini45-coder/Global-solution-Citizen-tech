@@ -133,14 +133,15 @@ export default function MapaPreview({pontos=[],height=365,trajeto=[],trechos=[],
        markersRef.current.push(marker);
        bounds.extend([p.lon,p.lat]);
      });
-     if(!mapRef.current.getSource("citizen-route")){
+     const temRota=JSON.parse(linhas).some((t:Trecho)=>Array.isArray(t.trajeto)&&t.trajeto.length>=2);
+     if(!temRota){
        if(lista.length===1)mapRef.current.jumpTo({center:bounds.getCenter(),zoom:15});
        else if(lista.length>1)mapRef.current.fitBounds(bounds,{padding:65,maxZoom:16,duration:0});
      }
      mapRef.current.resize();
    }).catch(e=>{if(!cancelled)setErro(e instanceof Error?e.message:"Falha ao marcar endereços.");});
    return ()=>{cancelled=true;};
- },[marcadores,pronto]);
+ },[marcadores,linhas,pronto]);
 
  useEffect(()=>{
    const map=mapRef.current;
