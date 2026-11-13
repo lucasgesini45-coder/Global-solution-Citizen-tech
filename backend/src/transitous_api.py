@@ -103,6 +103,9 @@ def consultar_transitous(origem, destino, modal: str) -> dict:
         "detailedTransfers": "true",
         "maxTransfers": 3,
         "searchWindow": 3600,
+        "maxPreTransitTime": 1800,
+        "maxPostTransitTime": 1800,
+        "maxMatchingDistance": 500,
     }
     # Para caminhada, solicitar rota direta; para transporte público desabilitar
     # rotas diretas que poderiam descartar opções de ônibus/ferrovia.
@@ -112,22 +115,34 @@ def consultar_transitous(origem, destino, modal: str) -> dict:
         # Sem directModes vazio (pode invalidar array MOTIS); remove a viagem
         # direta para evitar o corte das conexões de transporte público.
         params["maxDirectTime"] = 0
-    url = TRANSITOUS_URL + "?" + urlencode(params)
-    try:
-        resposta = _json_http(url, max_bytes=3_000_000, headers={
-            "User-Agent": os.getenv(
-                "CITIZEN_TRANSIT_USER_AGENT",
-                "CitizenTechFIAP/0.3 (https://github.com/lucasgesini45-coder/Global-solution-Citizen-tech)"
-            )
-        })
-    except HTTPException as exc:
-        raise HTTPException(status_code=503, detail=(
-            "Não foi possível calcular a rota pelo Transitous: "
-            + str(exc.detail) + " Nenhuma linha fictícia foi desenhada."
-        )) from exc
+    headers = {"User-Agent": os.getenv(
+        "CITIZEN_TRANSIT_USER_AGENT",
+        "CitizenTechFIAP/0.3 (https://github.com/lucasgesini45-coder/Global-solution-Citizen-tech)"
+    )}
+    def buscar(parametros):
+        try:
+            return _json_http(TRANSITOUS_URL + "?" + urlencode(parametros),
+                              max_bytes=3_000_000, headers=headers)
+        except HTTPException as exc:
+            raise HTTPException(status_code=503, detail=(
+                "Não foi possível calcular a rota pelo Transitous: "
+                + str(exc.detail) + " Nenhuma linha fictícia foi desenhada."
+            )) from exc
+
+    resposta = buscar(params)
     viagens = resposta.get("direct", []) if modal == "ape" else resposta.get("itineraries", [])
     if not isinstance(viagens, list):
         viagens = []
+    busca_ampliada = False
+    # A segunda tentativa usa apenas paradas reais dentro de um raio de 1 km.
+    # Esse modo pode não entregar caminhada detalhada: jamais inventar o caminho.
+    if not viagens and modal != "ape":
+        params_ampliados = {**params, "radius": 1000}
+        resposta = buscar(params_ampliados)
+        viagens = resposta.get("itineraries", [])
+        if not isinstance(viagens, list):
+            viagens = []
+        busca_ampliada = True
     # Filtra para garantir que o modo escolhido de fato seja utilizado.
     permitidos = MODOS_ONIBUS if modal == "onibus" else MODOS_FERROVIARIOS
     if modal in {"onibus", "ferroviario"}:
@@ -135,7 +150,7 @@ def consultar_transitous(origem, destino, modal: str) -> dict:
             str(leg.get("mode", "")).upper() in permitidos for leg in v.get("legs", [])
         )]
     opcoes = []
-    for v in viagens[:8]:
+    for v in viagens[:16]:
         trechos = _trechos_viagem(v)
         if not trechos:
             continue
@@ -146,12 +161,28 @@ def consultar_transitous(origem, destino, modal: str) -> dict:
         if modal == "ape" and not any(t["modal"] in MODOS_A_PE for t in trechos):
             continue
         opcoes.append((v, trechos))
+    if not opcoes and not busca_ampliada and modal != "ape":
+        params_ampliados = {**params, "radius": 1000}
+        resposta = buscar(params_ampliados)
+        viagens = resposta.get("itineraries", [])
+        if not isinstance(viagens, list):
+            viagens = []
+        busca_ampliada = True
+        if modal in {"onibus", "ferroviario"}:
+            viagens = [v for v in viagens if any(
+                str(leg.get("mode", "")).upper() in permitidos for leg in v.get("legs", [])
+            )]
+        for v in viagens[:16]:
+            t = _trechos_viagem(v)
+            if t and (modal == "todos" or any(item["modal"] in permitidos for item in t)):
+                opcoes.append((v, t))
     if not opcoes:
         raise HTTPException(status_code=404, detail=(
             "Não foram encontradas viagens com geometria disponível para esse modal, "
             "local e horário no Transitous. Tente outro horário ou local."
         ))
     v, trechos = min(opcoes, key=lambda item: float(item[0].get("duration", 1e9)))
+    faltam_trechos = len(trechos) < len(v.get("legs", []))
     trajeto = [pt for t in trechos for pt in t["trajeto"]]
     # A distância só é exibida quando a API informa seus valores.
     distancias = [float(leg["distance"]) for leg in v.get("legs", []) if isinstance(leg.get("distance"), (int,float))]
@@ -162,7 +193,10 @@ def consultar_transitous(origem, destino, modal: str) -> dict:
         "distancia_m": distancia, "tarifa_centavos": None,
         "seguranca": {"status": "nao_verificada", "exposicao": None},
         "trajeto": trajeto, "trechos": trechos,
+        "busca_ampliada": busca_ampliada,
         "aviso": ("Rota informada pelo Transitous. Horários podem mudar e não há "
                   "validação de tarifa, acessibilidade ou segurança. "
-                  "Dados de transporte: https://transitous.org/sources/"),
+                  + ("Busca ampliada para pontos próximos (até 1 km). " if busca_ampliada else "")
+                  + ("Parte do acesso a pé não tem traçado disponível; verifique como chegar à estação ou parada. " if faltam_trechos else "")
+                  + "Dados de transporte: https://transitous.org/sources/"),
     }
