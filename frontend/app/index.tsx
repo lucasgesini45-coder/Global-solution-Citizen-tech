@@ -1,11 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet,
- Text, TextInput, View, useWindowDimensions } from "react-native";
+ Text as RNText, TextInput, View, Platform, useWindowDimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import MapaPreview from "../components/MapaPreview";
 
 const API = (process.env.EXPO_PUBLIC_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+
+// Tipografia geométrica do modelo visual. No mobile preserva a fonte do
+// sistema até os arquivos nativos serem incorporados ao bundle do Expo.
+const fonteInterface = Platform.OS === "web" ? "Sora" : undefined;
+function Text(props: React.ComponentProps<typeof RNText>) {
+  return <RNText {...props} style={[fonteInterface?{fontFamily:fonteInterface}:null,props.style]} />;
+}
+
 type Icon = React.ComponentProps<typeof Ionicons>["name"];
 type Modal = "todos"|"ferroviario"|"onibus"|"ape";
 type Endereco = {nome:string;lat:number;lon:number;fonte:string};
@@ -317,7 +325,7 @@ const s=StyleSheet.create({
  autocomplete:{position:"relative",zIndex:10},
  inputLabel:{fontSize:10,fontWeight:"800",color:"#586c80",marginBottom:6,letterSpacing:.8},
  inputWrap:{minHeight:58,borderRadius:14,backgroundColor:"#f0f5fa",flexDirection:"row",alignItems:"center",paddingHorizontal:14,gap:9},
- textInput:{flex:1,fontSize:14,fontWeight:"500",color:"#1d2633",paddingVertical:10,minWidth:0},
+ textInput:{flex:1,fontFamily:fonteInterface,fontSize:13,fontWeight:"500",color:"#1d2633",paddingVertical:10,minWidth:0},
  drop:{backgroundColor:"#fff",borderWidth:1,borderColor:"#c7ddeb",borderRadius:12,marginTop:4,overflow:"hidden",zIndex:20,elevation:5},
  dropItem:{padding:11,flexDirection:"row",gap:8,borderBottomWidth:1,borderBottomColor:"#f0f5fa",alignItems:"center"},
  dropText:{color:"#1d2633",fontSize:13,flex:1},
@@ -328,12 +336,12 @@ const v=StyleSheet.create({
  bg:{flex:1,backgroundColor:"#dfefff"},
  page:{minHeight:"100%"},
  nav:{backgroundColor:"rgba(247,251,255,0.90)",minHeight:88,paddingHorizontal:48,paddingVertical:20,borderBottomWidth:1,borderBottomColor:"#bfd6ec",flexDirection:"row",alignItems:"center",gap:30,flexWrap:"wrap"},
- navMobile:{minHeight:68,paddingHorizontal:16,paddingVertical:15,gap:10},navBrand:{fontSize:25,fontWeight:"800",letterSpacing:-.9,color:"#1d2633"},navBrandMobile:{fontSize:19},navBrandAccent:{fontWeight:"500",color:"#0069d2"},
+ navMobile:{minHeight:68,paddingHorizontal:16,paddingVertical:15,gap:10},navBrand:{fontSize:25,fontWeight:"800",letterSpacing:-1.1,color:"#1d2633"},navBrandMobile:{fontSize:19},navBrandAccent:{fontWeight:"500",color:"#0069d2"},
  navActive:{backgroundColor:"#dcebfa",borderRadius:22,paddingHorizontal:18,paddingVertical:13},navActiveText:{color:"#0069d2",fontSize:14,fontWeight:"700"},navMeta:{fontSize:11,color:"#62758a",marginLeft:"auto"},
  container:{maxWidth:1440,width:"100%",alignSelf:"center",paddingHorizontal:48,paddingBottom:28},
  containerMobile:{paddingHorizontal:16},intro:{minHeight:140,paddingTop:22,justifyContent:"center",position:"relative",paddingBottom:18},introMobile:{paddingTop:24,minHeight:0},
  eyebrow:{color:"#0069d2",fontSize:11,fontWeight:"800",letterSpacing:1.7,marginBottom:12},
- heading:{color:"#1d2633",fontWeight:"800",fontSize:34,letterSpacing:-1.1,lineHeight:44},headingMobile:{fontSize:29,lineHeight:38},
+ heading:{color:"#1d2633",fontWeight:"800",fontSize:34,letterSpacing:-1.3,lineHeight:45},headingMobile:{fontSize:29,lineHeight:38},
  subtitle:{color:"#586c80",fontSize:15,marginTop:7,lineHeight:22},
  cityBadge:{position:"absolute",right:0,top:70,flexDirection:"row",alignItems:"center",gap:8,backgroundColor:"rgba(255,255,255,.7)",borderRadius:24,paddingHorizontal:16,paddingVertical:13},cityText:{color:"#1d2633",fontSize:13,fontWeight:"600"},
  main:{flexDirection:"row",alignItems:"flex-start",gap:14},mainMobile:{flexDirection:"column"},
