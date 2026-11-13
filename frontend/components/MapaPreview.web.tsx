@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { Text, View } from "react-native";
 
 type Ponto = {lat:number;lon:number;nome?:string;tipo?:string};
-type Props = {url:string;trajeto?:number[][];pontos?:Ponto[];height?:number;pickMode?:"origem"|"destino"|null;onMapPick?:(lat:number,lon:number)=>void};
+type Trecho = {modal:string;trajeto:number[][];linha?:string|null};
+type Props = {url:string;trajeto?:number[][];trechos?:Trecho[];pontos?:Ponto[];height?:number;pickMode?:"origem"|"destino"|null;onMapPick?:(lat:number,lon:number)=>void};
 
 type MapLibreApi = {
  Map: new (options: Record<string, unknown>) => any;
@@ -52,7 +53,7 @@ function loadMapLibre(): Promise<MapLibreApi> {
 }
 
 /** Usa DOM direto no Expo Web: MapLibre não funciona com segurança em iframe srcDoc. */
-export default function MapaPreview({pontos=[],height=365,pickMode=null,onMapPick}:Props) {
+export default function MapaPreview({pontos=[],height=365,trajeto=[],trechos=[],pickMode=null,onMapPick}:Props) {
  const containerRef=useRef<HTMLDivElement|null>(null);
  const mapRef=useRef<any>(null);
  const markersRef=useRef<any[]>([]);
@@ -64,6 +65,7 @@ export default function MapaPreview({pontos=[],height=365,pickMode=null,onMapPic
  const [pronto,setPronto]=useState(false);
  const marcas=pontos.filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lon));
  const marcadores=JSON.stringify(marcas.map(p=>({lat:p.lat,lon:p.lon,nome:p.nome,tipo:p.tipo})));
+ const linhas=JSON.stringify(trechos.length?trechos:[{modal:"WALK",trajeto}]);
 
  useEffect(()=>{
    let active=true;
@@ -137,6 +139,28 @@ export default function MapaPreview({pontos=[],height=365,pickMode=null,onMapPic
    }).catch(e=>{if(!cancelled)setErro(e instanceof Error?e.message:"Falha ao marcar endereços.");});
    return ()=>{cancelled=true;};
  },[marcadores,pronto]);
+
+ useEffect(()=>{
+   const map=mapRef.current;
+   if(!pronto||!map)return;
+   const id="citizen-route";
+   const lista=JSON.parse(linhas) as Trecho[];
+   const cores:Record<string,string>={WALK:"#2596a9",BUS:"#0071e3",SUBWAY:"#7155c8",SUBURBAN:"#7155c8",REGIONAL_RAIL:"#7155c8",RAIL:"#7155c8",TRAM:"#7155c8"};
+   const features=lista.filter(t=>Array.isArray(t.trajeto)&&t.trajeto.length>=2).map((t,i)=>({
+     type:"Feature",properties:{cor:cores[t.modal]||"#7155c8",modo:t.modal,linha:t.linha||"",index:i},
+     geometry:{type:"LineString",coordinates:t.trajeto.filter(p=>Array.isArray(p)&&p.length===2&&p.every(Number.isFinite)).map(p=>[p[1],p[0]])}
+   })).filter(f=>f.geometry.coordinates.length>=2);
+   if(map.getLayer(id+"-stroke"))map.removeLayer(id+"-stroke");
+   if(map.getLayer(id+"-line"))map.removeLayer(id+"-line");
+   if(map.getSource(id))map.removeSource(id);
+   if(!features.length)return;
+   map.addSource(id,{type:"geojson",data:{type:"FeatureCollection",features}});
+   map.addLayer({id:id+"-stroke",type:"line",source:id,paint:{"line-color":"#ffffff","line-width":9,"line-opacity":0.9},layout:{"line-join":"round","line-cap":"round"}});
+   map.addLayer({id:id+"-line",type:"line",source:id,paint:{"line-color":["get","cor"],"line-width":5,"line-opacity":0.95},layout:{"line-join":"round","line-cap":"round"}});
+   const bounds=new (getMapLibre()!).LngLatBounds();
+   features.forEach(f=>f.geometry.coordinates.forEach(p=>bounds.extend(p)));
+   if(!bounds.isEmpty())map.fitBounds(bounds,{padding:65,maxZoom:16,duration:450});
+ },[linhas,pronto]);
 
  return <View style={{height,width:"100%",borderRadius:18,overflow:"hidden",backgroundColor:"#eff3f7",position:"relative"}}>
    {React.createElement("div",{
