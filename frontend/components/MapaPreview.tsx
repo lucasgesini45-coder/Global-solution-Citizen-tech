@@ -59,19 +59,20 @@ html,body,#map{margin:0;width:100%;height:100%;background:#eff3f7;font-family:In
     new maplibregl.Marker({element:pin,anchor:"center"}).setLngLat([p.lon,p.lat]).setPopup(popup).addTo(map);
     bounds.extend([p.lon,p.lat]);
    });
-   const cores={WALK:"#2596a9",BUS:"#0071e3",SUBWAY:"#7155c8",SUBURBAN:"#7155c8",REGIONAL_RAIL:"#7155c8",RAIL:"#7155c8",TRAM:"#7155c8"};
-   const geometria=trechos.filter(t=>Array.isArray(t.trajeto)&&t.trajeto.length>=2).map(t=>({type:"Feature",properties:{cor:t.cor_linha||cores[t.modal]||"#7155c8",rotulo:t.modal==="WALK"?"A pé":t.modal==="BUS"?"Ônibus"+(t.linha?" · "+t.linha:""):"Metrô / trem"+(t.linha?" · "+t.linha:"")},geometry:{type:"LineString",coordinates:t.trajeto.filter(p=>Array.isArray(p)&&p.length===2&&p.every(Number.isFinite)).map(p=>[p[1],p[0]])}})).filter(t=>t.geometry.coordinates.length>=2);
+   const cores={WALK:"#5F6D7E",BUS:"#0071e3",SUBWAY:"#7155c8",SUBURBAN:"#7155c8",REGIONAL_RAIL:"#7155c8",RAIL:"#7155c8",TRAM:"#7155c8"};
+   const geometria=trechos.filter(t=>Array.isArray(t.trajeto)&&t.trajeto.length>=2).map(t=>({type:"Feature",properties:{cor:t.modal==="WALK"?cores.WALK:(t.cor_linha||cores[t.modal]||"#7155c8"),ape:t.modal==="WALK",rotulo:t.modal==="WALK"?"A pé":t.modal==="BUS"?"Ônibus"+(t.linha?" · "+t.linha:""):"Metrô / trem"+(t.linha?" · "+t.linha:"")},geometry:{type:"LineString",coordinates:t.trajeto.filter(p=>Array.isArray(p)&&p.length===2&&p.every(Number.isFinite)).map(p=>[p[1],p[0]])}})).filter(t=>t.geometry.coordinates.length>=2);
    if(geometria.length){
      map.addSource("citizen-route",{type:"geojson",data:{type:"FeatureCollection",features:geometria}});
      map.addLayer({id:"citizen-route-outline",type:"line",source:"citizen-route",paint:{"line-color":"#fff","line-width":9},layout:{"line-join":"round","line-cap":"round"}});
      map.addLayer({id:"citizen-route-lines",type:"line",source:"citizen-route",paint:{"line-color":["get","cor"],"line-width":5},layout:{"line-join":"round","line-cap":"round"}});
+     map.addLayer({id:"citizen-route-walk",type:"line",source:"citizen-route",filter:["==",["get","ape"],true],paint:{"line-color":"#5F6D7E","line-width":5,"line-dasharray":[1.2,1.2]},layout:{"line-join":"round","line-cap":"round"}});
      map.addLayer({id:"citizen-route-labels",type:"symbol",source:"citizen-route",layout:{"symbol-placement":"line","text-field":["get","rotulo"],"text-size":12,"text-font":["Noto Sans Regular"],"symbol-spacing":190,"text-rotation-alignment":"map","text-keep-upright":true,"text-optional":true},paint:{"text-color":"#183e67","text-halo-color":"#fff","text-halo-width":2.5}});
      const legend=document.getElementById("legend");
      const tipos=[];
      trechos.forEach(function(t){const k=t.modal==="WALK"?"A pé":t.modal==="BUS"?"Ônibus":"Metrô / trem";if(!tipos.includes(k))tipos.push(k);});
      tipos.forEach(function(tipo){
        const item=document.createElement("div"),line=document.createElement("b");
-       line.style.background=tipo==="A pé"?"#2596a9":tipo==="Ônibus"?"#0071e3":"#7155c8";
+       line.style.background=tipo==="A pé"?"#5F6D7E":tipo==="Ônibus"?"#0071e3":"#7155c8";
        item.appendChild(line);item.appendChild(document.createTextNode(tipo));legend.appendChild(item);
      });
      if(tipos.length)legend.style.display="block";
