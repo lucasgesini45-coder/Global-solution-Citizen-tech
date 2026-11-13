@@ -139,17 +139,22 @@ class RotaRealPedido(BaseModel):
 
 @router.post("/rotas/reais")
 def rota_real(pedido: RotaRealPedido):
-    if pedido.modal != "ape":
-        raise HTTPException(
-            status_code=422,
-            detail="Rotas reais de ônibus, metrô e trem exigem integração com dados operacionais/GTFS; ainda não disponíveis."
-        )
-    key = os.getenv("ORS_API_KEY", "").strip()
-    if not key:
-        raise HTTPException(status_code=503, detail="Rota real a pé não configurada: defina ORS_API_KEY no backend.")
-    a, b = pedido.origem, pedido.destino
+    # Roteamento multimodal, com trajetos reais do provedor (sem linhas retas).
+    # Import local evita importação circular com os utilitários HTTP deste módulo.
+    from .transitous_api import consultar_transitous
+    try:
+        return consultar_transitous(pedido.origem, pedido.destino, pedido.modal)
+    except HTTPException as exc:
+        # Compatibilidade: caso o provedor comunitário falhe, a rota a pé
+        # pode usar a chave OpenRouteService configurada pelo desenvolvedor.
+        key = os.getenv("ORS_API_KEY", "").strip()
+        if pedido.modal != "ape" or not key:
+            raise
     dados = _json_http(ORS_URL,
-                       payload={"coordinates": [[a.lon, a.lat], [b.lon, b.lat]]},
+                       payload={"coordinates": [
+                           [pedido.origem.lon, pedido.origem.lat],
+                           [pedido.destino.lon, pedido.destino.lat],
+                       ]},
                        headers={"Authorization": key})
     features = dados.get("features", [])
     if not features:
@@ -157,12 +162,16 @@ def rota_real(pedido: RotaRealPedido):
     feature = features[0]
     geometry = feature.get("geometry", {}).get("coordinates", [])
     summary = feature.get("properties", {}).get("summary", {})
+    trajeto = [[float(lat), float(lon)] for lon, lat in geometry]
     return {
         "tipo": "rota_real", "fonte": "openrouteservice / OpenStreetMap",
         "modal": "ape", "tempo_min": round(summary.get("duration", 0)/60),
         "distancia_m": round(summary.get("distance", 0)),
         "tarifa_centavos": 0,
         "seguranca": {"status": "nao_verificada", "exposicao": None},
-        "trajeto": [[float(lat), float(lon)] for lon, lat in geometry],
-        "aviso": "Tempo estimado para caminhada; não representa condições de segurança.",
+        "trajeto": trajeto,
+        "trechos": [{"modal": "WALK", "trajeto": trajeto, "linha": None,
+                    "de": "Origem", "para": "Destino",
+                    "tempo_min": round(summary.get("duration", 0)/60)}],
+        "aviso": "Tempo estimado para caminhada; condições de segurança não verificadas.",
     }
