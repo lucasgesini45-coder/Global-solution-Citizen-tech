@@ -3,11 +3,12 @@ import { View } from "react-native";
 import WebView from "react-native-webview";
 
 type Ponto={lat:number;lon:number;nome?:string;tipo?:string};
-type Props={url:string;trajeto?:number[][];pontos?:Ponto[];height?:number};
+type Props={url:string;trajeto?:number[][];pontos?:Ponto[];height?:number;pickMode?:"origem"|"destino"|null;onMapPick?:(lat:number,lon:number)=>void};
 
-export default function MapaPreview({pontos=[],height=365}:Props){
+export default function MapaPreview({pontos=[],height=365,pickMode=null,onMapPick}:Props){
  const marcas=pontos.filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lon));
  const payload=JSON.stringify({marcas}).replace(/</g,"\\u003c");
+ const modo=JSON.stringify(pickMode);
  const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
@@ -28,12 +29,18 @@ html,body,#map{margin:0;width:100%;height:100%;background:#eff3f7;font-family:In
 <script>
 (function(){
  const data=${payload};
+ const pickMode=${modo};
  const errorBox=document.getElementById("error");
  function showError(message){errorBox.textContent=message;errorBox.style.display="block";}
  if(!window.maplibregl){showError("Biblioteca do mapa indisponível. Verifique sua conexão.");return;}
  try {
   const map=new maplibregl.Map({container:"map",style:"https://tiles.openfreemap.org/styles/positron",center:[-46.6333,-23.5505],zoom:12.5,attributionControl:true});
   map.addControl(new maplibregl.NavigationControl({showCompass:false}),"top-right");
+  map.on("click",function(event){
+    if(pickMode && window.ReactNativeWebView){
+      window.ReactNativeWebView.postMessage(JSON.stringify({type:"map_pick",lat:event.lngLat.lat,lon:event.lngLat.lng}));
+    }
+  });
   map.on("error",function(event){if(!map.loaded())showError("Não foi possível carregar o mapa. Verifique o acesso ao OpenFreeMap.");});
   map.on("load",function(){
    errorBox.style.display="none";
@@ -56,6 +63,11 @@ html,body,#map{margin:0;width:100%;height:100%;background:#eff3f7;font-family:In
 })();
 </script></body></html>`;
  return <View style={{height,width:"100%",borderRadius:18,overflow:"hidden",backgroundColor:"#eff3f7"}}>
-   <WebView originWhitelist={["*"]} source={{html,baseUrl:"https://tiles.openfreemap.org/"}} style={{flex:1}} javaScriptEnabled domStorageEnabled/>
+   <WebView originWhitelist={["*"]} source={{html,baseUrl:"https://tiles.openfreemap.org/"}} style={{flex:1}} javaScriptEnabled domStorageEnabled onMessage={(event)=>{
+     try{
+       const msg=JSON.parse(event.nativeEvent.data);
+       if(msg.type==="map_pick"&&Number.isFinite(msg.lat)&&Number.isFinite(msg.lon))onMapPick?.(msg.lat,msg.lon);
+     }catch{/* mensagem não reconhecida */}
+   }}/>
  </View>;
 }
