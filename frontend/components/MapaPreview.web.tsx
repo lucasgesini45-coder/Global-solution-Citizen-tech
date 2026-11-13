@@ -172,14 +172,14 @@ export default function MapaPreview({pontos=[],height=365,trajeto=[],trechos=[],
        // Labels never block rendering the line: styles can lack a font family.
        try{
          if(!map.getLayer(id+"-modal-labels"))map.addLayer({id:id+"-modal-labels",type:"symbol",source:id,
-           layout:{"symbol-placement":"line","text-field":["get","rotulo"],"text-size":12,"symbol-spacing":200,"text-optional":true},
+           layout:{"symbol-placement":"line","text-field":["get","rotulo"],"text-size":12,"text-font":["Noto Sans Regular"],"symbol-spacing":200,"text-optional":true},
            paint:{"text-color":"#183e67","text-halo-color":"#fff","text-halo-width":2}});
        }catch(labelError){console.warn("Rótulos indisponíveis:",labelError);}
        if(map.getSource(id+"-stations"))map.getSource(id+"-stations").setData(stationData);
        else map.addSource(id+"-stations",{type:"geojson",data:stationData});
        if(!map.getLayer(id+"-stations"))map.addLayer({id:id+"-stations",type:"circle",source:id+"-stations",paint:{"circle-radius":5,"circle-color":["get","cor"],"circle-stroke-width":2,"circle-stroke-color":"#fff"}});
        try{
-         if(!map.getLayer(id+"-stations-labels"))map.addLayer({id:id+"-stations-labels",type:"symbol",source:id+"-stations",layout:{"text-field":["get","nome"],"text-size":11,"text-offset":[0,1.1],"text-anchor":"top","text-optional":true},paint:{"text-color":"#244263","text-halo-color":"#fff","text-halo-width":1.5}});
+         if(!map.getLayer(id+"-stations-labels"))map.addLayer({id:id+"-stations-labels",type:"symbol",source:id+"-stations",layout:{"text-field":["get","nome"],"text-size":11,"text-font":["Noto Sans Regular"],"text-offset":[0,1.1],"text-anchor":"top","text-optional":true},paint:{"text-color":"#244263","text-halo-color":"#fff","text-halo-width":1.5}});
        }catch(stationError){console.warn("Nomes das paradas indisponíveis:",stationError);}
        if(featureList.length){
          const bounds=new (getMapLibre()!).LngLatBounds();
