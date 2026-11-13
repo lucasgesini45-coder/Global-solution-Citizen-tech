@@ -3,7 +3,7 @@ import { View } from "react-native";
 import WebView from "react-native-webview";
 
 type Ponto={lat:number;lon:number;nome?:string;tipo?:string};
-type Trecho={modal:string;trajeto:number[][];linha?:string|null;paradas?:{nome:string;lat:number;lon:number}[]};
+type Trecho={modal:string;trajeto:number[][];linha?:string|null;cor_linha?:string|null;paradas?:{nome:string;lat:number;lon:number}[]};
 type Props={url:string;trajeto?:number[][];trechos?:Trecho[];pontos?:Ponto[];height?:number;pickMode?:"origem"|"destino"|null;onMapPick?:(lat:number,lon:number)=>void};
 
 export default function MapaPreview({pontos=[],height=365,trajeto=[],trechos=[],pickMode=null,onMapPick}:Props){
@@ -59,12 +59,12 @@ html,body,#map{margin:0;width:100%;height:100%;background:#eff3f7;font-family:In
     bounds.extend([p.lon,p.lat]);
    });
    const cores={WALK:"#2596a9",BUS:"#0071e3",SUBWAY:"#7155c8",SUBURBAN:"#7155c8",REGIONAL_RAIL:"#7155c8",RAIL:"#7155c8",TRAM:"#7155c8"};
-   const geometria=trechos.filter(t=>Array.isArray(t.trajeto)&&t.trajeto.length>=2).map(t=>({type:"Feature",properties:{cor:cores[t.modal]||"#7155c8"},geometry:{type:"LineString",coordinates:t.trajeto.filter(p=>Array.isArray(p)&&p.length===2&&p.every(Number.isFinite)).map(p=>[p[1],p[0]])}})).filter(t=>t.geometry.coordinates.length>=2);
+   const geometria=trechos.filter(t=>Array.isArray(t.trajeto)&&t.trajeto.length>=2).map(t=>({type:"Feature",properties:{cor:t.cor_linha||cores[t.modal]||"#7155c8"},geometry:{type:"LineString",coordinates:t.trajeto.filter(p=>Array.isArray(p)&&p.length===2&&p.every(Number.isFinite)).map(p=>[p[1],p[0]])}})).filter(t=>t.geometry.coordinates.length>=2);
    if(geometria.length){
      map.addSource("citizen-route",{type:"geojson",data:{type:"FeatureCollection",features:geometria}});
      map.addLayer({id:"citizen-route-outline",type:"line",source:"citizen-route",paint:{"line-color":"#fff","line-width":9},layout:{"line-join":"round","line-cap":"round"}});
      map.addLayer({id:"citizen-route-lines",type:"line",source:"citizen-route",paint:{"line-color":["get","cor"],"line-width":5},layout:{"line-join":"round","line-cap":"round"}});
-     const paradas=trechos.flatMap(t=>(t.paradas||[]).map(p=>({type:"Feature",properties:{nome:p.nome,cor:cores[t.modal]||"#7155c8"},geometry:{type:"Point",coordinates:[p.lon,p.lat]}}))).filter(p=>p.geometry.coordinates.every(Number.isFinite));
+     const paradas=trechos.flatMap(t=>(t.paradas||[]).map(p=>({type:"Feature",properties:{nome:p.nome,cor:t.cor_linha||cores[t.modal]||"#7155c8"},geometry:{type:"Point",coordinates:[p.lon,p.lat]}}))).filter(p=>p.geometry.coordinates.every(Number.isFinite));
      if(paradas.length){
        map.addSource("citizen-stations",{type:"geojson",data:{type:"FeatureCollection",features:paradas}});
        map.addLayer({id:"citizen-stations-markers",type:"circle",source:"citizen-stations",paint:{"circle-radius":5,"circle-color":["get","cor"],"circle-stroke-color":"#fff","circle-stroke-width":2}});
