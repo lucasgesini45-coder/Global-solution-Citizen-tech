@@ -43,8 +43,13 @@ def identificar_linha(item: dict) -> tuple[str | None, str | None]:
                     and all(x in "0123456789abcdefABCDEF" for x in cor_bruta) else None)
     if modo == "WALK":
         return None, None
+    if modo == "BUS":
+        # Dar preferência ao código que identifica a linha no ponto (ex.: 875A-10).
+        codigo = str(item.get("routeShortName") or "").strip()
+        nome = str(item.get("displayName") or item.get("routeLongName") or "").strip()
+        return codigo or nome or None, cor_provedor
     if modo not in MODOS_FERROVIARIOS:
-        return None, cor_provedor if modo == "BUS" else None
+        return None, None
     dados = " ".join(str(item.get(k) or "") for k in (
         "routeShortName", "routeLongName", "displayName"))
     normal = unicodedata.normalize("NFKD", dados).encode("ascii", "ignore").decode().casefold()
