@@ -15,7 +15,7 @@ from fastapi import HTTPException
 from .enderecos_api import _json_http
 
 TRANSITOUS_URL = "https://api.transitous.org/api/v6/plan"
-MODOS_FERROVIARIOS = {"SUBWAY", "SUBURBAN", "REGIONAL_RAIL", "RAIL", "TRAM"}
+MODOS_FERROVIARIOS = {"SUBWAY", "SUBURBAN", "REGIONAL_RAIL", "RAIL", "TRAM", "METRO"}
 MODOS_ONIBUS = {"BUS"}
 MODOS_A_PE = {"WALK"}
 
@@ -64,7 +64,16 @@ def _trechos_viagem(viagem: dict) -> list[dict]:
             # Só desenhamos geometria confirmada pelo provedor, nunca reta inventada.
             continue
         a, b = item.get("from") or {}, item.get("to") or {}
+        paradas = []
+        if modo in MODOS_FERROVIARIOS or modo in MODOS_ONIBUS:
+            for place in [a, *(item.get("intermediateStops") or []), b]:
+                if not isinstance(place, dict):
+                    continue
+                lat, lon = place.get("lat"), place.get("lon")
+                if isinstance(lat, (int, float)) and isinstance(lon, (int, float)) and math.isfinite(lat) and math.isfinite(lon):
+                    paradas.append({"nome": str(place.get("name") or "Estação / parada"), "lat": lat, "lon": lon})
         trechos.append({
+            "paradas": paradas,
             "modal": modo, "linha": item.get("displayName") or item.get("routeShortName") or None,
             "destino_linha": item.get("headsign") or None,
             "de": a.get("name") or "Origem", "para": b.get("name") or "Destino",
@@ -80,7 +89,7 @@ def consultar_transitous(origem, destino, modal: str) -> dict:
     modos = {
         "ape": "",
         "onibus": "BUS",
-        "ferroviario": "SUBWAY,SUBURBAN,REGIONAL_RAIL",
+        "ferroviario": "SUBWAY,SUBURBAN,REGIONAL_RAIL,RAIL",
         "todos": "BUS,SUBWAY,SUBURBAN,REGIONAL_RAIL",
     }
     params = {
@@ -90,13 +99,16 @@ def consultar_transitous(origem, destino, modal: str) -> dict:
         "detailedLegs": "true",
         "detailedTransfers": "true",
         "maxTransfers": 3,
+        "searchWindow": 3600,
     }
     # Para caminhada, solicitar rota direta; para transporte público desabilitar
     # rotas diretas que poderiam descartar opções de ônibus/ferrovia.
     if modal == "ape":
         params["directModes"] = "WALK"
     else:
-        params["directModes"] = ""
+        # Sem directModes vazio (pode invalidar array MOTIS); remove a viagem
+        # direta para evitar o corte das conexões de transporte público.
+        params["maxDirectTime"] = 0
     url = TRANSITOUS_URL + "?" + urlencode(params)
     try:
         resposta = _json_http(url, max_bytes=3_000_000, headers={
