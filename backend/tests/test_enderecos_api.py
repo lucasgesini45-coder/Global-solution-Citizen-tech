@@ -40,6 +40,14 @@ class EnderecosTestes(unittest.TestCase):
         self.assertEqual(e.exception.status_code, 503)
         self.assertIn("limite", e.exception.detail)
 
+    def test_photon_http_400_exibe_causa_sem_confundir_com_conexao(self):
+        erro = HTTPError("https://photon.komoot.io/api", 400, "bad request", None, None)
+        with patch("backend.src.enderecos_api.urlopen", side_effect=erro):
+            with self.assertRaises(HTTPException) as e:
+                _json_http("https://photon.komoot.io/api?q=teste")
+        self.assertIn("HTTP 400", e.exception.detail)
+        self.assertIn("rejeitou a busca", e.exception.detail)
+
     def test_photon_falha_conexao_mostra_diagnostico(self):
         with patch("backend.src.enderecos_api.urlopen", side_effect=URLError("sem rede")), patch("backend.src.enderecos_api.time.sleep"):
             with self.assertRaises(HTTPException) as e:
@@ -57,6 +65,8 @@ class EnderecosTestes(unittest.TestCase):
         url = request.call_args.args[0]
         self.assertIn("q=Avenida+Paulista", url)
         self.assertNotIn("lang=", url)
+        self.assertNotIn("lat=", url)
+        self.assertNotIn("lon=", url)
         self.assertEqual(len(resposta), 1)
         _buscar_cache.cache_clear()
 
