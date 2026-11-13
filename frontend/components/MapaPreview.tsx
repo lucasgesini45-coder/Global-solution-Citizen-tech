@@ -3,12 +3,14 @@ import { View } from "react-native";
 import WebView from "react-native-webview";
 
 type Ponto={lat:number;lon:number;nome?:string;tipo?:string};
-type Props={url:string;trajeto?:number[][];pontos?:Ponto[];height?:number;pickMode?:"origem"|"destino"|null;onMapPick?:(lat:number,lon:number)=>void};
+type Trecho={modal:string;trajeto:number[][];linha?:string|null};
+type Props={url:string;trajeto?:number[][];trechos?:Trecho[];pontos?:Ponto[];height?:number;pickMode?:"origem"|"destino"|null;onMapPick?:(lat:number,lon:number)=>void};
 
-export default function MapaPreview({pontos=[],height=365,pickMode=null,onMapPick}:Props){
+export default function MapaPreview({pontos=[],height=365,trajeto=[],trechos=[],pickMode=null,onMapPick}:Props){
  const marcas=pontos.filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lon));
  const payload=JSON.stringify({marcas}).replace(/</g,"\\u003c");
  const modo=JSON.stringify(pickMode);
+ const linhas=JSON.stringify(trechos.length?trechos:[{modal:"WALK",trajeto}]).replace(/</g,"\\u003c");
  const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
@@ -30,6 +32,7 @@ html,body,#map{margin:0;width:100%;height:100%;background:#eff3f7;font-family:In
 (function(){
  const data=${payload};
  const pickMode=${modo};
+ const trechos=${linhas};
  const errorBox=document.getElementById("error");
  function showError(message){errorBox.textContent=message;errorBox.style.display="block";}
  if(!window.maplibregl){showError("Biblioteca do mapa indisponível. Verifique sua conexão.");return;}
@@ -55,7 +58,16 @@ html,body,#map{margin:0;width:100%;height:100%;background:#eff3f7;font-family:In
     new maplibregl.Marker({element:pin,anchor:"center"}).setLngLat([p.lon,p.lat]).setPopup(popup).addTo(map);
     bounds.extend([p.lon,p.lat]);
    });
-   if(data.marcas.length===1&& !bounds.isEmpty())map.jumpTo({center:bounds.getCenter(),zoom:15});
+   const cores={WALK:"#2596a9",BUS:"#0071e3",SUBWAY:"#7155c8",SUBURBAN:"#7155c8",REGIONAL_RAIL:"#7155c8",RAIL:"#7155c8",TRAM:"#7155c8"};
+   const geometria=trechos.filter(t=>Array.isArray(t.trajeto)&&t.trajeto.length>=2).map(t=>({type:"Feature",properties:{cor:cores[t.modal]||"#7155c8"},geometry:{type:"LineString",coordinates:t.trajeto.filter(p=>Array.isArray(p)&&p.length===2&&p.every(Number.isFinite)).map(p=>[p[1],p[0]])}})).filter(t=>t.geometry.coordinates.length>=2);
+   if(geometria.length){
+     map.addSource("citizen-route",{type:"geojson",data:{type:"FeatureCollection",features:geometria}});
+     map.addLayer({id:"citizen-route-outline",type:"line",source:"citizen-route",paint:{"line-color":"#fff","line-width":9},layout:{"line-join":"round","line-cap":"round"}});
+     map.addLayer({id:"citizen-route-lines",type:"line",source:"citizen-route",paint:{"line-color":["get","cor"],"line-width":5},layout:{"line-join":"round","line-cap":"round"}});
+     geometria.forEach(g=>g.geometry.coordinates.forEach(pos=>bounds.extend(pos)));
+   }
+   if(geometria.length&&!bounds.isEmpty())map.fitBounds(bounds,{padding:65,maxZoom:16,duration:0});
+   else if(data.marcas.length===1&& !bounds.isEmpty())map.jumpTo({center:bounds.getCenter(),zoom:15});
    else if(data.marcas.length>1&& !bounds.isEmpty())map.fitBounds(bounds,{padding:65,maxZoom:16,duration:0});
    map.resize();
   });
