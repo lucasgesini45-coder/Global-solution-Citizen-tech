@@ -155,6 +155,15 @@ class EnderecosTestes(unittest.TestCase):
         self.assertEqual(identificar_linha({"mode": "WALK", "routeColor": "008A72"}), (None, None))
         self.assertEqual(identificar_linha({"mode": "SUBWAY", "routeShortName": "L2"}), ("Linha 2 – Verde", CORES_LINHAS[2][1]))
 
+    def test_onibus_prioriza_codigo_de_linha_para_embarque(self):
+        from backend.src.transitous_api import identificar_linha
+        nome, cor = identificar_linha({
+            "mode": "BUS", "routeShortName": "875A-10",
+            "displayName": "Ponto inicial - Terminal", "routeColor": "2468AC"
+        })
+        self.assertEqual(nome, "875A-10")
+        self.assertEqual(cor, "#2468AC")
+
     def test_prioriza_alternativa_com_menos_caminhada(self):
         from backend.src.transitous_api import consultar_transitous
         geom = {"points": "vww|k@fj__xAhk@io@", "precision": 6}
