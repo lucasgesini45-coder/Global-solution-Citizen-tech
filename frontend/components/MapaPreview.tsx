@@ -65,7 +65,7 @@ html,body,#map{margin:0;width:100%;height:100%;background:#eff3f7;font-family:In
      map.addSource("citizen-route",{type:"geojson",data:{type:"FeatureCollection",features:geometria}});
      map.addLayer({id:"citizen-route-outline",type:"line",source:"citizen-route",paint:{"line-color":"#fff","line-width":9},layout:{"line-join":"round","line-cap":"round"}});
      map.addLayer({id:"citizen-route-lines",type:"line",source:"citizen-route",paint:{"line-color":["get","cor"],"line-width":5},layout:{"line-join":"round","line-cap":"round"}});
-     map.addLayer({id:"citizen-route-labels",type:"symbol",source:"citizen-route",layout:{"symbol-placement":"line","text-field":["get","rotulo"],"text-size":12,"symbol-spacing":190,"text-rotation-alignment":"map","text-keep-upright":true,"text-optional":true},paint:{"text-color":"#183e67","text-halo-color":"#fff","text-halo-width":2.5}});
+     map.addLayer({id:"citizen-route-labels",type:"symbol",source:"citizen-route",layout:{"symbol-placement":"line","text-field":["get","rotulo"],"text-size":12,"text-font":["Noto Sans Regular"],"symbol-spacing":190,"text-rotation-alignment":"map","text-keep-upright":true,"text-optional":true},paint:{"text-color":"#183e67","text-halo-color":"#fff","text-halo-width":2.5}});
      const legend=document.getElementById("legend");
      const tipos=[];
      trechos.forEach(function(t){const k=t.modal==="WALK"?"A pé":t.modal==="BUS"?"Ônibus":"Metrô / trem";if(!tipos.includes(k))tipos.push(k);});
@@ -79,7 +79,7 @@ html,body,#map{margin:0;width:100%;height:100%;background:#eff3f7;font-family:In
      if(paradas.length){
        map.addSource("citizen-stations",{type:"geojson",data:{type:"FeatureCollection",features:paradas}});
        map.addLayer({id:"citizen-stations-markers",type:"circle",source:"citizen-stations",paint:{"circle-radius":5,"circle-color":["get","cor"],"circle-stroke-color":"#fff","circle-stroke-width":2}});
-       map.addLayer({id:"citizen-stations-names",type:"symbol",source:"citizen-stations",layout:{"text-field":["get","nome"],"text-size":11,"text-offset":[0,1.1],"text-anchor":"top","text-optional":true},paint:{"text-color":"#244263","text-halo-color":"#fff","text-halo-width":1.5}});
+       map.addLayer({id:"citizen-stations-names",type:"symbol",source:"citizen-stations",layout:{"text-field":["get","nome"],"text-size":11,"text-font":["Noto Sans Regular"],"text-offset":[0,1.1],"text-anchor":"top","text-optional":true},paint:{"text-color":"#244263","text-halo-color":"#fff","text-halo-width":1.5}});
      }
      geometria.forEach(g=>g.geometry.coordinates.forEach(pos=>bounds.extend(pos)));
    }
