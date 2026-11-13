@@ -149,9 +149,10 @@ export default function MapaPreview({pontos=[],height=365,trajeto=[],trechos=[],
    const lista=JSON.parse(linhas) as Trecho[];
    const cores:Record<string,string>={WALK:"#2596a9",BUS:"#0071e3",SUBWAY:"#7155c8",SUBURBAN:"#7155c8",REGIONAL_RAIL:"#7155c8",RAIL:"#7155c8",TRAM:"#7155c8"};
    const features=lista.filter(t=>Array.isArray(t.trajeto)&&t.trajeto.length>=2).map((t,i)=>({
-     type:"Feature",properties:{cor:t.cor_linha||cores[t.modal]||"#7155c8",modo:t.modal,linha:t.linha||"",index:i},
+     type:"Feature",properties:{cor:t.cor_linha||cores[t.modal]||"#7155c8",modo:t.modal,linha:t.linha||"",rotulo:t.modal==="WALK"?"A pé":t.modal==="BUS"?"Ônibus"+(t.linha?" · "+t.linha:""):"Metrô / trem"+(t.linha?" · "+t.linha:""),index:i},
      geometry:{type:"LineString",coordinates:t.trajeto.filter(p=>Array.isArray(p)&&p.length===2&&p.every(Number.isFinite)).map(p=>[p[1],p[0]])}
    })).filter(f=>f.geometry.coordinates.length>=2);
+   if(map.getLayer(id+"-modal-labels"))map.removeLayer(id+"-modal-labels");
    if(map.getLayer(id+"-stations-labels"))map.removeLayer(id+"-stations-labels");
    if(map.getLayer(id+"-stations"))map.removeLayer(id+"-stations");
    if(map.getSource(id+"-stations"))map.removeSource(id+"-stations");
@@ -162,6 +163,11 @@ export default function MapaPreview({pontos=[],height=365,trajeto=[],trechos=[],
    map.addSource(id,{type:"geojson",data:{type:"FeatureCollection",features}});
    map.addLayer({id:id+"-stroke",type:"line",source:id,paint:{"line-color":"#ffffff","line-width":9,"line-opacity":0.9},layout:{"line-join":"round","line-cap":"round"}});
    map.addLayer({id:id+"-line",type:"line",source:id,paint:{"line-color":["get","cor"],"line-width":5,"line-opacity":0.95},layout:{"line-join":"round","line-cap":"round"}});
+   map.addLayer({id:id+"-modal-labels",type:"symbol",source:id,
+     layout:{"symbol-placement":"line","text-field":["get","rotulo"],"text-size":12,
+       "text-font":["Open Sans Regular","Arial Unicode MS Regular"],"symbol-spacing":190,
+       "text-rotation-alignment":"map","text-keep-upright":true,"text-optional":true},
+     paint:{"text-color":"#183e67","text-halo-color":"#ffffff","text-halo-width":2.5}});
    const pontos=lista.flatMap(t=>(t.paradas||[]).map(p=>({type:"Feature",properties:{nome:p.nome,modal:t.modal,cor:t.cor_linha||cores[t.modal]||"#7155c8"},geometry:{type:"Point",coordinates:[p.lon,p.lat]}}))).filter(f=>f.geometry.coordinates.every(Number.isFinite));
    if(pontos.length){
      map.addSource(id+"-stations",{type:"geojson",data:{type:"FeatureCollection",features:pontos}});
@@ -182,6 +188,12 @@ export default function MapaPreview({pontos=[],height=365,trajeto=[],trechos=[],
    <View pointerEvents="none" style={{position:"absolute",top:15,left:15,backgroundColor:"rgba(255,255,255,.95)",paddingHorizontal:12,paddingVertical:9,borderRadius:12}}>
      <Text style={{color:"#37516b",fontWeight:"700",fontSize:12}}>OpenFreeMap · Positron</Text>
    </View>
+   {trechos.length>0&&<View pointerEvents="none" style={{position:"absolute",top:54,left:14,backgroundColor:"rgba(255,255,255,.96)",borderRadius:10,padding:9,gap:5}}>
+     {Array.from(new Set(trechos.map(t=>t.modal==="WALK"?"A pé":t.modal==="BUS"?"Ônibus":"Metrô / trem"))).map(tipo=><View key={tipo} style={{flexDirection:"row",alignItems:"center",gap:6}}>
+       <View style={{height:4,width:20,backgroundColor:tipo==="A pé"?"#2596a9":tipo==="Ônibus"?"#0071e3":"#7155c8",borderRadius:3}}/>
+       <Text style={{fontSize:11,fontWeight:"700",color:"#244263"}}>{tipo}</Text>
+     </View>)}
+   </View>}
    {!!pickMode&&<View pointerEvents="none" style={{position:"absolute",left:14,right:14,bottom:18,backgroundColor:"#e8f3ff",padding:12,borderRadius:10,borderWidth:1,borderColor:"#afcdf0"}}><Text style={{color:"#12568c",fontSize:12,fontWeight:"700"}}>{"Clique no mapa para marcar "+(pickMode==="origem"?"a origem":"o destino")}</Text></View>}
    {!!erro&&<View style={{position:"absolute",left:14,right:14,bottom:18,backgroundColor:"#fff4e9",padding:12,borderRadius:10,borderWidth:1,borderColor:"#f3d4b6"}}>
       <Text style={{color:"#8f4e22",fontSize:12}}>{erro}</Text>
