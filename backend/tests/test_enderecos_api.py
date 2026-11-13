@@ -115,6 +115,36 @@ class EnderecosTestes(unittest.TestCase):
         self.assertIn("maxDirectTime=0", http.call_args.args[0])
         self.assertNotIn("directModes=", http.call_args.args[0])
 
+    def test_gps_tenta_busca_ampliada_quando_nao_acha_linha(self):
+        from backend.src.transitous_api import consultar_transitous
+        geom = {"points": "vww|k@fj__xAhk@io@", "precision": 6}
+        dados = {"itineraries": [{"duration": 900, "legs": [
+            {"mode": "SUBWAY", "duration": 900, "displayName": "Linha 2",
+             "from": {"name": "Estação A"}, "to": {"name": "Estação B"},
+             "legGeometry": geom}
+        ]}]}
+        with patch("backend.src.transitous_api._json_http",
+                   side_effect=[{"itineraries": []}, dados]) as http:
+            rota = consultar_transitous(Coordenadas(lat=-23.55, lon=-46.63),
+                        Coordenadas(lat=-23.56, lon=-46.64), "ferroviario")
+        self.assertEqual(http.call_count, 2)
+        self.assertIn("radius=1000", http.call_args.args[0])
+        self.assertIn("maxPreTransitTime=1800", http.call_args.args[0])
+        self.assertIn("maxPostTransitTime=1800", http.call_args.args[0])
+        self.assertTrue(rota["busca_ampliada"])
+        self.assertIn("Busca ampliada", rota["aviso"])
+        self.assertEqual(rota["trechos"][0]["modal"], "SUBWAY")
+
+    def test_gps_sem_transporte_retorna_404_sem_inventar_linha(self):
+        from backend.src.transitous_api import consultar_transitous
+        with patch("backend.src.transitous_api._json_http",
+                   return_value={"itineraries": []}) as http:
+            with self.assertRaises(HTTPException) as e:
+                consultar_transitous(Coordenadas(lat=-23.55, lon=-46.63),
+                                    Coordenadas(lat=-23.56, lon=-46.64), "onibus")
+        self.assertEqual(http.call_count, 2)
+        self.assertEqual(e.exception.status_code, 404)
+
     def test_modo_ferroviario_nao_aceita_itinerario_so_onibus(self):
         from backend.src.transitous_api import consultar_transitous
         dados = {"itineraries":[{"duration":600,"legs":[
