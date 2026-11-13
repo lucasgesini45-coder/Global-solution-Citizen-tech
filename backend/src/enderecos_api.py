@@ -19,7 +19,7 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
 router = APIRouter(tags=["Endereços e rotas reais"])
-PHOTON_URL = "https://photon.komoot.io/api"
+PHOTON_URL = os.getenv("PHOTON_API_URL", "https://photon.komoot.io/api").strip()
 ORS_URL = "https://api.openrouteservice.org/v2/directions/foot-walking/geojson"
 AGENTE = "CitizenMobilidadeFIAP/0.2 (prototipo-academico)"
 _lock = Lock()
@@ -34,11 +34,29 @@ def _json_http(url: str, *, payload: dict | None = None, headers: dict | None = 
     if headers:
         h.update(headers)
     req = Request(url, data=body, headers=h, method="POST" if body is not None else "GET")
-    try:
-        with urlopen(req, timeout=8) as response:
-            return json.loads(response.read(400_000).decode("utf-8"))
-    except (HTTPError, URLError, TimeoutError, ValueError) as exc:
-        raise HTTPException(status_code=503, detail="Serviço de mapas temporariamente indisponível.") from exc
+    tentativas = 2 if payload is None else 1
+    for indice in range(tentativas):
+        try:
+            with urlopen(req, timeout=12) as response:
+                return json.loads(response.read(400_000).decode("utf-8"))
+        except HTTPError as exc:
+            if exc.code == 429:
+                if indice + 1 < tentativas:
+                    time.sleep(2)
+                    continue
+                raise HTTPException(status_code=503, detail="O serviço de busca de endereços atingiu seu limite temporário de consultas (Photon). Tente novamente em alguns instantes.") from exc
+            if exc.code in (502, 503, 504) and indice + 1 < tentativas:
+                time.sleep(1)
+                continue
+            raise HTTPException(status_code=503, detail=f"O serviço de endereços Photon respondeu HTTP {exc.code}. Verifique a conexão com photon.komoot.io.") from exc
+        except (URLError, TimeoutError, OSError) as exc:
+            if indice + 1 < tentativas:
+                time.sleep(1)
+                continue
+            raise HTTPException(status_code=503, detail="Não foi possível conectar ao Photon. Verifique a internet do computador onde roda o backend e o acesso a photon.komoot.io.") from exc
+        except (ValueError, UnicodeError) as exc:
+            raise HTTPException(status_code=503, detail="O serviço de endereços respondeu com dados inválidos.") from exc
+    raise HTTPException(status_code=503, detail="Busca de endereços indisponível.")
 
 
 @lru_cache(maxsize=128)
