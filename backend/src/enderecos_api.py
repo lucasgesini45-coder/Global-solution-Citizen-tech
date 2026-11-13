@@ -26,7 +26,7 @@ _lock = Lock()
 _ultima_busca = 0.0
 
 
-def _json_http(url: str, *, payload: dict | None = None, headers: dict | None = None) -> dict:
+def _json_http(url: str, *, payload: dict | None = None, headers: dict | None = None, max_bytes: int = 400_000) -> dict:
     body = json.dumps(payload).encode("utf-8") if payload is not None else None
     h = {"User-Agent": AGENTE, "Accept": "application/json"}
     if body is not None:
@@ -38,7 +38,7 @@ def _json_http(url: str, *, payload: dict | None = None, headers: dict | None = 
     for indice in range(tentativas):
         try:
             with urlopen(req, timeout=12) as response:
-                return json.loads(response.read(400_000).decode("utf-8"))
+                return json.loads(response.read(max_bytes + 1).decode("utf-8"))
         except HTTPError as exc:
             if exc.code == 429:
                 if indice + 1 < tentativas:
