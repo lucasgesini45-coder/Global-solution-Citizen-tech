@@ -9,7 +9,8 @@ const API = (process.env.EXPO_PUBLIC_API_URL || "http://127.0.0.1:8000").replace
 type Icon = React.ComponentProps<typeof Ionicons>["name"];
 type Modal = "todos"|"ferroviario"|"onibus"|"ape";
 type Endereco = {nome:string;lat:number;lon:number;fonte:string};
-type Resultado = {tipo:string;fonte:string;tempo_min:number;distancia_m:number;tarifa_centavos:number|null;seguranca:{status:string};trajeto:number[][];aviso:string};
+type Trecho = {modal:string;linha?:string|null;destino_linha?:string|null;de:string;para:string;tempo_min:number;trajeto:number[][]};
+type Resultado = {tipo:string;fonte:string;tempo_min:number;distancia_m:number|null;tarifa_centavos:number|null;seguranca:{status:string};trajeto:number[][];trechos?:Trecho[];aviso:string;modal?:string};
 type Consulta = {resposta:string;fontes:{referencia:string;data_verificacao:string}[]};
 type RotaDemo = {ordem:number;tempo_total_min:number;espera_min:number;caminhada_m:number;baldeacoes:number;saida:string;chegada:string;custo:{centavos:number|null;confirmado:boolean};seguranca:{status:string};acessibilidade:string;trechos:{tipo:string;modal:string|null;linha:string|null}[]};
 type RespostaDemo = {modo:string;origem_dados:string;cenario:string;partida_exemplo:string;aviso:string;resultado:{rotas:RotaDemo[];erro?:{mensagem:string}|null}};
@@ -115,14 +116,10 @@ export default function Home(){
  async function planejar(){
    setErro("");setResultado(null);
    if(!origemGeo || !destinoGeo){setErro("Selecione um endereço sugerido nos dois campos para calcular a rota.");return;}
-   if(modal!=="ape"){
-     setErro("Para ônibus, trem e metrô, ainda estamos conectando horários e rotas oficiais. Os endereços selecionados já aparecem no mapa, mas não há previsão de viagem validada.");
-     return;
-   }
    setCarregando(true);
    try{
      const r=await fetch(API+"/rotas/reais",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
-       origem:{lat:origemGeo.lat,lon:origemGeo.lon},destino:{lat:destinoGeo.lat,lon:destinoGeo.lon},modal:"ape",
+       origem:{lat:origemGeo.lat,lon:origemGeo.lon},destino:{lat:destinoGeo.lat,lon:destinoGeo.lon},modal,
      })});
      const data=await r.json().catch(()=>({}));
      if(!r.ok)throw new Error(data.detail||"Serviço de rotas indisponível.");
@@ -214,11 +211,12 @@ export default function Home(){
          <View style={v.resultsHeader}><Text style={v.resultsTitle}>Trajetos sugeridos</Text><Icone name="options-outline" size={20} color="#667c92"/></View>
          <View style={v.departure}><Icone name="time-outline" size={15} color="#667c92"/><Text style={v.departureText}>Saída agora</Text><Text style={v.departureCount}>{resultado?"1 opção validada":"Aguardando busca"}</Text></View>
          {resultado?<View style={v.recommended}>
-            <Text style={v.recommendedBadge}>TRAJETO DISPONÍVEL · A PÉ</Text>
-            <View style={v.recommendedTop}><Text style={v.duration}>{resultado.tempo_min} min</Text><Text style={v.fare}>Gratuito</Text></View>
-            <View style={v.routeSequence}><Icone name="walk-outline" color="#0069d2" size={20}/><Text style={v.routeSequenceText}>{(resultado.distancia_m/1000).toFixed(1)} km · {resultado.fonte}</Text></View>
-            <Text style={v.routeDisclaimer}>Estimativa de caminhada; segurança não verificada.</Text>
-          </View>:<View style={v.emptyResults}><Icone name="git-compare-outline" size={27} color="#8ba2bd"/><Text style={v.emptyResultsTitle}>Seu trajeto aparecerá aqui</Text><Text style={v.emptyResultsCopy}>Selecione endereços sugeridos e um modo de transporte para consultar as opções disponíveis. Os trajetos de transporte público ainda não possuem dados operacionais integrados.</Text></View>}
+            <Text style={v.recommendedBadge}>{"TRAJETO DISPONÍVEL · "+(resultado.modal==="onibus"?"ÔNIBUS":resultado.modal==="ferroviario"?"METRÔ / TREM":resultado.modal==="todos"?"TRANSPORTE PÚBLICO":"A PÉ")}</Text>
+            <View style={v.recommendedTop}><Text style={v.duration}>{resultado.tempo_min} min</Text><Text style={v.fare}>{resultado.tarifa_centavos===null?"Tarifa não informada":resultado.tarifa_centavos===0?"Gratuito":"R$ "+(resultado.tarifa_centavos/100).toFixed(2).replace(".",",")}</Text></View>
+            <View style={v.routeSequence}><Icone name="walk-outline" color="#0069d2" size={20}/><Text style={v.routeSequenceText}>{resultado.distancia_m!==null?(resultado.distancia_m/1000).toFixed(1)+" km · ":""}{resultado.fonte}</Text></View>
+            {(resultado.trechos||[]).map((t,i)=><View key={i} style={{marginTop:8,borderTopWidth:i===0?0:1,borderTopColor:"#dde8f4",paddingTop:8}}><Text style={{color:"#1f4f88",fontWeight:"700",fontSize:12}}>{t.modal==="WALK"?"Caminhar":t.modal==="BUS"?"Ônibus":t.modal==="SUBWAY"?"Metrô":t.modal==="SUBURBAN"?"Trem":"Transporte"}{t.linha?" · "+t.linha:""} · {t.tempo_min} min</Text><Text style={{color:"#60768f",fontSize:11}}>{t.de} → {t.para}{t.destino_linha?" · Sentido "+t.destino_linha:""}</Text></View>)}
+            <Text style={v.routeDisclaimer}>{resultado.aviso}</Text>
+          </View>:<View style={v.emptyResults}><Icone name="git-compare-outline" size={27} color="#8ba2bd"/><Text style={v.emptyResultsTitle}>Seu trajeto aparecerá aqui</Text><Text style={v.emptyResultsCopy}>Selecione endereços sugeridos e um modo de transporte para consultar as opções disponíveis. As rotas são consultadas em serviços externos e podem não estar disponíveis em alguns horários e locais.</Text></View>}
          <View style={v.demoPanel}>
            <View style={v.demoHead}><Icone name="flask-outline" color="#0069d2" size={21}/><Text style={v.demoTitle}>Laboratório de rotas e tarifas</Text></View>
            <Text style={v.demoDescription}>Teste o algoritmo do grupo com uma rede fictícia. Os horários, trajetos e preços desta simulação não representam o transporte real.</Text>
@@ -243,10 +241,10 @@ export default function Home(){
 
        <View style={[v.mapCard,mobile&&v.mapCardMobile]}>
          <View style={v.mapHeader}><Text style={v.mapTitle}>Mapa do trajeto</Text><View style={v.mapBadge}><Icone name="map-outline" size={15} color="#0069d2"/><Text style={v.mapBadgeText}>Mapa interativo</Text></View></View>
-         <MapaPreview url={preview} pontos={pontos} trajeto={resultado?.trajeto} height={mobile?390:560} pickMode={selecionarNoMapa} onMapPick={marcarNoMapa}/>
+         <MapaPreview url={preview} pontos={pontos} trajeto={resultado?.trajeto} trechos={resultado?.trechos} height={mobile?390:560} pickMode={selecionarNoMapa} onMapPick={marcarNoMapa}/>
          <View style={v.mapBottom}>
            <Icone name="information-circle-outline" color="#63778c" size={17}/>
-           <Text style={v.mapBottomText}>{resultado?"Percurso a pé calculado a partir da origem e do destino selecionados.":"Escolha origem e destino para visualizar os pontos no mapa. Rotas reais de metrô e ônibus ainda não estão disponíveis."}</Text>
+           <Text style={v.mapBottomText}>{resultado?"Trajeto calculado a partir dos dados de "+resultado.fonte+". Consulte as etapas e confira horários antes de sair.":"Selecione origem e destino e clique em Encontrar trajeto. O percurso só aparece quando o provedor retornar a geometria real."}</Text>
          </View>
        </View>
      </View>
@@ -262,7 +260,7 @@ export default function Home(){
        <Text style={v.assistantFootnote}>Respostas baseadas nas informações disponíveis na base acadêmica, com referências quando disponíveis.</Text>
      </View>
 
-     <Text style={v.footer}>Citizen Tech Mobilidade Urbana · FIAP Global Solution 2026 · Indicadores de segurança não verificados; rotas reais de transporte público em desenvolvimento.</Text>
+     <Text style={v.footer}>Citizen Tech Mobilidade Urbana · FIAP Global Solution 2026 · Indicadores de segurança não verificados; dados de viagens provenientes do Transitous quando disponíveis.</Text>
    </View>
  </ScrollView>;
 }
