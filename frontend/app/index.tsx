@@ -87,6 +87,8 @@ export default function Home(){
  const [demoErro,setDemoErro]=useState("");
  const [selecionarNoMapa,setSelecionarNoMapa]=useState<"origem"|"destino"|null>(null);
  const [fotoBase,setFotoBase]=useState(false);
+ const [mostrarLaboratorio,setMostrarLaboratorio]=useState(false);
+ const [mostrarDetalhes,setMostrarDetalhes]=useState(false);
 
  const pontos=[origemGeo?{...origemGeo,tipo:"origem"}:null,destinoGeo?{...destinoGeo,tipo:"destino"}:null].filter((p):p is Endereco & {tipo:string}=>p!==null);
  const lat=origemGeo?.lat||destinoGeo?.lat||-23.55,lon=origemGeo?.lon||destinoGeo?.lon||-46.63;
@@ -212,7 +214,7 @@ export default function Home(){
 
        <View style={[v.mapCard,mobile&&v.mapCardMobile]}>
          <View style={v.mapHeader}><Text style={v.mapTitle}>Mapa do trajeto</Text><View style={v.mapBadge}><Icone name="map-outline" size={15} color="#0069d2"/><Text style={v.mapBadgeText}>Mapa interativo</Text></View></View>
-         <MapaPreview url={preview} pontos={pontos} trajeto={resultado?.trajeto} trechos={resultado?.trechos} height={mobile?390:560} pickMode={selecionarNoMapa} onMapPick={marcarNoMapa}/>
+         <MapaPreview url={preview} pontos={pontos} trajeto={resultado?.trajeto} trechos={resultado?.trechos} height={mobile?390:680} pickMode={selecionarNoMapa} onMapPick={marcarNoMapa}/>
          <View style={v.mapBottom}>
            <Icone name="information-circle-outline" color="#63778c" size={17}/>
            <Text style={v.mapBottomText}>{resultado?"Trajeto calculado a partir dos dados de "+resultado.fonte+". Consulte as etapas e confira horários antes de sair.":"Selecione origem e destino e clique em Encontrar trajeto. O percurso só aparece quando o provedor retornar a geometria real."}</Text>
@@ -221,11 +223,15 @@ export default function Home(){
 
        <View style={[v.routesPanel,mobile&&v.routesPanelMobile]}>
          <View style={v.resultsHeader}><Text style={v.resultsTitle}>Trajetos sugeridos</Text><Icone name="options-outline" size={20} color="#667c92"/></View>
-         <View style={v.departure}><Icone name="time-outline" size={15} color="#667c92"/><Text style={v.departureText}>Saída agora</Text><Text style={v.departureCount}>{resultado?"1 opção validada":"Aguardando busca"}</Text></View>
+         <View style={v.departure}><Icone name="time-outline" size={15} color="#667c92"/><Text style={v.departureText}>Rota calculada</Text><Text style={v.departureCount}>{resultado?"1 itinerário":"Aguardando busca"}</Text></View>
          {resultado?<View style={v.recommended}>
             <Text style={v.recommendedBadge}>{"TRAJETO DISPONÍVEL · "+(resultado.modal==="onibus"?"ÔNIBUS":resultado.modal==="ferroviario"?"METRÔ / TREM":resultado.modal==="todos"?"TRANSPORTE PÚBLICO":"A PÉ")}</Text>
             <View style={v.recommendedTop}><Text style={v.duration}>{resultado.tempo_min} min</Text><Text style={v.fare}>{resultado.tarifa_centavos===null?"Tarifa não informada":resultado.tarifa_centavos===0?"Gratuito":"R$ "+(resultado.tarifa_centavos/100).toFixed(2).replace(".",",")}</Text></View>
-            <View style={v.routeSequence}><Icone name="walk-outline" color="#0069d2" size={20}/><Text style={v.routeSequenceText}>{resultado.distancia_m!==null?(resultado.distancia_m/1000).toFixed(1)+" km · ":""}{resultado.fonte}</Text></View>
+            <Text style={v.routeSequenceText}>Fonte: Transitous / OpenStreetMap · Horários estimados</Text>
+            <View style={v.itineraryHeader}>
+              <Text style={v.itineraryHeading}>Etapas da viagem</Text>
+              <Text style={v.itineraryCount}>{(resultado.trechos||[]).length} etapas</Text>
+            </View>
             {(resultado.trechos||[]).map((t,i)=>{
               const walk=t.modal==="WALK";
               const bus=t.modal==="BUS";
@@ -246,18 +252,30 @@ export default function Home(){
                   {walk?"Caminhe de "+t.de+" até "+t.para:bus?"Pegue o ônibus em "+t.de+" e desça em "+t.para:"Embarque em "+t.de+" e desça em "+t.para}
                 </Text>
                 {!!t.destino_linha&&<Text style={{color:"#60768f",fontSize:11,marginTop:4}}>Sentido {t.destino_linha}</Text>}
-                {rail&&t.paradas&&t.paradas.length>2&&<Text style={{color:"#60768f",fontSize:11,marginTop:4}}>Estações: {t.paradas.map(p=>p.nome).join(" · ")}</Text>}
+                {rail&&t.paradas&&t.paradas.length>2&&mostrarDetalhes&&<Text style={{color:"#60768f",fontSize:11,marginTop:4}}>Estações: {t.paradas.map(p=>p.nome).join(" · ")}</Text>}
               </View>;
             })}
+            <Pressable onPress={()=>setMostrarDetalhes(x=>!x)} style={v.detailsToggle} accessibilityRole="button">
+              <Text style={v.detailsToggleText}>{mostrarDetalhes?"Ocultar estações intermediárias":"Ver estações intermediárias"}</Text>
+              <Icone name={mostrarDetalhes?"chevron-up":"chevron-down"} color="#0069d2" size={15}/>
+            </Pressable>
             {resultado.caminhada_m!==null&&resultado.caminhada_m!==undefined&&resultado.modal!=="ape"&&<View style={{marginTop:9,padding:10,backgroundColor:resultado.caminhada_longa?"#FFF2DE":"#EDF5FC",borderRadius:10}}>
               <Text style={{color:resultado.caminhada_longa?"#87521A":"#234C77",fontWeight:"700",fontSize:12}}>
                 {"Caminhada total: "+(resultado.caminhada_m>=1000?(resultado.caminhada_m/1000).toFixed(1).replace(".",",")+" km":resultado.caminhada_m+" m")}
                 {resultado.caminhada_longa?" · Atenção: trecho longo a pé":""}
               </Text>
             </View>}
-            <Text style={v.routeDisclaimer}>{resultado.aviso}</Text>
+            <Text style={v.routeDisclaimer}>{resultado.caminhada_longa?"Atenção: avalie uma alternativa com menos caminhada. ":""}Os horários e tarifas podem mudar. Consulte o operador antes de viajar.</Text>
           </View>:<View style={v.emptyResults}><Icone name="git-compare-outline" size={27} color="#8ba2bd"/><Text style={v.emptyResultsTitle}>Seu trajeto aparecerá aqui</Text><Text style={v.emptyResultsCopy}>Selecione endereços sugeridos e um modo de transporte para consultar as opções disponíveis. As rotas são consultadas em serviços externos e podem não estar disponíveis em alguns horários e locais.</Text></View>}
-         <View style={v.demoPanel}>
+       </View>
+     </View>
+
+     <View style={v.labSection}>
+       <Pressable onPress={()=>setMostrarLaboratorio(x=>!x)} accessibilityRole="button" style={v.labToggle}>
+         <View style={{flexDirection:"row",alignItems:"center",gap:9}}><Icone name="flask-outline" color="#56739a" size={18}/><Text style={v.labToggleText}>Laboratório acadêmico de rotas e tarifas</Text></View>
+         <Icone name={mostrarLaboratorio?"chevron-up-outline":"chevron-down-outline"} color="#56739a" size={18}/>
+       </Pressable>
+       {mostrarLaboratorio&&<View style={v.demoPanel}>
            <View style={v.demoHead}><Icone name="flask-outline" color="#0069d2" size={21}/><Text style={v.demoTitle}>Laboratório de rotas e tarifas</Text></View>
            <Text style={v.demoDescription}>Teste o algoritmo do grupo com uma rede fictícia. Os horários, trajetos e preços desta simulação não representam o transporte real.</Text>
            <Pressable style={v.demoButton} onPress={executarDemo} disabled={demoCarregando} accessibilityRole="button">
@@ -276,8 +294,7 @@ export default function Home(){
              </View>)}
              {!!demo.aviso&&<Text style={v.demoDetail}>{demo.aviso}</Text>}
            </View>}
-         </View>
-       </View>
+         </View>}
      </View>
 
      <View style={v.assistant}>
@@ -314,18 +331,18 @@ const v=StyleSheet.create({
  navMobile:{minHeight:68,paddingHorizontal:16,paddingVertical:15,gap:10},navBrand:{fontSize:25,fontWeight:"800",letterSpacing:-.9,color:"#1d2633"},navBrandMobile:{fontSize:19},navBrandAccent:{fontWeight:"500",color:"#0069d2"},
  navActive:{backgroundColor:"#dcebfa",borderRadius:22,paddingHorizontal:18,paddingVertical:13},navActiveText:{color:"#0069d2",fontSize:14,fontWeight:"700"},navMeta:{fontSize:11,color:"#62758a",marginLeft:"auto"},
  container:{maxWidth:1440,width:"100%",alignSelf:"center",paddingHorizontal:48,paddingBottom:28},
- containerMobile:{paddingHorizontal:16},intro:{minHeight:182,paddingTop:34,justifyContent:"center",position:"relative",paddingBottom:23},introMobile:{paddingTop:24,minHeight:0},
+ containerMobile:{paddingHorizontal:16},intro:{minHeight:140,paddingTop:22,justifyContent:"center",position:"relative",paddingBottom:18},introMobile:{paddingTop:24,minHeight:0},
  eyebrow:{color:"#0069d2",fontSize:11,fontWeight:"800",letterSpacing:1.7,marginBottom:12},
- heading:{color:"#1d2633",fontWeight:"800",fontSize:42,letterSpacing:-1.5,lineHeight:53},headingMobile:{fontSize:29,lineHeight:38},
+ heading:{color:"#1d2633",fontWeight:"800",fontSize:34,letterSpacing:-1.1,lineHeight:44},headingMobile:{fontSize:29,lineHeight:38},
  subtitle:{color:"#586c80",fontSize:15,marginTop:7,lineHeight:22},
  cityBadge:{position:"absolute",right:0,top:70,flexDirection:"row",alignItems:"center",gap:8,backgroundColor:"rgba(255,255,255,.7)",borderRadius:24,paddingHorizontal:16,paddingVertical:13},cityText:{color:"#1d2633",fontSize:13,fontWeight:"600"},
- main:{flexDirection:"row",alignItems:"flex-start",gap:16},mainMobile:{flexDirection:"column"},
- sidebar:{width:295,maxWidth:"100%",flexShrink:0},sidebarMobile:{width:"100%"},
- routesPanel:{width:340,maxWidth:"100%",flexShrink:0,backgroundColor:"rgba(255,255,255,.93)",borderRadius:22,padding:16},routesPanelMobile:{width:"100%"},
- searchCard:{backgroundColor:"rgba(255,255,255,.96)",padding:24,borderRadius:24,shadowColor:"#336191",shadowOpacity:.08,shadowRadius:26,elevation:2},
+ main:{flexDirection:"row",alignItems:"flex-start",gap:14},mainMobile:{flexDirection:"column"},
+ sidebar:{width:272,maxWidth:"100%",flexShrink:0},sidebarMobile:{width:"100%"},
+ routesPanel:{width:320,maxWidth:"100%",flexShrink:0,backgroundColor:"rgba(255,255,255,.97)",borderRadius:20,padding:15,borderWidth:1,borderColor:"#d9e6f5"},routesPanelMobile:{width:"100%"},
+ searchCard:{backgroundColor:"rgba(255,255,255,.96)",padding:18,borderRadius:20,shadowColor:"#336191",shadowOpacity:.08,shadowRadius:26,elevation:2},
  searchTitle:{fontSize:21,fontWeight:"800",color:"#1d2633",marginBottom:16},
- modeBar:{flexDirection:"row",backgroundColor:"#eef3f8",borderRadius:13,padding:4,gap:1,justifyContent:"space-between",marginBottom:16},
- modeItem:{paddingHorizontal:9,minHeight:34,justifyContent:"center",alignItems:"center",flexDirection:"row",gap:4,borderRadius:10,flexGrow:1},
+ modeBar:{flexDirection:"row",backgroundColor:"#eef3f8",borderRadius:11,padding:3,gap:0,justifyContent:"space-between",marginBottom:14},
+ modeItem:{paddingHorizontal:5,minHeight:34,justifyContent:"center",alignItems:"center",flexDirection:"row",gap:4,borderRadius:10,flexGrow:1},
  modeActive:{backgroundColor:"#fff",shadowColor:"#336191",shadowOpacity:.08,shadowRadius:4,elevation:1},
  modeText:{fontSize:12,color:"#586c80",fontWeight:"500"},modeTextActive:{fontWeight:"700",color:"#0069d2"},
  addresses:{gap:7},middleActions:{alignSelf:"flex-end",flexDirection:"row",gap:7,marginVertical:1},
@@ -336,14 +353,14 @@ const v=StyleSheet.create({
  warningText:{flex:1,fontSize:12,color:"#94602c",lineHeight:18},
  resultsHeader:{marginTop:2,marginBottom:11,flexDirection:"row",alignItems:"center",justifyContent:"space-between"},resultsTitle:{fontWeight:"800",color:"#1d2633",fontSize:18},
  departure:{flexDirection:"row",alignItems:"center",gap:7,marginBottom:14},departureText:{fontSize:12,color:"#586c80"},departureCount:{marginLeft:"auto",fontSize:12,color:"#586c80"},
- recommended:{backgroundColor:"#f6faff",borderRadius:22,borderWidth:1.5,borderColor:"#6ca9eb",padding:20,shadowColor:"#336191",shadowOpacity:.08,shadowRadius:16,elevation:2},
+ recommended:{backgroundColor:"#f9fcff",borderRadius:15,borderWidth:1,borderColor:"#d4e4f5",padding:14,shadowColor:"#336191",shadowOpacity:.08,shadowRadius:16,elevation:2},
  recommendedBadge:{color:"#0069d2",fontWeight:"800",fontSize:10,letterSpacing:1},
- recommendedTop:{flexDirection:"row",justifyContent:"space-between",alignItems:"center",marginTop:6},duration:{fontWeight:"800",fontSize:26,color:"#1d2633"},fare:{fontWeight:"700",fontSize:14,color:"#1d2633"},
+ recommendedTop:{flexDirection:"row",justifyContent:"space-between",alignItems:"center",marginTop:8,flexWrap:"wrap",gap:5},duration:{fontWeight:"800",fontSize:26,color:"#1d2633"},fare:{fontWeight:"700",fontSize:14,color:"#1d2633"},
  routeSequence:{flexDirection:"row",alignItems:"center",gap:9,marginTop:10},routeSequenceText:{color:"#586c80",fontSize:12},
  routeDisclaimer:{color:"#667c92",fontSize:11,marginTop:8},
  emptyResults:{backgroundColor:"rgba(255,255,255,.86)",borderRadius:24,minHeight:200,padding:23,justifyContent:"center",alignItems:"center",gap:10},
  emptyResultsTitle:{fontWeight:"700",color:"#1d2633",fontSize:14},emptyResultsCopy:{color:"#667c92",fontSize:12,textAlign:"center",lineHeight:19},
- mapCard:{backgroundColor:"#eff5fb",borderRadius:26,padding:15,flex:1,minWidth:0,borderWidth:1,borderColor:"rgba(255,255,255,.8)",shadowColor:"#336191",shadowOpacity:.10,shadowRadius:36,elevation:2},
+ mapCard:{backgroundColor:"#eff5fb",borderRadius:20,padding:12,flex:1,minWidth:0,borderWidth:1,borderColor:"rgba(255,255,255,.8)",shadowColor:"#336191",shadowOpacity:.10,shadowRadius:36,elevation:2},
  mapCardMobile:{flex:0,width:"100%"},
  mapHeader:{flexDirection:"row",alignItems:"center",justifyContent:"space-between",marginBottom:13,paddingHorizontal:2},
  mapTitle:{color:"#1d2633",fontSize:18,fontWeight:"800"},mapBadge:{backgroundColor:"#fff",paddingHorizontal:11,paddingVertical:8,borderRadius:16,flexDirection:"row",alignItems:"center",gap:6},mapBadgeText:{color:"#0069d2",fontSize:12,fontWeight:"600"},
@@ -359,6 +376,14 @@ const v=StyleSheet.create({
  demoRouteHeader:{flexDirection:"row",justifyContent:"space-between",alignItems:"center",gap:6},demoRouteTitle:{fontSize:12,color:"#1d2633",fontWeight:"800"},
  demoMinutes:{fontSize:16,color:"#0069d2",fontWeight:"800"},demoDetail:{fontSize:11,color:"#667c92",lineHeight:17},
  demoCost:{fontSize:12,color:"#1d2633",fontWeight:"700"},
+ itineraryHeader:{marginTop:18,flexDirection:"row",justifyContent:"space-between",alignItems:"center"},
+ itineraryHeading:{fontSize:13,fontWeight:"800",color:"#253750"},
+ itineraryCount:{fontSize:11,color:"#657b94"},
+ detailsToggle:{marginTop:10,paddingVertical:10,flexDirection:"row",justifyContent:"center",alignItems:"center",gap:6,borderTopWidth:1,borderTopColor:"#e0eafa"},
+ detailsToggleText:{fontWeight:"700",fontSize:11,color:"#0069d2"},
+ labSection:{marginTop:18},
+ labToggle:{backgroundColor:"#f4f8fe",borderWidth:1,borderColor:"#cfdff1",borderRadius:12,paddingHorizontal:18,paddingVertical:14,flexDirection:"row",alignItems:"center",justifyContent:"space-between"},
+ labToggleText:{fontSize:13,fontWeight:"700",color:"#56739a"},
  assistant:{marginTop:24,backgroundColor:"rgba(255,255,255,.93)",borderRadius:25,padding:24,shadowColor:"#336191",shadowOpacity:.07,shadowRadius:20,elevation:1},
  assistantHeader:{flexDirection:"row",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12},
  assistantHeaderLeft:{flexDirection:"row",alignItems:"center",gap:11,flex:1},
