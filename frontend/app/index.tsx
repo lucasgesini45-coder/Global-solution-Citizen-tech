@@ -74,7 +74,7 @@ function CampoEndereco({titulo,valor,mudar,selecionar,escolhido,placeholder}:{
 }
 
 export default function Home(){
- const {width}=useWindowDimensions();const mobile=width<820;
+ const {width}=useWindowDimensions();const mobile=width<1180;
  const [modal,setModal]=useState<Modal>("todos");
  const [origem,setOrigem]=useState("");const [destino,setDestino]=useState("");
  const [origemGeo,setOrigemGeo]=useState<Endereco|null>(null);const [destinoGeo,setDestinoGeo]=useState<Endereco|null>(null);
