@@ -48,7 +48,16 @@ def _json_http(url: str, *, payload: dict | None = None, headers: dict | None = 
             if exc.code in (502, 503, 504) and indice + 1 < tentativas:
                 time.sleep(1)
                 continue
-            raise HTTPException(status_code=503, detail=f"O serviço de endereços Photon respondeu HTTP {exc.code}. Verifique a conexão com photon.komoot.io.") from exc
+            # Não confundir requisição inválida com falha de rede; registrar
+            # a descrição HTTP devolvida pelo provedor (sem expor a URL buscada).
+            detalhe = ""
+            if exc.code == 400:
+                try:
+                    resposta_erro = exc.read(400).decode("utf-8", errors="replace")
+                    detalhe = " " + " ".join(resposta_erro.split())[:160] if resposta_erro else ""
+                except (OSError, ValueError, AttributeError):
+                    pass
+            raise HTTPException(status_code=503, detail=f"Photon rejeitou a busca (HTTP {exc.code}).{detalhe} Tente novamente ou marque os pontos diretamente no mapa.") from exc
         except (URLError, TimeoutError, OSError) as exc:
             if indice + 1 < tentativas:
                 time.sleep(1)
@@ -68,9 +77,9 @@ def _buscar_cache(consulta: str) -> list[dict]:
         if espera > 0:
             time.sleep(espera)
         _ultima_busca = time.monotonic()
-    # Não enviar lang=pt: algumas instâncias Photon rejeitam idioma não indexado com HTTP 400.
-    # O idioma é opcional; nomes locais são preservados sem o parâmetro.
-    params = urlencode({"q": consulta, "limit": 10, "lat": -23.55, "lon": -46.63})
+    # Priorizar compatibilidade com Photon público: q é o único parâmetro necessário.
+    # A região de São Paulo é filtrada depois da resposta, no backend.
+    params = urlencode({"q": consulta, "limit": 10})
     dados = _json_http(PHOTON_URL + "?" + params)
     resultados = []
     vistos = set()
