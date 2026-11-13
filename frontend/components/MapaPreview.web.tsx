@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Text, View } from "react-native";
 
 type Ponto = {lat:number;lon:number;nome?:string;tipo?:string};
-type Trecho = {modal:string;trajeto:number[][];linha?:string|null};
+type Trecho = {modal:string;trajeto:number[][];linha?:string|null;paradas?:{nome:string;lat:number;lon:number}[]};
 type Props = {url:string;trajeto?:number[][];trechos?:Trecho[];pontos?:Ponto[];height?:number;pickMode?:"origem"|"destino"|null;onMapPick?:(lat:number,lon:number)=>void};
 
 type MapLibreApi = {
@@ -150,6 +150,9 @@ export default function MapaPreview({pontos=[],height=365,trajeto=[],trechos=[],
      type:"Feature",properties:{cor:cores[t.modal]||"#7155c8",modo:t.modal,linha:t.linha||"",index:i},
      geometry:{type:"LineString",coordinates:t.trajeto.filter(p=>Array.isArray(p)&&p.length===2&&p.every(Number.isFinite)).map(p=>[p[1],p[0]])}
    })).filter(f=>f.geometry.coordinates.length>=2);
+   if(map.getLayer(id+"-stations-labels"))map.removeLayer(id+"-stations-labels");
+   if(map.getLayer(id+"-stations"))map.removeLayer(id+"-stations");
+   if(map.getSource(id+"-stations"))map.removeSource(id+"-stations");
    if(map.getLayer(id+"-stroke"))map.removeLayer(id+"-stroke");
    if(map.getLayer(id+"-line"))map.removeLayer(id+"-line");
    if(map.getSource(id))map.removeSource(id);
@@ -157,6 +160,12 @@ export default function MapaPreview({pontos=[],height=365,trajeto=[],trechos=[],
    map.addSource(id,{type:"geojson",data:{type:"FeatureCollection",features}});
    map.addLayer({id:id+"-stroke",type:"line",source:id,paint:{"line-color":"#ffffff","line-width":9,"line-opacity":0.9},layout:{"line-join":"round","line-cap":"round"}});
    map.addLayer({id:id+"-line",type:"line",source:id,paint:{"line-color":["get","cor"],"line-width":5,"line-opacity":0.95},layout:{"line-join":"round","line-cap":"round"}});
+   const pontos=lista.flatMap(t=>(t.paradas||[]).map(p=>({type:"Feature",properties:{nome:p.nome,modal:t.modal,cor:cores[t.modal]||"#7155c8"},geometry:{type:"Point",coordinates:[p.lon,p.lat]}}))).filter(f=>f.geometry.coordinates.every(Number.isFinite));
+   if(pontos.length){
+     map.addSource(id+"-stations",{type:"geojson",data:{type:"FeatureCollection",features:pontos}});
+     map.addLayer({id:id+"-stations",type:"circle",source:id+"-stations",paint:{"circle-radius":5,"circle-color":["get","cor"],"circle-stroke-width":2,"circle-stroke-color":"#fff"}});
+     map.addLayer({id:id+"-stations-labels",type:"symbol",source:id+"-stations",layout:{"text-field":["get","nome"],"text-size":11,"text-offset":[0,1.1],"text-anchor":"top","text-optional":true},paint:{"text-color":"#244263","text-halo-color":"#fff","text-halo-width":1.5}});
+   }
    const bounds=new (getMapLibre()!).LngLatBounds();
    features.forEach(f=>f.geometry.coordinates.forEach(p=>bounds.extend(p)));
    if(!bounds.isEmpty())map.fitBounds(bounds,{padding:65,maxZoom:16,duration:450});
