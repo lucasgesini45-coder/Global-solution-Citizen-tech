@@ -72,7 +72,10 @@ def _trechos_viagem(viagem: dict) -> list[dict]:
                 lat, lon = place.get("lat"), place.get("lon")
                 if isinstance(lat, (int, float)) and isinstance(lon, (int, float)) and math.isfinite(lat) and math.isfinite(lon):
                     paradas.append({"nome": str(place.get("name") or "Estação / parada"), "lat": lat, "lon": lon})
+        cor_bruta = str(item.get("routeColor") or "").lstrip("#")
+        cor_linha = "#" + cor_bruta if len(cor_bruta) == 6 and all(ch in "0123456789abcdefABCDEF" for ch in cor_bruta) else None
         trechos.append({
+            "cor_linha": cor_linha,
             "paradas": paradas,
             "modal": modo, "linha": item.get("displayName") or item.get("routeShortName") or None,
             "destino_linha": item.get("headsign") or None,
@@ -119,8 +122,8 @@ def consultar_transitous(origem, destino, modal: str) -> dict:
         })
     except HTTPException as exc:
         raise HTTPException(status_code=503, detail=(
-            "Serviço Transitous indisponível nesta consulta. "
-            "Confira o acesso a api.transitous.org; não foi gerada uma rota fictícia."
+            "Não foi possível calcular a rota pelo Transitous: "
+            + str(exc.detail) + " Nenhuma linha fictícia foi desenhada."
         )) from exc
     viagens = resposta.get("direct", []) if modal == "ape" else resposta.get("itineraries", [])
     if not isinstance(viagens, list):
