@@ -145,38 +145,55 @@ export default function MapaPreview({pontos=[],height=365,trajeto=[],trechos=[],
  useEffect(()=>{
    const map=mapRef.current;
    if(!pronto||!map)return;
-   const id="citizen-route";
    const lista=JSON.parse(linhas) as Trecho[];
-   const cores:Record<string,string>={WALK:"#2596a9",BUS:"#0071e3",SUBWAY:"#7155c8",SUBURBAN:"#7155c8",REGIONAL_RAIL:"#7155c8",RAIL:"#7155c8",TRAM:"#7155c8"};
-   const features=lista.filter(t=>Array.isArray(t.trajeto)&&t.trajeto.length>=2).map((t,i)=>({
-     type:"Feature",properties:{cor:t.cor_linha||cores[t.modal]||"#7155c8",modo:t.modal,linha:t.linha||"",rotulo:t.modal==="WALK"?"A pé":t.modal==="BUS"?"Ônibus"+(t.linha?" · "+t.linha:""):"Metrô / trem"+(t.linha?" · "+t.linha:""),index:i},
-     geometry:{type:"LineString",coordinates:t.trajeto.filter(p=>Array.isArray(p)&&p.length===2&&p.every(Number.isFinite)).map(p=>[p[1],p[0]])}
-   })).filter(f=>f.geometry.coordinates.length>=2);
-   if(map.getLayer(id+"-modal-labels"))map.removeLayer(id+"-modal-labels");
-   if(map.getLayer(id+"-stations-labels"))map.removeLayer(id+"-stations-labels");
-   if(map.getLayer(id+"-stations"))map.removeLayer(id+"-stations");
-   if(map.getSource(id+"-stations"))map.removeSource(id+"-stations");
-   if(map.getLayer(id+"-stroke"))map.removeLayer(id+"-stroke");
-   if(map.getLayer(id+"-line"))map.removeLayer(id+"-line");
-   if(map.getSource(id))map.removeSource(id);
-   if(!features.length)return;
-   map.addSource(id,{type:"geojson",data:{type:"FeatureCollection",features}});
-   map.addLayer({id:id+"-stroke",type:"line",source:id,paint:{"line-color":"#ffffff","line-width":9,"line-opacity":0.9},layout:{"line-join":"round","line-cap":"round"}});
-   map.addLayer({id:id+"-line",type:"line",source:id,paint:{"line-color":["get","cor"],"line-width":5,"line-opacity":0.95},layout:{"line-join":"round","line-cap":"round"}});
-   map.addLayer({id:id+"-modal-labels",type:"symbol",source:id,
-     layout:{"symbol-placement":"line","text-field":["get","rotulo"],"text-size":12,
-       "text-font":["Open Sans Regular","Arial Unicode MS Regular"],"symbol-spacing":190,
-       "text-rotation-alignment":"map","text-keep-upright":true,"text-optional":true},
-     paint:{"text-color":"#183e67","text-halo-color":"#ffffff","text-halo-width":2.5}});
-   const pontos=lista.flatMap(t=>(t.paradas||[]).map(p=>({type:"Feature",properties:{nome:p.nome,modal:t.modal,cor:t.cor_linha||cores[t.modal]||"#7155c8"},geometry:{type:"Point",coordinates:[p.lon,p.lat]}}))).filter(f=>f.geometry.coordinates.every(Number.isFinite));
-   if(pontos.length){
-     map.addSource(id+"-stations",{type:"geojson",data:{type:"FeatureCollection",features:pontos}});
-     map.addLayer({id:id+"-stations",type:"circle",source:id+"-stations",paint:{"circle-radius":5,"circle-color":["get","cor"],"circle-stroke-width":2,"circle-stroke-color":"#fff"}});
-     map.addLayer({id:id+"-stations-labels",type:"symbol",source:id+"-stations",layout:{"text-field":["get","nome"],"text-size":11,"text-offset":[0,1.1],"text-anchor":"top","text-optional":true},paint:{"text-color":"#244263","text-halo-color":"#fff","text-halo-width":1.5}});
-   }
-   const bounds=new (getMapLibre()!).LngLatBounds();
-   features.forEach(f=>f.geometry.coordinates.forEach(p=>bounds.extend(p)));
-   if(!bounds.isEmpty())map.fitBounds(bounds,{padding:65,maxZoom:16,duration:450});
+   const id="citizen-route";
+   const cores:Record<string,string>={WALK:"#2596a9",BUS:"#0071e3",SUBWAY:"#7155c8",SUBURBAN:"#7155c8",REGIONAL_RAIL:"#7155c8",RAIL:"#7155c8",TRAM:"#7155c8",METRO:"#7155c8"};
+   const featureList=lista.flatMap((t,i)=>{
+     if(!Array.isArray(t.trajeto))return [];
+     const coords=t.trajeto.filter(p=>Array.isArray(p)&&p.length>=2&&p.slice(0,2).every(Number.isFinite)&&Math.abs(p[0])<=90&&Math.abs(p[1])<=180).map(p=>[p[1],p[0]]);
+     if(coords.length<2)return [];
+     const rotulo=t.modal==="WALK"?"A pé":t.modal==="BUS"?"Ônibus"+(t.linha?" · "+t.linha:""):"Metrô / trem"+(t.linha?" · "+t.linha:"");
+     return [{type:"Feature",properties:{cor:t.cor_linha||cores[t.modal]||"#7155c8",rotulo,index:i},geometry:{type:"LineString",coordinates:coords}}];
+   });
+   const stationList=lista.flatMap(t=>(t.paradas||[]).filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lon)).map(p=>({type:"Feature",properties:{nome:p.nome,cor:t.cor_linha||cores[t.modal]||"#7155c8"},geometry:{type:"Point",coordinates:[p.lon,p.lat]}})));
+   const data={type:"FeatureCollection",features:featureList};
+   const stationData={type:"FeatureCollection",features:stationList};
+   if(lista.length>0&&featureList.length===0){
+     setErro("O itinerário foi calculado, mas o provedor não enviou coordenadas de percurso para desenhar no mapa.");
+   }else setErro("");
+   const apply=()=>{
+     if(!map.isStyleLoaded())return;
+     try{
+       if(map.getSource(id))map.getSource(id).setData(data);
+       else map.addSource(id,{type:"geojson",data});
+       if(!map.getLayer(id+"-stroke"))map.addLayer({id:id+"-stroke",type:"line",source:id,layout:{"line-join":"round","line-cap":"round"},paint:{"line-color":"#fff","line-width":9,"line-opacity":0.9}});
+       if(!map.getLayer(id+"-line"))map.addLayer({id:id+"-line",type:"line",source:id,layout:{"line-join":"round","line-cap":"round"},paint:{"line-color":["get","cor"],"line-width":5,"line-opacity":0.95}});
+       // Labels never block rendering the line: styles can lack a font family.
+       try{
+         if(!map.getLayer(id+"-modal-labels"))map.addLayer({id:id+"-modal-labels",type:"symbol",source:id,
+           layout:{"symbol-placement":"line","text-field":["get","rotulo"],"text-size":12,"symbol-spacing":200,"text-optional":true},
+           paint:{"text-color":"#183e67","text-halo-color":"#fff","text-halo-width":2}});
+       }catch(labelError){console.warn("Rótulos indisponíveis:",labelError);}
+       if(map.getSource(id+"-stations"))map.getSource(id+"-stations").setData(stationData);
+       else map.addSource(id+"-stations",{type:"geojson",data:stationData});
+       if(!map.getLayer(id+"-stations"))map.addLayer({id:id+"-stations",type:"circle",source:id+"-stations",paint:{"circle-radius":5,"circle-color":["get","cor"],"circle-stroke-width":2,"circle-stroke-color":"#fff"}});
+       try{
+         if(!map.getLayer(id+"-stations-labels"))map.addLayer({id:id+"-stations-labels",type:"symbol",source:id+"-stations",layout:{"text-field":["get","nome"],"text-size":11,"text-offset":[0,1.1],"text-anchor":"top","text-optional":true},paint:{"text-color":"#244263","text-halo-color":"#fff","text-halo-width":1.5}});
+       }catch(stationError){console.warn("Nomes das paradas indisponíveis:",stationError);}
+       if(featureList.length){
+         const bounds=new (getMapLibre()!).LngLatBounds();
+         featureList.forEach(f=>f.geometry.coordinates.forEach(p=>bounds.extend(p)));
+         if(!bounds.isEmpty())map.fitBounds(bounds,{padding:65,maxZoom:15,duration:350});
+       }
+       map.resize();
+     }catch(error){
+       console.error("Falha ao renderizar rota no Positron:",error);
+       setErro("A rota foi calculada, mas falhou ao ser desenhada. Abra F12 > Console para identificar a camada com erro.");
+     }
+   };
+   apply();
+   map.on("styledata",apply);
+   return ()=>{map.off("styledata",apply);};
  },[linhas,pronto]);
 
  return <View style={{height,width:"100%",borderRadius:18,overflow:"hidden",backgroundColor:"#eff3f7",position:"relative"}}>
