@@ -1,0 +1,19 @@
+
+
+[
+    {
+        "id": "T1",
+        "descricao": "Caminhada até o ponto",
+        "passagem_sem_degraus": true
+    },
+    {
+        "id": "T2",
+        "descricao": "Embarque no ônibus",
+        "passagem_sem_degraus": false
+    },
+    {
+        "id": "T3",
+        "descricao": "Caminhada até o destino",
+        "passagem_sem_degraus": null
+    }
+]
