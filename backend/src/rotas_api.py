@@ -2,6 +2,7 @@
 
 Os trajetos, horários e tarifas deste endpoint são SIMULADOS.
 """
+
 import math
 import sys
 from functools import lru_cache
@@ -17,9 +18,12 @@ router = APIRouter(tags=["Rotas e tarifas"])
 RAIZ_REPOSITORIO = Path(__file__).resolve().parents[2]
 PASTA_MODULO = RAIZ_REPOSITORIO / "global solution part2 - tarifas"
 if not (PASTA_MODULO / "src" / "recomendar.py").is_file():
-    raise RuntimeError("Modulo de rotas ausente: global solution part2 - tarifas/src/recomendar.py")
+    raise RuntimeError(
+        "Modulo de rotas ausente: global solution part2 - tarifas/src/recomendar.py"
+    )
 if str(PASTA_MODULO) not in sys.path:
     sys.path.insert(0, str(PASTA_MODULO))
+
 
 from src.recomendar import processar_pedido
 from src.rede_demo import criar_rede_demo

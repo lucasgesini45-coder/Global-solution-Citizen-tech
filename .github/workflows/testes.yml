@@ -23,7 +23,7 @@ jobs:
           python -m pip install -r backend/requirements.txt
           python -m pip install -r "global solution part2 - tarifas/requirements.txt"
       - name: Testes backend e API
-        run: python -m unittest discover -s backend/tests -v
+        run: python -m pytest backend/tests -v
       - name: Testes modulo de rotas e tarifas
         working-directory: "global solution part2 - tarifas"
         run: python -m pytest -v

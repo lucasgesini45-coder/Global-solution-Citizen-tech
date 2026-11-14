@@ -18,10 +18,12 @@ __pycache__/
 node_modules/
 .expo/
 
-# Configurações privadas
+# ConfiguraÃ§Ãµes privadas
 .env
 .env.*
 !.env.example
 
-# Repositório aninhado acidental
+# RepositÃ³rio aninhado acidental
 /Global-solution-Citizen-tech/
+
+backend/models/*.joblib

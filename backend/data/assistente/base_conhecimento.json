@@ -1,0 +1,389 @@
+{
+  "versao": "1.0",
+  "intencoes": [
+    {
+      "id": "R01",
+      "tema": "rota",
+      "pergunta_canonica": "Como peço uma rota no app?",
+      "frases_treino": [
+        "Como peço uma rota no app?",
+        "Como faço para traçar um trajeto?",
+        "O que preciso informar para calcular uma rota?",
+        "Quais dados eu coloco para buscar uma rota?",
+        "Como pesquiso um caminho de ônibus ou metrô?",
+        "Passo a passo para pedir uma rota",
+        "Quero planejar uma viagem de transporte público, como começo?",
+        "Onde informo meu ponto de partida e meu destino?",
+        "Dá para escolher o horário de saída da viagem?",
+        "Como uso o aplicativo para ver como chegar a um lugar?",
+        "Como fazer uma consulta de trajeto",
+        "Preciso colocar a hora de partida para calcular a rota?"
+      ],
+      "resposta": "Nesta versão, você informa o ponto de partida e o destino, digitando ou usando a localização, e o horário de partida; a rota é calculada a partir desses dados.",
+      "status_funcionalidade": "parcial",
+      "fontes_no_repositorio": [
+        "backend/src/rotas_api.py",
+        "frontend/app/index.tsx"
+      ],
+      "revisada_pela_equipe": false
+    },
+    {
+      "id": "R02",
+      "tema": "rota",
+      "pergunta_canonica": "Posso escolher a origem clicando no mapa?",
+      "frases_treino": [
+        "Posso escolher a origem clicando no mapa?",
+        "Como marcar o destino direto no mapa?",
+        "Dá para tocar no mapa para definir o ponto de partida?",
+        "O mapa permite selecionar origem e destino?",
+        "Como colocar um pino no mapa para escolher o local?",
+        "Consigo clicar em um ponto do mapa para traçar a rota?",
+        "Selecionar o local pelo mapa funciona?",
+        "Quero marcar minha localização no mapa manualmente",
+        "Como eu escolho no mapa onde quero ir?",
+        "Dá para arrastar o marcador do mapa para mudar a origem?",
+        "O que o mapa do aplicativo faz?",
+        "Clicar no mapa define o destino?"
+      ],
+      "resposta": "Ainda não está disponível nesta versão: escolher origem ou destino clicando no mapa. Por enquanto, o mapa mostra os endereços pesquisados e o traçado da rota; use a busca por endereço.",
+      "status_funcionalidade": "planejada",
+      "fontes_no_repositorio": [
+        "frontend/components/MapaPreview.web.tsx",
+        "frontend/app/index.tsx"
+      ],
+      "revisada_pela_equipe": false
+    },
+    {
+      "id": "R03",
+      "tema": "rota",
+      "pergunta_canonica": "Como pesquiso um endereço no app?",
+      "frases_treino": [
+        "Como pesquiso um endereço no app?",
+        "Posso digitar o endereço de origem e de destino?",
+        "Como funciona a busca por endereço?",
+        "O app sugere endereços enquanto eu digito?",
+        "Como procuro uma rua, bairro ou estação?",
+        "Onde digito o nome do lugar para onde vou?",
+        "Dá para buscar pelo nome da estação de metrô?",
+        "Como achar o endereço certo na busca?",
+        "A busca encontra rua, número e bairro?",
+        "Por que a busca de endereço mostra várias sugestões?",
+        "Como definir a origem digitando o local",
+        "Preciso escrever o endereço completo na busca?"
+      ],
+      "resposta": "Digite rua, número, bairro ou estação no campo de busca e escolha uma das sugestões automáticas para definir a origem ou o destino.",
+      "status_funcionalidade": "implementada",
+      "fontes_no_repositorio": [
+        "backend/src/enderecos_api.py",
+        "frontend/app/index.tsx"
+      ],
+      "revisada_pela_equipe": false
+    },
+    {
+      "id": "R04",
+      "tema": "rota",
+      "pergunta_canonica": "O que o app mostra no resultado da rota?",
+      "frases_treino": [
+        "O que o app mostra no resultado da rota?",
+        "Quantas rotas o aplicativo me mostra?",
+        "O que significa o tempo de espera na rota?",
+        "O que são as baldeações exibidas?",
+        "Como interpretar as informações de cada opção de rota?",
+        "Qual a diferença entre as três rotas sugeridas?",
+        "O que quer dizer caminhada total na rota?",
+        "Como ler o resumo de cada rota?",
+        "Por que aparecem opções diferentes de trajeto?",
+        "Como o app decide qual é a rota 1?",
+        "O que vem em cada cartão de rota?",
+        "Onde vejo o tempo total da viagem?"
+      ],
+      "resposta": "Nesta versão, o app mostra até 3 rotas recomendadas, cada uma com tempo total, espera, caminhada, baldeações e custo estimado.",
+      "status_funcionalidade": "parcial",
+      "fontes_no_repositorio": [
+        "global solution part2 - tarifas/src/ranking.py",
+        "global solution part2 - tarifas/src/recomendar.py"
+      ],
+      "revisada_pela_equipe": false
+    },
+    {
+      "id": "R05",
+      "tema": "rota",
+      "pergunta_canonica": "Por que o app não encontrou nenhuma rota?",
+      "frases_treino": [
+        "Por que o app não encontrou nenhuma rota?",
+        "O que fazer quando não aparece rota?",
+        "A busca não retornou trajeto, o que pode ser?",
+        "Apareceu uma mensagem de que não há rota disponível",
+        "O que significa sem trajeto encontrado?",
+        "Por que não existe rota para esse horário?",
+        "Meu destino está fora da área do piloto, e agora?",
+        "O app diz que não há serviço no horário escolhido",
+        "Como resolver quando a rota não é encontrada?",
+        "Por que a rota não aparece para esse endereço?",
+        "A parada fica longe demais e não gerou rota, por quê?",
+        "O app inventa rota quando não existe linha?"
+      ],
+      "resposta": "Quando nenhuma rota é encontrada, o app explica o motivo em vez de inventar um trajeto, por exemplo: sem serviço no horário, local fora da área piloto ou parada além do limite de caminhada.",
+      "status_funcionalidade": "implementada",
+      "fontes_no_repositorio": [
+        "global solution part2 - tarifas/src/recomendar.py"
+      ],
+      "revisada_pela_equipe": false
+    },
+    {
+      "id": "T01",
+      "tema": "tarifas",
+      "pergunta_canonica": "Onde vejo o custo da rota?",
+      "frases_treino": [
+        "Onde vejo o custo da rota?",
+        "Como saber o preço da viagem no app?",
+        "O app mostra quanto vou pagar?",
+        "Onde aparece o valor estimado do trajeto?",
+        "Como consultar a tarifa de uma rota?",
+        "Cada rota mostra o custo da passagem?",
+        "Como vejo o preço de cada opção de rota?",
+        "O custo estimado da viagem aparece em qual lugar?",
+        "Quanto custa ir de um lugar a outro pelo app?",
+        "Onde fica a informação de tarifa?",
+        "O app calcula o valor da passagem?",
+        "Como ver o gasto total de uma rota"
+      ],
+      "resposta": "Nesta versão, cada rota calculada traz o custo estimado da viagem e indica se a tarifa foi validada.",
+      "status_funcionalidade": "parcial",
+      "fontes_no_repositorio": [
+        "backend/src/rotas_api.py",
+        "global solution part2 - tarifas/src/contratos.py"
+      ],
+      "revisada_pela_equipe": false
+    },
+    {
+      "id": "T02",
+      "tema": "tarifas",
+      "pergunta_canonica": "O que significa tarifa não confirmada?",
+      "frases_treino": [
+        "O que significa tarifa não confirmada?",
+        "Por que o custo aparece como indefinido?",
+        "A tarifa não confirmada quer dizer que é grátis?",
+        "Por que a rota não mostra o preço?",
+        "O que é tarifa indefinida no resultado?",
+        "Quando o app diz que a tarifa não foi validada?",
+        "O custo aparece sem valor, é erro?",
+        "O que quer dizer regra tarifária não validada?",
+        "Por que algumas rotas ficam sem preço definido?",
+        "Tarifa não confirmada é o mesmo que zero?",
+        "Que aviso é esse de tarifa não validada para a combinação de linhas?",
+        "O que acontece quando não existe regra de tarifa cadastrada?"
+      ],
+      "resposta": "Tarifa não confirmada significa que ainda não há regra tarifária validada para aquela combinação de linhas; nesse caso o custo aparece como indefinido, nunca como zero ou gratuito.",
+      "status_funcionalidade": "implementada",
+      "fontes_no_repositorio": [
+        "global solution part2 - tarifas/src/tarifas.py"
+      ],
+      "revisada_pela_equipe": false
+    },
+    {
+      "id": "T03",
+      "tema": "tarifas",
+      "pergunta_canonica": "Como funciona a integração entre ônibus e metrô?",
+      "frases_treino": [
+        "Como funciona a integração entre ônibus e metrô?",
+        "Pago uma passagem só ao trocar de ônibus?",
+        "O app considera a integração de tarifa?",
+        "O que é a janela de tempo da integração?",
+        "Como o app calcula o custo com baldeação?",
+        "Ao pegar metrô e trem pago de novo?",
+        "A integração entre modais é aplicada no cálculo do preço?",
+        "Quantos embarques podem ser integrados na mesma viagem?",
+        "Como o aplicativo trata a integração tarifária por operador?",
+        "Tem desconto quando uso duas linhas seguidas?",
+        "A integração vale para ônibus, metrô e trem?",
+        "Como as regras de integração influenciam o custo"
+      ],
+      "resposta": "O app calcula integrações entre ônibus, metrô e trem usando regras cadastradas por operador, considerando a janela de tempo e a sequência de embarques; sem regra validada, a tarifa fica não confirmada.",
+      "status_funcionalidade": "implementada",
+      "fontes_no_repositorio": [
+        "global solution part2 - tarifas/src/tarifas.py"
+      ],
+      "revisada_pela_equipe": false
+    },
+    {
+      "id": "T04",
+      "tema": "tarifas",
+      "pergunta_canonica": "Como definir um orçamento máximo na busca?",
+      "frases_treino": [
+        "Como definir um orçamento máximo na busca?",
+        "Posso colocar um limite de gasto para a rota?",
+        "O que acontece com rotas acima do meu orçamento?",
+        "Como configurar o teto de gastos nas preferências?",
+        "Dá para filtrar as rotas pelo preço máximo?",
+        "O app descarta rotas que passam do meu limite de custo?",
+        "Onde configuro quanto quero pagar no máximo?",
+        "O orçamento da viagem pode ser restringido?",
+        "Rotas com tarifa não confirmada entram no meu limite de gasto?",
+        "Como usar a preferência de valor máximo da passagem?",
+        "Quero ver só rotas que cabem no meu bolso, como faço?",
+        "O teto de custo remove alguma rota da lista?"
+      ],
+      "resposta": "Nesta versão, você pode definir um teto de gastos nas preferências da busca; rotas com custo confirmado acima do limite são descartadas, e rotas com tarifa não confirmada continuam na análise.",
+      "status_funcionalidade": "parcial",
+      "fontes_no_repositorio": [
+        "global solution part2 - tarifas/src/ranking.py",
+        "global solution part2 - tarifas/src/contratos.py"
+      ],
+      "revisada_pela_equipe": false
+    },
+    {
+      "id": "T05",
+      "tema": "tarifas",
+      "pergunta_canonica": "Posso comprar bilhete pelo app?",
+      "frases_treino": [
+        "Posso comprar bilhete pelo app?",
+        "O aplicativo vende passagens?",
+        "Dá para pagar a passagem pelo app?",
+        "Como recarrego meu cartão de transporte pelo aplicativo?",
+        "O app emite bilhete de ônibus ou metrô?",
+        "Existe pagamento dentro do aplicativo?",
+        "Consigo comprar a passagem antes de embarcar?",
+        "O app faz cobrança de alguma coisa?",
+        "Dá para adicionar crédito de bilhete aqui?",
+        "O aplicativo é só para planejar ou também vende bilhete?",
+        "Aceita cartão de crédito para a passagem?",
+        "Onde faço a compra do bilhete único pelo app?"
+      ],
+      "resposta": "Ainda não está disponível nesta versão: compra de bilhetes ou pagamento de passagens. O app funciona apenas como orientador e planejador de viagens.",
+      "status_funcionalidade": "planejada",
+      "fontes_no_repositorio": [
+        "README.md",
+        "frontend/app/index.tsx"
+      ],
+      "revisada_pela_equipe": false
+    },
+    {
+      "id": "H01",
+      "tema": "historico_privacidade",
+      "pergunta_canonica": "O aplicativo guarda meu histórico de buscas?",
+      "frases_treino": [
+        "O aplicativo guarda meu histórico de buscas?",
+        "Meu histórico de rotas fica salvo?",
+        "Onde ficam armazenadas as pesquisas que fiz?",
+        "Por quanto tempo o app mantém minhas buscas?",
+        "O histórico de pesquisas identifica quem eu sou?",
+        "As buscas são ligadas ao meu nome?",
+        "Que dados do histórico o app salva?",
+        "O app registra os locais que pesquisei?",
+        "Meu histórico fica em um banco de dados?",
+        "Há dados pessoais no histórico de buscas?",
+        "Como o app trata o histórico de pesquisas?",
+        "Quanto tempo as rotas pesquisadas ficam registradas?"
+      ],
+      "resposta": "Nesta versão, as buscas ficam salvas em um banco de dados local, ligadas a um identificador anônimo de sessão, sem dados pessoais, por até 90 dias.",
+      "status_funcionalidade": "parcial",
+      "fontes_no_repositorio": [
+        "global solution part2 - tarifas/src/historico.py",
+        "global solution part2 - tarifas/src/config.py"
+      ],
+      "revisada_pela_equipe": false
+    },
+    {
+      "id": "H02",
+      "tema": "historico_privacidade",
+      "pergunta_canonica": "Como apago meu histórico de buscas?",
+      "frases_treino": [
+        "Como apago meu histórico de buscas?",
+        "Dá para excluir as pesquisas anteriores?",
+        "Tem botão para limpar o histórico?",
+        "Como remover as rotas que pesquisei antes?",
+        "Quero deletar tudo que o app guardou de mim",
+        "Onde excluo os registros das minhas buscas?",
+        "Como faço para o app esquecer minhas pesquisas?",
+        "É possível limpar o histórico de rotas?",
+        "Apagar histórico de uma sessão, como funciona?",
+        "Posso pedir a exclusão dos dados das minhas buscas?",
+        "Como zerar o histórico do aplicativo?",
+        "Existe opção de apagar os registros salvos?"
+      ],
+      "resposta": "Nesta versão, o sistema tem uma rotina interna que apaga todos os registros de uma sessão, mas ainda não existe um botão para isso na interface do app.",
+      "status_funcionalidade": "parcial",
+      "fontes_no_repositorio": [
+        "global solution part2 - tarifas/src/historico.py"
+      ],
+      "revisada_pela_equipe": false
+    },
+    {
+      "id": "H03",
+      "tema": "historico_privacidade",
+      "pergunta_canonica": "Preciso usar o GPS para consultar uma rota?",
+      "frases_treino": [
+        "Preciso usar o GPS para consultar uma rota?",
+        "O app exige localização do celular?",
+        "Preciso criar conta para usar o aplicativo?",
+        "Dá para usar o app sem ativar a localização?",
+        "Quais dados pessoais o aplicativo coleta?",
+        "O app acompanha minha localização o tempo todo?",
+        "É obrigatório fazer login para buscar rotas?",
+        "Posso usar o app digitando tudo, sem GPS?",
+        "O aplicativo pede permissão de localização?",
+        "O que o app coleta de informações minhas?",
+        "Tenho que me cadastrar antes de consultar?",
+        "O app rastreia onde eu estou?"
+      ],
+      "resposta": "Nesta versão, você pode informar origem e destino digitando, sem precisar usar o GPS; o histórico guarda apenas um identificador anônimo de sessão, sem dados pessoais.",
+      "status_funcionalidade": "parcial",
+      "fontes_no_repositorio": [
+        "frontend/app/index.tsx",
+        "global solution part2 - tarifas/src/historico.py"
+      ],
+      "revisada_pela_equipe": false
+    },
+    {
+      "id": "H04",
+      "tema": "historico_privacidade",
+      "pergunta_canonica": "Posso enviar um relato pelo aplicativo?",
+      "frases_treino": [
+        "Posso enviar um relato pelo aplicativo?",
+        "Como aviso o app sobre um problema na viagem?",
+        "Existe função de relatar ocorrências?",
+        "Dá para informar que o ônibus está lotado?",
+        "Como reportar uma interrupção na linha?",
+        "Onde envio uma denúncia ou reclamação?",
+        "O app aceita relatos de outros passageiros?",
+        "Como contribuir com informações sobre a viagem?",
+        "Posso avisar que o metrô está parado?",
+        "Como compartilho um aviso sobre atraso?",
+        "Existe um canal de relatos dentro do aplicativo?",
+        "Quero reportar um incidente, onde faço isso?"
+      ],
+      "resposta": "Ainda não está disponível nesta versão: enviar relatos sobre problemas na viagem.",
+      "status_funcionalidade": "planejada",
+      "fontes_no_repositorio": [
+        "README.md"
+      ],
+      "revisada_pela_equipe": false
+    },
+    {
+      "id": "H05",
+      "tema": "historico_privacidade",
+      "pergunta_canonica": "O assistente guarda as perguntas que eu faço?",
+      "frases_treino": [
+        "O assistente guarda as perguntas que eu faço?",
+        "Minhas perguntas ao assistente ficam gravadas?",
+        "O chat de ajuda armazena o que eu digito?",
+        "As dúvidas que pergunto são salvas em algum lugar?",
+        "O assistente registra minhas conversas?",
+        "Alguém consegue ver o que perguntei ao assistente?",
+        "O assistente de dúvidas mantém histórico das perguntas?",
+        "O que acontece com as perguntas feitas ao assistente?",
+        "As mensagens para o assistente ficam em log?",
+        "Minhas perguntas ao assistente são usadas para algo?",
+        "A conversa com o assistente é armazenada?",
+        "Existe registro do que eu pergunto aqui?"
+      ],
+      "resposta": "Não. O assistente não guarda as perguntas que você faz: elas são respondidas na hora e não são gravadas em banco, arquivo ou log.",
+      "status_funcionalidade": "implementada",
+      "fontes_no_repositorio": [
+        "backend/src/assistente/previsao.py"
+      ],
+      "revisada_pela_equipe": false
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+[
+  {
+    "pergunta": "Quero ir de um ponto a outro da cidade, por onde começo no app?",
+    "intencao_esperada": "R01"
+  },
+  {
+    "pergunta": "Dá pra digitar o nome da rua em vez de marcar no mapa?",
+    "intencao_esperada": "R03"
+  },
+  {
+    "pergunta": "O que quer dizer baldeações e espera no resultado da rota?",
+    "intencao_esperada": "R04"
+  },
+  {
+    "pergunta": "Coloquei origem e destino e não apareceu nenhuma rota, o que houve?",
+    "intencao_esperada": "R05"
+  },
+  {
+    "pergunta": "Onde vejo quanto vai custar a viagem?",
+    "intencao_esperada": "T01"
+  },
+  {
+    "pergunta": "Apareceu tarifa não confirmada, isso significa o quê?",
+    "intencao_esperada": "T02"
+  },
+  {
+    "pergunta": "Se eu pegar ônibus e depois metrô, pago duas passagens?",
+    "intencao_esperada": "T03"
+  },
+  {
+    "pergunta": "Posso limitar quanto quero gastar na viagem?",
+    "intencao_esperada": "T04"
+  },
+  {
+    "pergunta": "O aplicativo grava as rotas que eu pesquisei?",
+    "intencao_esperada": "H01"
+  },
+  {
+    "pergunta": "Como faço para limpar minhas buscas anteriores?",
+    "intencao_esperada": "H02"
+  },
+  {
+    "pergunta": "Preciso fazer cadastro ou ligar o GPS pra usar?",
+    "intencao_esperada": "H03"
+  },
+  {
+    "pergunta": "Dá para avisar o app sobre um problema que vi na viagem?",
+    "intencao_esperada": "H04"
+  }
+]
