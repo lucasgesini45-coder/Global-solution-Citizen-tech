@@ -9,6 +9,7 @@ from .rotas_api import router as rotas_router
 from .enderecos_api import router as enderecos_router
 from .assistente.rotas_api import roteador as roteador_assistente
 from .acessibilidade_api import router as router_acessibilidade
+from .agente_api import router as router_agente
 
 app = FastAPI(title="Citizen Mobilidade", version="0.1.0")
 app.add_middleware(
@@ -23,6 +24,7 @@ app.include_router(rotas_router)
 app.include_router(enderecos_router)
 app.include_router(roteador_assistente)
 app.include_router(router_acessibilidade)
+app.include_router(router_agente)
 
 
 class Pergunta(BaseModel):

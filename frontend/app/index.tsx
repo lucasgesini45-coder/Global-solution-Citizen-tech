@@ -21,7 +21,7 @@ type Modal = "todos"|"ferroviario"|"onibus"|"ape";
 type Endereco = {nome:string;lat:number;lon:number;fonte:string};
 type Trecho = {modal:string;linha?:string|null;cor_linha?:string|null;paradas?:{nome:string;lat:number;lon:number}[];destino_linha?:string|null;de:string;para:string;tempo_min:number;trajeto:number[][]};
 type Resultado = {tipo:string;fonte:string;tempo_min:number;distancia_m:number|null;tarifa_centavos:number|null;seguranca:{status:string};trajeto:number[][];trechos?:Trecho[];aviso:string;modal?:string;caminhada_m?:number|null;caminhada_longa?:boolean;acessibilidade?:{status:string;aviso:string;solicitou_sem_degraus?:boolean}};
-type Consulta = {resposta:string;fontes:{referencia:string;data_verificacao:string}[]};
+type Consulta = {resposta:string;origem_resposta:string;fontes:{referencia:string;data_verificacao:string}[];sugestoes:string[];aviso:string|null;rota:Resultado|null};
 type RotaDemo = {ordem:number;tempo_total_min:number;espera_min:number;caminhada_m:number;baldeacoes:number;saida:string;chegada:string;custo:{centavos:number|null;confirmado:boolean};seguranca:{status:string};acessibilidade:string;trechos:{tipo:string;modal:string|null;linha:string|null}[]};
 type RespostaDemo = {modo:string;origem_dados:string;cenario:string;partida_exemplo:string;aviso:string;resultado:{rotas:RotaDemo[];erro?:{mensagem:string}|null}};
 
@@ -90,7 +90,7 @@ export default function Home(){
  const [origemGeo,setOrigemGeo]=useState<Endereco|null>(null);const [destinoGeo,setDestinoGeo]=useState<Endereco|null>(null);
  const [localizando,setLocalizando]=useState(false);const [carregando,setCarregando]=useState(false);
  const [erro,setErro]=useState("");const [resultado,setResultado]=useState<Resultado|null>(null);
- const [chatTexto,setChatTexto]=useState("");const [chat,setChat]=useState<{autor:"pessoa"|"agente";texto:string;fonte?:string}[]>([]);
+ const [chatTexto,setChatTexto]=useState("");const [chat,setChat]=useState<{autor:"pessoa"|"agente";texto:string;fonte?:string;aviso?:string;sugestoes?:string[]}[]>([]);
  const [chatCarregando,setChatCarregando]=useState(false);
  const [demo,setDemo]=useState<RespostaDemo|null>(null);
  const [demoCarregando,setDemoCarregando]=useState(false);
@@ -162,16 +162,45 @@ export default function Home(){
    finally{setDemoCarregando(false);}
  }
  async function perguntar(pergunta=chatTexto){
-   const texto=pergunta.trim();if(!texto || chatCarregando)return;
-   setChatTexto("");setChat(c=>[...c,{autor:"pessoa",texto}]);setChatCarregando(true);
+   const texto=pergunta.trim();
+   if(!texto || chatCarregando)return;
+   setChatTexto("");
+   setChat(c=>[...c,{autor:"pessoa",texto}]);
+   setChatCarregando(true);
    try{
-     const r=await fetch(API+"/consultar",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({pergunta:texto,modelo:"B"})});
-     if(!r.ok)throw new Error("Serviço de consultas indisponível");
-     const data:Consulta=await r.json();
-     const fontes=(data.fontes||[]).map(f=>f.referencia).join(" · ");
-     setChat(c=>[...c,{autor:"agente",texto:data.resposta,fonte:fontes||undefined}]);
-   }catch{setChat(c=>[...c,{autor:"agente",texto:"Não foi possível consultar as orientações neste momento."}]);}
-   finally{setChatCarregando(false);}
+     const r=await fetch(API+"/agente/conversar",{
+       method:"POST",
+       headers:{"Content-Type":"application/json"},
+       body:JSON.stringify({
+         pergunta:texto,
+         origem:origemGeo?{lat:origemGeo.lat,lon:origemGeo.lon}:null,
+         destino:destinoGeo?{lat:destinoGeo.lat,lon:destinoGeo.lon}:null,
+         modal,
+         priorizar_menos_caminhada:menosCaminhada,
+         evitar_escadas:evitarEscadas,
+       }),
+     });
+     const data=(await r.json().catch(()=>({}))) as Consulta & {detail?:string};
+     if(!r.ok){
+       const detail=typeof data.detail==="string"?data.detail:"Não foi possível acessar o agente.";
+       throw new Error(detail);
+     }
+     if(data.rota && Array.isArray(data.rota.trajeto) && Array.isArray(data.rota.trechos)){
+       setResultado(data.rota);
+       setErro("");
+     }
+     const fontes=(data.fontes||[]).map(f=>f.referencia+(f.data_verificacao?" · "+f.data_verificacao:"")).join(" · ");
+     const academic=data.origem_resposta==="classificador_academico"?"Base acadêmica · resposta não verificada oficialmente":undefined;
+     setChat(c=>[...c,{
+       autor:"agente",
+       texto:data.resposta,
+       fonte:fontes||academic,
+       aviso:data.aviso||undefined,
+       sugestoes:Array.isArray(data.sugestoes)?data.sugestoes.slice(0,3):[],
+     }]);
+   }catch(e){
+     setChat(c=>[...c,{autor:"agente",texto:e instanceof Error?e.message:"Não foi possível consultar o agente."}]);
+   }finally{setChatCarregando(false);}
  }
 
  return <ScrollView style={v.bg} contentContainerStyle={v.page}>
@@ -327,13 +356,13 @@ export default function Home(){
 
      <View style={v.assistant}>
        <View style={v.assistantHeader}>
-         <View style={v.assistantHeaderLeft}><Icone name="chatbubble-ellipses-outline" color="#0069d2" size={23}/><View style={{flex:1}}><Text style={v.assistantTitle}>Pergunte ao agente de IA</Text><Text style={v.assistantSubtitle}>Orientações sobre cartões, benefícios, integração e transporte</Text></View></View>
+         <View style={v.assistantHeaderLeft}><Icone name="chatbubble-ellipses-outline" color="#0069d2" size={23}/><View style={{flex:1}}><Text style={v.assistantTitle}>Pergunte ao agente de IA</Text><Text style={v.assistantSubtitle}>Tire dúvidas e consulte trajetos reais com origem e destino selecionados</Text></View></View>
          <Text style={v.assistantTag}>ASSISTENTE CIDADÃO</Text>
        </View>
        <View style={v.suggestions}>{sugestoesChat.map(t=><Pressable key={t} style={v.suggestion} onPress={()=>perguntar(t)}><Text style={v.suggestionText}>{t}</Text></Pressable>)}</View>
-       <ScrollView style={v.chatHistory} nestedScrollEnabled><View style={{gap:10}}>{chat.length===0?<Text style={v.chatEmpty}>Selecione uma sugestão ou escreva sua dúvida sobre mobilidade.</Text>:chat.map((m,i)=><View key={i} style={[v.chatBubble,m.autor==="pessoa"?v.chatBubbleUser:v.chatBubbleAi]}><Text style={[v.chatBubbleText,m.autor==="pessoa"&&{color:"#fff"}]}>{m.texto}</Text>{!!m.fonte&&<Text style={v.chatSource}>{m.fonte}</Text>}</View>)}</View></ScrollView>
+       <ScrollView style={v.chatHistory} nestedScrollEnabled><View style={{gap:10}}>{chat.length===0?<Text style={v.chatEmpty}>Pergunte sobre mobilidade ou peça um trajeto. Para calcular uma viagem, selecione origem e destino no planejador.</Text>:chat.map((m,i)=><View key={i} style={[v.chatBubble,m.autor==="pessoa"?v.chatBubbleUser:v.chatBubbleAi]}><Text style={[v.chatBubbleText,m.autor==="pessoa"&&{color:"#fff"}]}>{m.texto}</Text>{!!m.fonte&&<Text style={v.chatSource}>{m.fonte}</Text>}{!!m.aviso&&<Text style={v.chatSource}>{m.aviso}</Text>}{!!m.sugestoes?.length&&<View style={{flexDirection:"row",gap:6,flexWrap:"wrap",marginTop:8}}>{m.sugestoes.map((s,j)=><Pressable key={j} onPress={()=>perguntar(s)} style={v.suggestion}><Text style={v.suggestionText}>{s}</Text></Pressable>)}</View>}</View>)}</View></ScrollView>
        <View style={v.chatInput}><TextInput accessibilityLabel="Pergunta para o agente de IA" value={chatTexto} onChangeText={setChatTexto} placeholder="Escreva sua pergunta..." placeholderTextColor="#9baec2" onSubmitEditing={()=>perguntar()} returnKeyType="send" style={v.chatField}/><Pressable style={v.chatSend} onPress={()=>perguntar()} accessibilityLabel="Enviar pergunta">{chatCarregando?<ActivityIndicator color="#fff"/>:<Icone name="send" size={18} color="#fff"/>}</Pressable></View>
-       <Text style={v.assistantFootnote}>Respostas baseadas nas informações disponíveis na base acadêmica, com referências quando disponíveis.</Text>
+       <Text style={v.assistantFootnote}>As rotas são consultadas em dados externos; respostas sobre o aplicativo podem vir de uma base acadêmica. Confirme tarifas, acessibilidade e direitos em fontes oficiais.</Text>
      </View>
 
      <Text style={v.footer}>Citizen Tech Mobilidade Urbana · FIAP Global Solution 2026 · Indicadores de segurança não verificados; dados de viagens provenientes do Transitous quando disponíveis.</Text>
