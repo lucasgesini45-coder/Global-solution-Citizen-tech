@@ -2,8 +2,8 @@
 
 Os trajetos, horários e tarifas deste endpoint são SIMULADOS.
 """
+
 import math
-import sys
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -11,19 +11,13 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
+from backend.src.rotas.recomendar import processar_pedido
+from backend.src.rotas.tarifas import carregar_regras
+from backend.tests.fixtures.rede_demo import criar_rede_demo, ponto
+
 router = APIRouter(tags=["Rotas e tarifas"])
 
-# O módulo legado importa "src.*". Preserve sua estrutura sem copiar algoritmos.
-RAIZ_REPOSITORIO = Path(__file__).resolve().parents[2]
-PASTA_MODULO = RAIZ_REPOSITORIO / "global solution part2 - tarifas"
-if not (PASTA_MODULO / "src" / "recomendar.py").is_file():
-    raise RuntimeError("Modulo de rotas ausente: global solution part2 - tarifas/src/recomendar.py")
-if str(PASTA_MODULO) not in sys.path:
-    sys.path.insert(0, str(PASTA_MODULO))
-
-from src.recomendar import processar_pedido
-from src.rede_demo import criar_rede_demo, ponto
-from src.tarifas import carregar_regras
+PASTA_FIXTURES = Path(__file__).resolve().parents[1] / "tests" / "fixtures"
 
 
 class Coordenadas(BaseModel):
@@ -41,7 +35,7 @@ class PedidoRota(BaseModel):
 @lru_cache(maxsize=1)
 def dados_demo():
     rede = criar_rede_demo()
-    regras = carregar_regras(str(PASTA_MODULO / "data" / "tarifas_demo.json"))
+    regras = carregar_regras(str(PASTA_FIXTURES / "tarifas_demo.json"))
     return rede, regras
 
 

@@ -6,7 +6,7 @@ from pydantic import ValidationError
 
 from backend.src.api import app
 from backend.src.rotas_api import PedidoRota, calcular_rotas, exemplo_rotas
-from src.rede_demo import ponto
+from backend.tests.fixtures.rede_demo import ponto
 
 
 class TestRotasAPI(unittest.TestCase):
@@ -20,9 +20,10 @@ class TestRotasAPI(unittest.TestCase):
         )
 
     def test_endpoint_registrado(self):
-        rotas = {route.path: route for route in app.routes}
-        self.assertIn("/rotas", rotas)
-        self.assertIn("POST", rotas["/rotas"].methods)
+        # openapi() funciona em qualquer versão do FastAPI (app.routes mudou nas versões novas)
+        caminhos = app.openapi()["paths"]
+        self.assertIn("/rotas", caminhos)
+        self.assertIn("post", caminhos["/rotas"])
 
     def test_resposta_demonstrativa_real(self):
         resposta = calcular_rotas(self.pedido)
@@ -39,9 +40,9 @@ class TestRotasAPI(unittest.TestCase):
         self.assertTrue(any("geometria" in t for t in primeira["trechos"]))
 
     def test_endpoint_exemplo_registrado(self):
-        rotas = {route.path: route for route in app.routes}
-        self.assertIn("/rotas/exemplo", rotas)
-        self.assertIn("GET", rotas["/rotas/exemplo"].methods)
+        caminhos = app.openapi()["paths"]
+        self.assertIn("/rotas/exemplo", caminhos)
+        self.assertIn("get", caminhos["/rotas/exemplo"])
 
     def test_exemplo_identificado_como_simulacao(self):
         resposta = exemplo_rotas()
