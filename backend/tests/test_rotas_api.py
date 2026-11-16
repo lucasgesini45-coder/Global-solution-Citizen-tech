@@ -40,9 +40,9 @@ class TestRotasAPI(unittest.TestCase):
         self.assertTrue(any("geometria" in t for t in primeira["trechos"]))
 
     def test_endpoint_exemplo_registrado(self):
-        rotas = {route.path: route for route in app.routes}
-        self.assertIn("/rotas/exemplo", rotas)
-        self.assertIn("GET", rotas["/rotas/exemplo"].methods)
+        caminhos = app.openapi()["paths"]
+        self.assertIn("/rotas/exemplo", caminhos)
+        self.assertIn("get", caminhos["/rotas/exemplo"])
 
     def test_exemplo_identificado_como_simulacao(self):
         resposta = exemplo_rotas()
