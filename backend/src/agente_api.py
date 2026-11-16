@@ -77,9 +77,15 @@ def conversar(body: ConversaEntrada):
                 "aviso": "Ainda não foi calculada uma rota.",
                 "rota": None,
             }
+        pergunta_normal = normalizar(pergunta)
+        modal_pergunta = (
+            "onibus" if re.search(r"\\b(onibus|busao)\\b", pergunta_normal) else
+            "ferroviario" if re.search(r"\\b(metro|trem)\\b", pergunta_normal) else
+            body.modal
+        )
         try:
             rota = rota_real(RotaRealPedido(
-                origem=body.origem, destino=body.destino, modal=body.modal,
+                origem=body.origem, destino=body.destino, modal=modal_pergunta,
                 priorizar_menos_caminhada=body.priorizar_menos_caminhada,
                 evitar_escadas=body.evitar_escadas,
             ))
@@ -108,6 +114,15 @@ def conversar(body: ConversaEntrada):
             }
     except ValueError:
         pass
+
+    # Direitos, benefícios e cartões são informações externas sensíveis a
+    # mudanças. Sem registro verificado, não usar classificação acadêmica.
+    if re.search(r"\\b(gratuidade|direit[oa]s?|benefici[oa]s?|cartao|bilhete|passe|isencao|elevador|acessibil)\\w*", normalizar(pergunta)):
+        return {
+            "resposta": "Não encontrei orientação oficial verificada para essa dúvida na base atual. Consulte o órgão ou operador responsável antes de tomar uma decisão.",
+            "origem_resposta": "sem_resposta_verificada", "fontes": [],
+            "sugestoes": [], "aviso": "Base de orientações ainda em revisão pela equipe.", "rota": None,
+        }
 
     modelo = preparar_modelo()
     if modelo is None:
