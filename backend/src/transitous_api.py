@@ -143,7 +143,7 @@ def _trechos_viagem(viagem: dict) -> list[dict]:
     return trechos
 
 
-def consultar_transitous(origem, destino, modal: str) -> dict:
+def consultar_transitous(origem, destino, modal: str, priorizar_menos_caminhada: bool = False) -> dict:
     if modal not in {"ape", "onibus", "ferroviario", "todos"}:
         raise HTTPException(status_code=422, detail="Modal inválido.")
     modos = {
@@ -254,7 +254,8 @@ def consultar_transitous(origem, destino, modal: str) -> dict:
             return tempo
         # Evita escolher a viagem mais rápida quando ela exige caminhar muitos km.
         # Equivale a penalizar caminhada superior a 1,2 km com 1 min/100m extra.
-        penalidade = max(0, (caminhada - 1200) / 100) if caminhada is not None else 0
+        limite = 400 if priorizar_menos_caminhada else 1200
+        penalidade = max(0, (caminhada - limite) / (35 if priorizar_menos_caminhada else 100)) if caminhada is not None else 0
         return tempo + penalidade
     v, trechos = min(opcoes, key=pontuacao)
     caminhada_m = caminhar_metros(v)
@@ -273,6 +274,7 @@ def consultar_transitous(origem, destino, modal: str) -> dict:
         "busca_ampliada": busca_ampliada,
         "caminhada_m": caminhada_m,
         "caminhada_longa": caminhada_longa,
+        "priorizou_menos_caminhada": priorizar_menos_caminhada,
         "aviso": ("Rota informada pelo Transitous. Horários podem mudar e não há "
                   "validação de tarifa, acessibilidade ou segurança. "
                   + (f"Atenção: esta rota exige cerca de {caminhada_m} metros a pé. Avalie outra opção de transporte. " if caminhada_longa else "")

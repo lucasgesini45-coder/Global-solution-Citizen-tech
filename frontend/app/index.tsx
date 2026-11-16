@@ -20,7 +20,7 @@ type Icon = React.ComponentProps<typeof Ionicons>["name"];
 type Modal = "todos"|"ferroviario"|"onibus"|"ape";
 type Endereco = {nome:string;lat:number;lon:number;fonte:string};
 type Trecho = {modal:string;linha?:string|null;cor_linha?:string|null;paradas?:{nome:string;lat:number;lon:number}[];destino_linha?:string|null;de:string;para:string;tempo_min:number;trajeto:number[][]};
-type Resultado = {tipo:string;fonte:string;tempo_min:number;distancia_m:number|null;tarifa_centavos:number|null;seguranca:{status:string};trajeto:number[][];trechos?:Trecho[];aviso:string;modal?:string;caminhada_m?:number|null;caminhada_longa?:boolean};
+type Resultado = {tipo:string;fonte:string;tempo_min:number;distancia_m:number|null;tarifa_centavos:number|null;seguranca:{status:string};trajeto:number[][];trechos?:Trecho[];aviso:string;modal?:string;caminhada_m?:number|null;caminhada_longa?:boolean;acessibilidade?:{status:string;aviso:string;solicitou_sem_degraus?:boolean}};
 type Consulta = {resposta:string;fontes:{referencia:string;data_verificacao:string}[]};
 type RotaDemo = {ordem:number;tempo_total_min:number;espera_min:number;caminhada_m:number;baldeacoes:number;saida:string;chegada:string;custo:{centavos:number|null;confirmado:boolean};seguranca:{status:string};acessibilidade:string;trechos:{tipo:string;modal:string|null;linha:string|null}[]};
 type RespostaDemo = {modo:string;origem_dados:string;cenario:string;partida_exemplo:string;aviso:string;resultado:{rotas:RotaDemo[];erro?:{mensagem:string}|null}};
@@ -97,6 +97,8 @@ export default function Home(){
  const [demoErro,setDemoErro]=useState("");
  const [selecionarNoMapa,setSelecionarNoMapa]=useState<"origem"|"destino"|null>(null);
  const [fotoBase,setFotoBase]=useState(false);
+ const [evitarEscadas,setEvitarEscadas]=useState(false);
+ const [menosCaminhada,setMenosCaminhada]=useState(false);
  const [mostrarLaboratorio,setMostrarLaboratorio]=useState(false);
  const [mostrarDetalhes,setMostrarDetalhes]=useState(false);
 
@@ -132,6 +134,7 @@ export default function Home(){
    try{
      const r=await fetch(API+"/rotas/reais",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
        origem:{lat:origemGeo.lat,lon:origemGeo.lon},destino:{lat:destinoGeo.lat,lon:destinoGeo.lon},modal,
+       evitar_escadas:evitarEscadas,priorizar_menos_caminhada:menosCaminhada,
      })});
      const data=await r.json().catch(()=>({}));
      if(!r.ok)throw new Error(data.detail||"Serviço de rotas indisponível.");
@@ -212,6 +215,18 @@ export default function Home(){
                </Pressable>
              </View>
            </View>
+           <View style={{marginTop:15,gap:9}}>
+             <Text style={{fontSize:12,fontWeight:"600",color:"#445b74"}}>Preferências de mobilidade</Text>
+             <Pressable onPress={()=>setMenosCaminhada(x=>!x)} accessibilityRole="checkbox" accessibilityState={{checked:menosCaminhada}} style={{flexDirection:"row",alignItems:"center",gap:9,minHeight:35}}>
+               <Icone name={menosCaminhada?"checkbox":"square-outline"} size={20} color="#0069d2"/>
+               <Text style={{color:"#425a73",fontSize:12}}>Priorizar menos caminhada</Text>
+             </Pressable>
+             <Pressable onPress={()=>setEvitarEscadas(x=>!x)} accessibilityRole="checkbox" accessibilityState={{checked:evitarEscadas}} style={{flexDirection:"row",alignItems:"center",gap:9,minHeight:35}}>
+               <Icone name={evitarEscadas?"checkbox":"square-outline"} size={20} color="#0069d2"/>
+               <Text style={{color:"#425a73",fontSize:12}}>Preciso de percurso sem escadas</Text>
+             </Pressable>
+             {evitarEscadas&&<Text style={{color:"#855f2f",fontSize:11,lineHeight:16}}>Ainda não há confirmação de rampas ou elevadores nesta rota. A preferência não garante acessibilidade.</Text>}
+           </View>
            <Pressable onPress={planejar} disabled={carregando} style={v.searchButton} accessibilityRole="button">
              {carregando?<ActivityIndicator color="#fff" size="small"/>:<Icone name="navigate-outline" size={18} color="#fff"/>}
              <Text style={v.searchButtonText}>{carregando?"Calculando...":"Encontrar trajeto"}</Text>
@@ -274,6 +289,9 @@ export default function Home(){
                 {"Caminhada total: "+(resultado.caminhada_m>=1000?(resultado.caminhada_m/1000).toFixed(1).replace(".",",")+" km":resultado.caminhada_m+" m")}
                 {resultado.caminhada_longa?" · Atenção: trecho longo a pé":""}
               </Text>
+            </View>}
+            {resultado.acessibilidade&&<View style={{marginTop:12,padding:10,backgroundColor:"#FFF7E8",borderRadius:9}}>
+              <Text style={{fontSize:11,color:"#825c24",lineHeight:17}}>Acessibilidade não verificada: {resultado.acessibilidade.aviso}</Text>
             </View>}
             <Text style={v.routeDisclaimer}>{resultado.caminhada_longa?"Atenção: avalie uma alternativa com menos caminhada. ":""}Os horários e tarifas podem mudar. Consulte o operador antes de viajar.</Text>
           </View>:<View style={v.emptyResults}><Icone name="git-compare-outline" size={27} color="#8ba2bd"/><Text style={v.emptyResultsTitle}>Seu trajeto aparecerá aqui</Text><Text style={v.emptyResultsCopy}>Selecione endereços sugeridos e um modo de transporte para consultar as opções disponíveis. As rotas são consultadas em serviços externos e podem não estar disponíveis em alguns horários e locais.</Text></View>}

@@ -136,6 +136,8 @@ class RotaRealPedido(BaseModel):
     origem: Coordenadas
     destino: Coordenadas
     modal: str = "ape"
+    evitar_escadas: bool = False
+    priorizar_menos_caminhada: bool = False
 
 
 @router.post("/rotas/reais")
@@ -144,7 +146,16 @@ def rota_real(pedido: RotaRealPedido):
     # Import local evita importação circular com os utilitários HTTP deste módulo.
     from .transitous_api import consultar_transitous
     try:
-        return consultar_transitous(pedido.origem, pedido.destino, pedido.modal)
+        resultado = consultar_transitous(
+            pedido.origem, pedido.destino, pedido.modal,
+            priorizar_menos_caminhada=pedido.priorizar_menos_caminhada,
+        )
+        resultado["acessibilidade"] = {
+            "status": "NAO_VERIFICADA",
+            "solicitou_sem_degraus": pedido.evitar_escadas,
+            "aviso": "A rota não possui comprovação atualizada de elevadores, rampas ou acesso sem degraus. Não é possível garantir acessibilidade.",
+        }
+        return resultado
     except HTTPException as exc:
         # Compatibilidade: caso o provedor comunitário falhe, a rota a pé
         # pode usar a chave OpenRouteService configurada pelo desenvolvedor.
@@ -170,6 +181,9 @@ def rota_real(pedido: RotaRealPedido):
         "distancia_m": round(summary.get("distance", 0)),
         "tarifa_centavos": 0,
         "seguranca": {"status": "nao_verificada", "exposicao": None},
+        "acessibilidade": {"status": "NAO_VERIFICADA",
+                           "solicitou_sem_degraus": pedido.evitar_escadas,
+                           "aviso": "Acessibilidade do percurso não verificada."},
         "trajeto": trajeto,
         "trechos": [{"modal": "WALK", "trajeto": trajeto, "linha": None,
                     "de": "Origem", "para": "Destino",
