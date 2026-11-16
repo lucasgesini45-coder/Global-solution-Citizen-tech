@@ -67,8 +67,11 @@ Abra o endereço local exibido pelo Expo. A API e a documentação interativa fi
 | POST | `/acessibilidade/avaliar` | Analisar dados de passagem sem degraus **fornecidos** |
 | GET | `/assistente/saude` | Estado do classificador |
 | POST | `/assistente/perguntar` | Consulta ao classificador |
+| POST | `/agente/conversar` | Chat integrado: respostas acadêmicas, informações verificadas e rotas reais com atualização no mapa |
 | GET | `/rotas/exemplo` | Simulação acadêmica |
 | POST | `/rotas` | Motor simulado |
+
+O chat do frontend utiliza `POST /agente/conversar` e envia a pergunta, origem e destino selecionados, modal e preferências. Quando o backend retorna `rota` com geometria válida, o frontend sincroniza o mapa. A ausência de dados oficiais para benefícios e acessibilidade não é substituída por uma afirmação gerada pelo classificador.
 
 O corpo de `POST /rotas/reais` permite:
 
