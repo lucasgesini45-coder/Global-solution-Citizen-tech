@@ -79,8 +79,8 @@ def conversar(body: ConversaEntrada):
             }
         pergunta_normal = normalizar(pergunta)
         modal_pergunta = (
-            "onibus" if re.search(r"\\b(onibus|busao)\\b", pergunta_normal) else
-            "ferroviario" if re.search(r"\\b(metro|trem)\\b", pergunta_normal) else
+            "onibus" if re.search(r"\b(onibus|busao)\b", pergunta_normal) else
+            "ferroviario" if re.search(r"\b(metro|trem)\b", pergunta_normal) else
             body.modal
         )
         try:
@@ -117,7 +117,7 @@ def conversar(body: ConversaEntrada):
 
     # Direitos, benefícios e cartões são informações externas sensíveis a
     # mudanças. Sem registro verificado, não usar classificação acadêmica.
-    if re.search(r"\\b(gratuidade|direit[oa]s?|benefici[oa]s?|cartao|bilhete|passe|isencao|elevador|acessibil)\\w*", normalizar(pergunta)):
+    if re.search(r"\b(gratuidade|direit[oa]s?|benefici[oa]s?|cartao|bilhete|passe|isencao|elevador|acessibil)\w*", normalizar(pergunta)):
         return {
             "resposta": "Não encontrei orientação oficial verificada para essa dúvida na base atual. Consulte o órgão ou operador responsável antes de tomar uma decisão.",
             "origem_resposta": "sem_resposta_verificada", "fontes": [],
