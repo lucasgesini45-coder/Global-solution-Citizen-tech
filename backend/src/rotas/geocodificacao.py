@@ -10,6 +10,8 @@ import urllib.parse
 import urllib.request
 from typing import Any, Callable
 
+from backend.src.db.conexao import conectar
+
 from .config import (
     GEOCODIFICACAO_INTERVALO_MIN_S,
     GEOCODIFICACAO_MAX_RESULTADOS,
@@ -63,7 +65,7 @@ def buscar_endereco(
 
     # Verificar cache em SQLite
     dados = None
-    with sqlite3.connect(banco) as conn:
+    with conectar(banco) as conn:
         cursor = conn.cursor()
         cursor.execute(
             "SELECT resposta_json, obtido_em FROM cache_geocodificacao WHERE consulta = ?",
@@ -164,7 +166,7 @@ def buscar_endereco(
             }
 
         # Salvar no cache apenas em caso de sucesso
-        with sqlite3.connect(banco) as conn:
+        with conectar(banco) as conn:
             cursor = conn.cursor()
             cursor.execute(
                 """

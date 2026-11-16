@@ -27,3 +27,9 @@ node_modules/
 /Global-solution-Citizen-tech/
 
 backend/models/*.joblib
+
+# Banco de dados SQL e arquivos GTFS (Evolucao v2)
+backend/data/citizen.db
+backend/data/citizen.db-wal
+backend/data/citizen.db-shm
+backend/data/gtfs/

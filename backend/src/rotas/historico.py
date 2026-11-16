@@ -8,46 +8,14 @@ from .config import RETENCAO_HISTORICO_DIAS
 
 
 def _conectar(banco: str) -> sqlite3.Connection:
-    conn = sqlite3.connect(banco)
-    conn.row_factory = sqlite3.Row
-    return conn
+    from backend.src.db.conexao import conectar
+    return conectar(banco)
 
 
 def iniciar_banco(caminho: str) -> None:
-    with _conectar(caminho) as conn:
-        cursor = conn.cursor()
-        cursor.execute(
-            """
-            CREATE TABLE IF NOT EXISTS historico_buscas (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                sessao_id TEXT NOT NULL,
-                criado_em TEXT NOT NULL,
-                origem_lat REAL NOT NULL,
-                origem_lon REAL NOT NULL,
-                destino_lat REAL NOT NULL,
-                destino_lon REAL NOT NULL,
-                partida TEXT NOT NULL,
-                n_rotas INTEGER NOT NULL,
-                erro_codigo TEXT
-            )
-            """
-        )
-        cursor.execute(
-            """
-            CREATE INDEX IF NOT EXISTS idx_historico_sessao
-            ON historico_buscas(sessao_id)
-            """
-        )
-        cursor.execute(
-            """
-            CREATE TABLE IF NOT EXISTS cache_geocodificacao (
-                consulta TEXT PRIMARY KEY,
-                resposta_json TEXT NOT NULL,
-                obtido_em TEXT NOT NULL
-            )
-            """
-        )
-        conn.commit()
+    from backend.src.db.conexao import iniciar_banco as _iniciar_db
+    con = _iniciar_db(caminho)
+    con.close()
 
 
 def registrar_busca(
