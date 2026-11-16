@@ -5,13 +5,13 @@ import math
 import zoneinfo
 from typing import Any, Callable
 
-from src.config import (
+from .config import (
     CAMINHADA_MAX_PADRAO_M,
     FUSO,
     RAIO_TERRA_M,
     VELOCIDADE_CAMINHADA_PADRAO_MS,
 )
-from src.contratos import (
+from .contratos import (
     ACESS_COMPATIVEL,
     ACESS_INCOMPATIVEL,
     ACESS_NAO_SOLICITADA,
@@ -25,14 +25,14 @@ from src.contratos import (
     Restricoes,
     Rota,
 )
-from src.ranking import (
+from .ranking import (
     gerar_motivos,
     montar_aviso,
     motivo_inviabilidade,
     selecionar,
 )
-from src.rotas import Navegador, buscar_rotas
-from src.tarifas import calcular_tarifa
+from .rotas import Navegador, buscar_rotas
+from .tarifas import calcular_tarifa
 
 
 def recomendar(

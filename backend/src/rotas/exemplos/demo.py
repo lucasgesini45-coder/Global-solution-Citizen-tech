@@ -1,13 +1,16 @@
 from __future__ import annotations
 
-from src.rede_demo import criar_rede_demo, ponto
-from src.recomendar import processar_pedido
-from src.tarifas import carregar_regras
+from pathlib import Path
+
+from backend.tests.fixtures.rede_demo import criar_rede_demo, ponto
+from backend.src.rotas.recomendar import processar_pedido
+from backend.src.rotas.tarifas import carregar_regras
 
 
 def main() -> None:
     rede = criar_rede_demo()
-    regras = carregar_regras("data/tarifas_demo.json")
+    tarifas_path = Path(__file__).resolve().parents[3] / "tests" / "fixtures" / "tarifas_demo.json"
+    regras = carregar_regras(str(tarifas_path))
     o = ponto(0.0, -100.0)
     d1 = ponto(4000.0, 300.0)
     pedido = {
@@ -46,7 +49,7 @@ def main() -> None:
                 )
             elif tipo == "caminhada":
                 print(
-                    f"    [{inicio} - {fim}] {tipo.upper()}: {de} até {para} ({t['distancia_m']} m)"
+                    f"    [{inicio} - {fim}] {tipo.upper()}: de {de} até {para} ({t['distancia_m']} m)"
                 )
             elif tipo == "espera":
                 print(f"    [{inicio} - {fim}] {tipo.upper()}: em {de}")

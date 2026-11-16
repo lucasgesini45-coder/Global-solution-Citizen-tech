@@ -4,7 +4,7 @@ import json
 from datetime import date
 from typing import Any
 
-from src.contratos import Custo, fmt_hora
+from .contratos import Custo, fmt_hora
 
 
 def carregar_regras(caminho: str) -> list[dict[str, Any]]:

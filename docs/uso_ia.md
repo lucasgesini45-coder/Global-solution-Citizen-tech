@@ -3,6 +3,7 @@
 | Ferramenta/modelo | Data | Responsável | Finalidade | Resumo do pedido | Saída aproveitada | Alterações humanas | Fontes conferidas | Testes realizados | Limitações |
 |---|---|---|---|---|---|---|---|---|---|
 | Antigravity (Gemini 3.8 Flash) | 15/11/2026 | PENDENTE | Etapa E0: Reconhecimento, sem código novo | Ler repositório, branch evolucao-v2, conferir tarifas e GTFS, criar docs | Mapeamento de testes iniciais, fontes reais e registro de dúvidas | PENDENTE | Seções 7.1, 9.2 e 15 da especificação | `python -m pytest backend/tests`: 61 passed; `cd "global solution part2 - tarifas"; python -m pytest`: 78 passed | GTFS real SPTrans não fornecido na pasta local; sem GTFS público direto para Metrô/EMTU |
+| Antigravity (Gemini 3.8 Flash) | 15/11/2026 | PENDENTE | Etapa E1: Consolidar pacotes sem mudar comportamento | Mover part2/src para backend/src/rotas, fixtures e testes; remover sys.path; constantes 13.1; atualizar demo e CI | Pacotes consolidados, imports relativos e módulo autônomo backend/src/rotas | PENDENTE | Seções 4, 13.1, 14 e 15 (E1) da especificação | `python -m pytest backend/tests`: 139 passed; `python -m backend.src.rotas.exemplos.demo`: 3 rotas exibidas | Código e testes movidos mantendo comportamento anterior idêntico |
 
 ---
 

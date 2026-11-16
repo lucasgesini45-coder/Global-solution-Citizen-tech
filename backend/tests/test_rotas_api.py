@@ -6,7 +6,7 @@ from pydantic import ValidationError
 
 from backend.src.api import app
 from backend.src.rotas_api import PedidoRota, calcular_rotas, exemplo_rotas
-from src.rede_demo import ponto
+from backend.tests.fixtures.rede_demo import ponto
 
 
 class TestRotasAPI(unittest.TestCase):

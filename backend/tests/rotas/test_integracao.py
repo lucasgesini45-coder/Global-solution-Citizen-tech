@@ -1,17 +1,18 @@
+from pathlib import Path
 import copy
 import json
 import re
 import pytest
 
-from src.contratos import (
+from backend.src.rotas.contratos import (
     ACESS_COMPATIVEL,
     ACESS_INCOMPATIVEL,
     ACESS_NAO_VERIFICADA,
     SEG_SUFICIENTE,
 )
-from src.rede_demo import criar_rede_demo, ponto
-from src.recomendar import processar_pedido
-from src.tarifas import carregar_regras
+from backend.tests.fixtures.rede_demo import criar_rede_demo, ponto
+from backend.src.rotas.recomendar import processar_pedido
+from backend.src.rotas.tarifas import carregar_regras
 
 O = ponto(0.0, -100.0)
 D1 = ponto(4000.0, 300.0)
@@ -30,7 +31,7 @@ def rede_demo():
 
 @pytest.fixture(scope="module")
 def regras_demo():
-    return carregar_regras("data/tarifas_demo.json")
+    return carregar_regras(str(Path(__file__).resolve().parents[1] / "fixtures" / "tarifas_demo.json"))
 
 
 def test_t_i01_o_para_d1_sucesso(rede_demo, regras_demo):

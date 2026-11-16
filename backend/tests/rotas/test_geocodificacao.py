@@ -1,10 +1,10 @@
 import datetime
 import pytest
 
-from src.config import GEOCODIFICACAO_INTERVALO_MIN_S
-import src.geocodificacao as geo
-from src.geocodificacao import buscar_endereco
-from src.historico import iniciar_banco
+from backend.src.rotas.config import GEOCODIFICACAO_INTERVALO_MIN_S
+import backend.src.rotas.geocodificacao as geo
+from backend.src.rotas.geocodificacao import buscar_endereco
+from backend.src.rotas.historico import iniciar_banco
 
 LIMITES_DEMO = (-23.60, -46.70, -23.50, -46.60)
 

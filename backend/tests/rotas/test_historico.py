@@ -1,7 +1,7 @@
 import datetime
 import pytest
 
-from src.historico import (
+from backend.src.rotas.historico import (
     apagar_historico,
     iniciar_banco,
     listar_historico,

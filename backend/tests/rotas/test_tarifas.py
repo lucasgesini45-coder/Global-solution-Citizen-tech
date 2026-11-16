@@ -1,15 +1,16 @@
+from pathlib import Path
 import copy
 from datetime import date
 import pytest
 
-from src.tarifas import calcular_tarifa, carregar_regras
+from backend.src.rotas.tarifas import calcular_tarifa, carregar_regras
 
 DATA_PADRAO = date(2026, 11, 9)
 
 
 @pytest.fixture(scope="module")
 def regras_demo():
-    return carregar_regras("data/tarifas_demo.json")
+    return carregar_regras(str(Path(__file__).resolve().parents[1] / "fixtures" / "tarifas_demo.json"))
 
 
 def test_t_t01_onibus(regras_demo):

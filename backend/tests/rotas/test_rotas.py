@@ -1,9 +1,9 @@
 from datetime import datetime
 import pytest
 
-from src.contratos import Parada, Perfil, Rede, Restricoes, Viagem, fmt_hora
-from src.rede_demo import criar_rede_demo, ponto
-from src.rotas import Navegador, buscar_rotas
+from backend.src.rotas.contratos import Parada, Perfil, Rede, Restricoes, Viagem, fmt_hora
+from backend.tests.fixtures.rede_demo import criar_rede_demo, ponto
+from backend.src.rotas.rotas import Navegador, buscar_rotas
 
 O = ponto(0.0, -100.0)
 D1 = ponto(4000.0, 300.0)

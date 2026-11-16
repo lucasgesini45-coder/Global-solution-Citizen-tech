@@ -4,7 +4,7 @@ import datetime
 import sqlite3
 from typing import Any
 
-from src.config import RETENCAO_HISTORICO_DIAS
+from .config import RETENCAO_HISTORICO_DIAS
 
 
 def _conectar(banco: str) -> sqlite3.Connection:

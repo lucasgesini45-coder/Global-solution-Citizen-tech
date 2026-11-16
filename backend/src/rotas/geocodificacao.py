@@ -10,7 +10,7 @@ import urllib.parse
 import urllib.request
 from typing import Any, Callable
 
-from src.config import (
+from .config import (
     GEOCODIFICACAO_INTERVALO_MIN_S,
     GEOCODIFICACAO_MAX_RESULTADOS,
     GEOCODIFICACAO_TIMEOUT_S,

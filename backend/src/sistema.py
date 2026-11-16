@@ -1,10 +1,6 @@
 # encoding: utf-8
 """Interface textual oficial do protótipo: python src/sistema.py"""
 
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from backend.src.core import carregar, responder, GRAFO
 from backend.src.assistente.cli import abrir_assistente
 

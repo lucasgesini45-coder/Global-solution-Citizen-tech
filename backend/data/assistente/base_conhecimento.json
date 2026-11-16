@@ -100,8 +100,8 @@
       "resposta": "Nesta versão, o app mostra até 3 rotas recomendadas, cada uma com tempo total, espera, caminhada, baldeações e custo estimado.",
       "status_funcionalidade": "parcial",
       "fontes_no_repositorio": [
-        "global solution part2 - tarifas/src/ranking.py",
-        "global solution part2 - tarifas/src/recomendar.py"
+        "backend/src/rotas/ranking.py",
+        "backend/src/rotas/recomendar.py"
       ],
       "revisada_pela_equipe": false
     },
@@ -126,7 +126,7 @@
       "resposta": "Quando nenhuma rota é encontrada, o app explica o motivo em vez de inventar um trajeto, por exemplo: sem serviço no horário, local fora da área piloto ou parada além do limite de caminhada.",
       "status_funcionalidade": "implementada",
       "fontes_no_repositorio": [
-        "global solution part2 - tarifas/src/recomendar.py"
+        "backend/src/rotas/recomendar.py"
       ],
       "revisada_pela_equipe": false
     },
@@ -152,7 +152,7 @@
       "status_funcionalidade": "parcial",
       "fontes_no_repositorio": [
         "backend/src/rotas_api.py",
-        "global solution part2 - tarifas/src/contratos.py"
+        "backend/src/rotas/contratos.py"
       ],
       "revisada_pela_equipe": false
     },
@@ -177,7 +177,7 @@
       "resposta": "Tarifa não confirmada significa que ainda não há regra tarifária validada para aquela combinação de linhas; nesse caso o custo aparece como indefinido, nunca como zero ou gratuito.",
       "status_funcionalidade": "implementada",
       "fontes_no_repositorio": [
-        "global solution part2 - tarifas/src/tarifas.py"
+        "backend/src/rotas/tarifas.py"
       ],
       "revisada_pela_equipe": false
     },
@@ -202,7 +202,7 @@
       "resposta": "O app calcula integrações entre ônibus, metrô e trem usando regras cadastradas por operador, considerando a janela de tempo e a sequência de embarques; sem regra validada, a tarifa fica não confirmada.",
       "status_funcionalidade": "implementada",
       "fontes_no_repositorio": [
-        "global solution part2 - tarifas/src/tarifas.py"
+        "backend/src/rotas/tarifas.py"
       ],
       "revisada_pela_equipe": false
     },
@@ -227,8 +227,8 @@
       "resposta": "Nesta versão, você pode definir um teto de gastos nas preferências da busca; rotas com custo confirmado acima do limite são descartadas, e rotas com tarifa não confirmada continuam na análise.",
       "status_funcionalidade": "parcial",
       "fontes_no_repositorio": [
-        "global solution part2 - tarifas/src/ranking.py",
-        "global solution part2 - tarifas/src/contratos.py"
+        "backend/src/rotas/ranking.py",
+        "backend/src/rotas/contratos.py"
       ],
       "revisada_pela_equipe": false
     },
@@ -279,8 +279,8 @@
       "resposta": "Nesta versão, as buscas ficam salvas em um banco de dados local, ligadas a um identificador anônimo de sessão, sem dados pessoais, por até 90 dias.",
       "status_funcionalidade": "parcial",
       "fontes_no_repositorio": [
-        "global solution part2 - tarifas/src/historico.py",
-        "global solution part2 - tarifas/src/config.py"
+        "backend/src/rotas/historico.py",
+        "backend/src/rotas/config.py"
       ],
       "revisada_pela_equipe": false
     },
@@ -305,7 +305,7 @@
       "resposta": "Nesta versão, o sistema tem uma rotina interna que apaga todos os registros de uma sessão, mas ainda não existe um botão para isso na interface do app.",
       "status_funcionalidade": "parcial",
       "fontes_no_repositorio": [
-        "global solution part2 - tarifas/src/historico.py"
+        "backend/src/rotas/historico.py"
       ],
       "revisada_pela_equipe": false
     },
@@ -331,7 +331,7 @@
       "status_funcionalidade": "parcial",
       "fontes_no_repositorio": [
         "frontend/app/index.tsx",
-        "global solution part2 - tarifas/src/historico.py"
+        "backend/src/rotas/historico.py"
       ],
       "revisada_pela_equipe": false
     },

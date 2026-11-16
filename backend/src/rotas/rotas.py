@@ -6,7 +6,7 @@ import math
 from datetime import date
 from typing import TYPE_CHECKING
 
-from src.config import (
+from .config import (
     CAMINHADA_BALDEACAO_MAX_M,
     ESPERA_MAX_S,
     FOLGA_BALDEACAO_S,
@@ -15,7 +15,7 @@ from src.config import (
     RAIO_TERRA_M,
     TAMANHO_CELULA_M,
 )
-from src.contratos import Perfil, Rede, Restricoes, Rota, Trecho, Viagem
+from .contratos import Perfil, Rede, Restricoes, Rota, Trecho, Viagem
 
 
 def haversine(p1: tuple[float, float], p2: tuple[float, float]) -> float:

@@ -3,8 +3,8 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
-from src.config import LIMIAR_SIMILARIDADE, MAX_ROTAS, PESOS, REF
-from src.contratos import (
+from .config import LIMIAR_SIMILARIDADE, MAX_ROTAS, PESOS, REF
+from .contratos import (
     ACESS_COMPATIVEL,
     ACESS_INCOMPATIVEL,
     ACESS_NAO_SOLICITADA,

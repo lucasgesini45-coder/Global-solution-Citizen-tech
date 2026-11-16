@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from datetime import date
 from typing import TYPE_CHECKING
 
-from src.config import (
+from .config import (
     BALDEACOES_MAX_LIMITE,
     CAMINHADA_MAX_LIMITE_M,
     CAMINHADA_MAX_PADRAO_M,

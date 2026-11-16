@@ -1,6 +1,6 @@
 import math
-from src.config import RAIO_TERRA_M
-from src.contratos import Parada, Rede, Viagem
+from backend.src.rotas.config import RAIO_TERRA_M
+from backend.src.rotas.contratos import Parada, Rede, Viagem
 
 LAT0 = -23.5500
 LON0 = -46.6300

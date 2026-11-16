@@ -1,6 +1,6 @@
 import pytest
 
-from src.contratos import (
+from backend.src.rotas.contratos import (
     ACESS_COMPATIVEL,
     ACESS_INCOMPATIVEL,
     ACESS_NAO_SOLICITADA,
@@ -10,7 +10,7 @@ from src.contratos import (
     Rota,
     Trecho,
 )
-from src.ranking import (
+from backend.src.rotas.ranking import (
     criterios_usaveis,
     escore,
     montar_aviso,
