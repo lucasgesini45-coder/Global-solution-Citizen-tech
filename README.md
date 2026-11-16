@@ -9,17 +9,22 @@ Plataforma acadêmica de orientação cidadã sobre transporte público, benefí
 
 ## Executar no terminal (requisito FIAP)
 ```powershell
-cd backend
-python src/sistema.py
+python backend/src/sistema.py
 ```
 
 ## Executar API
 ```powershell
-cd backend
-python -m pip install -r requirements.txt
-python -m uvicorn src.api:app --reload
+python -m pip install -r backend/requirements.txt
+python -m uvicorn backend.src.api:app --reload
 ```
 API: http://localhost:8000/docs
+
+## Testes
+```powershell
+python -m pytest backend/tests -v
+cd "global solution part2 - tarifas"
+python -m pytest -v
+```
 
 ## Executar site
 ```powershell

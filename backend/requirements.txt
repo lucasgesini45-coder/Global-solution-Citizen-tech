@@ -1,2 +1,8 @@
 fastapi>=0.115,<1
 uvicorn>=0.30,<1
+httpx>=0.27
+pytest
+scikit-learn==1.9.1
+joblib==1.6.0
+numpy==2.5.3
+scipy==1.18.1
