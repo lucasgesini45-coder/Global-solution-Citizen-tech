@@ -4,6 +4,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet,
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import MapaPreview from "../components/MapaPreview";
+import MetroNetwork from "../components/MetroNetwork";
 
 const API = (process.env.EXPO_PUBLIC_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
 
@@ -93,6 +94,7 @@ function PainelRolavel({children,mobile,id}:{children:React.ReactNode;mobile:boo
 
 export default function Home(){
  const {width,height}=useWindowDimensions();const mobile=width<1180;
+ const [aba,setAba]=useState<"planejar"|"metro">("planejar");
  const alturaPainel=Math.max(520,Math.min(760,Math.round(height-245)));
  const [alturaMapa,setAlturaMapa]=useState(400);
  const [modal,setModal]=useState<Modal>("todos");
@@ -216,11 +218,15 @@ export default function Home(){
  return <ScrollView style={v.bg} contentContainerStyle={v.page}>
    <View style={[v.nav,mobile&&v.navMobile]}>
      <Text style={[v.navBrand,mobile&&v.navBrandMobile]}>Citizen Tech <Text style={v.navBrandAccent}>Mobilidade Urbana</Text></Text>
-     {!mobile&&<View style={v.navActive}><Text style={v.navActiveText}>Planejar trajeto</Text></View>}
+     <View style={[v.navTabs,mobile&&v.navTabsMobile]}>
+       <Pressable onPress={()=>setAba("planejar")} style={[v.navTab,aba==="planejar"&&v.navActive]} accessibilityRole="tab" accessibilityState={{selected:aba==="planejar"}}><Icone name="navigate-outline" size={17} color={aba==="planejar"?"#0069d2":"#64748b"}/><Text style={[v.navTabText,aba==="planejar"&&v.navActiveText]}>Planejar trajeto</Text></Pressable>
+       <Pressable onPress={()=>setAba("metro")} style={[v.navTab,aba==="metro"&&v.navActive]} accessibilityRole="tab" accessibilityState={{selected:aba==="metro"}}><Icone name="train-outline" size={17} color={aba==="metro"?"#0069d2":"#64748b"}/><Text style={[v.navTabText,aba==="metro"&&v.navActiveText]}>Mapa do metrô</Text></Pressable>
+     </View>
      <Text style={v.navMeta}>Global Solution · 2026</Text>
    </View>
 
    <View style={[v.container,mobile&&v.containerMobile]}>
+     {aba==="metro"?<MetroNetwork mobile={mobile}/>:<>
      <View style={[v.intro,mobile&&v.introMobile]}>
        <Text style={v.eyebrow}>MENOS COMPLICAÇÃO. MAIS CIDADE.</Text>
        <Text style={[v.heading,mobile&&v.headingMobile]}>Seu próximo destino começa aqui.</Text>
@@ -388,6 +394,7 @@ export default function Home(){
        <Text style={v.assistantFootnote}>As rotas são consultadas em dados externos; respostas sobre o aplicativo podem vir de uma base acadêmica. Confirme tarifas, acessibilidade e direitos em fontes oficiais.</Text>
      </View>
 
+     </>}
      <Text style={v.footer}>Citizen Tech Mobilidade Urbana · FIAP Global Solution 2026 · Indicadores de segurança não verificados; dados de viagens provenientes do Transitous quando disponíveis.</Text>
    </View>
  </ScrollView>;
@@ -409,7 +416,7 @@ const v=StyleSheet.create({
  page:{minHeight:"100%"},
  nav:{backgroundColor:"rgba(247,251,255,0.90)",minHeight:88,paddingHorizontal:48,paddingVertical:20,borderBottomWidth:1,borderBottomColor:"#bfd6ec",flexDirection:"row",alignItems:"center",gap:30,flexWrap:"wrap"},
  navMobile:{minHeight:68,paddingHorizontal:16,paddingVertical:15,gap:10},navBrand:{fontSize:24,fontWeight:"600",letterSpacing:-1.1,color:"#1d2633"},navBrandMobile:{fontSize:19},navBrandAccent:{fontWeight:"500",color:"#0069d2"},
- navActive:{backgroundColor:"#dcebfa",borderRadius:22,paddingHorizontal:18,paddingVertical:13},navActiveText:{color:"#0069d2",fontSize:14,fontWeight:"600"},navMeta:{fontSize:11,color:"#62758a",marginLeft:"auto"},
+ navTabs:{flexDirection:"row",alignItems:"center",gap:8,flexWrap:"wrap"},navTabsMobile:{width:"100%"},navTab:{flexDirection:"row",alignItems:"center",gap:7,paddingHorizontal:14,paddingVertical:11,borderRadius:14},navTabText:{color:"#64748b",fontSize:13,fontWeight:"500"},navActive:{backgroundColor:"#dcebfa"},navActiveText:{color:"#0069d2",fontSize:14,fontWeight:"600"},navMeta:{fontSize:11,color:"#62758a",marginLeft:"auto"},
  container:{maxWidth:1440,width:"100%",alignSelf:"center",paddingHorizontal:48,paddingBottom:28},
  containerMobile:{paddingHorizontal:16},intro:{minHeight:140,paddingTop:22,justifyContent:"center",position:"relative",paddingBottom:18},introMobile:{paddingTop:24,minHeight:0},
  eyebrow:{color:"#0069d2",fontSize:11,fontWeight:"700",letterSpacing:1.7,marginBottom:12},
