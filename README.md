@@ -4,6 +4,31 @@ Protótipo acadêmico **web e mobile** para planejar deslocamentos na região de
 
 > **Aviso:** não é um canal oficial de Metrô, CPTM, SPTrans ou demais operadores. Horários, acessibilidade, tarifas, segurança e disponibilidade podem não estar confirmados. O projeto **não garante** rotas sem barreiras ou elevadores operacionais.
 
+## Entrega acadêmica — Citizen Assist AI
+
+- **Equipe e RMs:** preencher com os dados reais dos integrantes antes da entrega.
+- **Vídeo:** inserir URL do vídeo não listado no YouTube após publicação.
+
+O módulo obrigatório é executável na raiz do repositório, sem APIs externas e sem instalar bibliotecas adicionais:
+
+```powershell
+python src/sistema.py
+```
+
+O assistente de orientação cidadã consulta 15 registros em quatro temas (cartões, gratuidade, acessibilidade e serviços), com fontes oficiais e datas de consulta. Permite pesquisar por pergunta ou selecionar tema e identificador. Não exige cadastro nem dados pessoais. O mapa e o site são complementos.
+
+**Exemplos:** "Como emitir cartão comum?", "Posso levar cão-guia no metrô?" e "O que é o serviço Atende+?". Consulte a fonte exibida. Entradas vazias, opções inválidas, ambiguidades e consultas fora do escopo recebem mensagens de limitação.
+
+A busca usa listas, dicionários, normalização de palavras, comparação Dice e um grafo de temas relacionados. O modelo A apresenta orientação e fonte; o B também explicita os limites e a necessidade de conferir atualizações. A escolha padrão é B. Consulte [a documentação acadêmica](docs/adequacao_fiap.md).
+
+Para executar os 20 cenários em ambos os modelos e gerar indicadores e respostas obtidas:
+
+```powershell
+python -m backend.src.avaliacao_cidada
+```
+
+O relatório é gravado em `docs/resultados_avaliacao_cidada.json`. A equipe deve registrar e interpretar os resultados efetivamente obtidos, revisar as fontes e concluir a avaliação de usabilidade. Limitações: busca lexical sensível a sinônimos; fontes podem mudar. Melhorias propostas: ampliar paráfrases e revisar periodicamente os registros.
+
 ## Funcionalidades integradas
 
 - Busca de endereços pelo Photon / OpenStreetMap, GPS autorizado ou seleção no mapa;
