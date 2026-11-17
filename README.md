@@ -27,7 +27,23 @@ Para executar os 20 cenários em ambos os modelos e gerar indicadores e resposta
 python -m backend.src.avaliacao_cidada
 ```
 
-O relatório é gravado em `docs/resultados_avaliacao_cidada.json`. A equipe deve registrar e interpretar os resultados efetivamente obtidos, revisar as fontes e concluir a avaliação de usabilidade. Limitações: busca lexical sensível a sinônimos; fontes podem mudar. Melhorias propostas: ampliar paráfrases e revisar periodicamente os registros.
+### Indicadores acadêmicos — execução de 17/11/2026
+
+| Indicador | Modelo A | Modelo B |
+|---|---:|---:|
+| Consultas | 20 | 20 |
+| Acertos | 19 (95%) | 19 (95%) |
+| Tempo médio | 0,2171 ms | 0,2092 ms |
+| Saídas com estado ok e fonte | 18/18 | 18/18 |
+| Aviso de não oficialidade nas saídas ok | 0/18 | 18/18 |
+| Tratamento dos três casos de limitação | 2/3 | 2/3 |
+
+Evidência: [GitHub Actions](https://github.com/lucasgesini45-coder/Global-solution-Citizen-tech/actions/runs/44088026008), 177 testes aprovados e typecheck aprovado. O modelo B é preferido por explicitar os limites. O termo ambíguo "cartão comum" retornou ID 1 em vez de solicitar esclarecimento. Melhorias: desambiguação, novas paráfrases, revisão de fontes e usabilidade com participante. Os tempos medem somente a busca local. O roteiro automatizado de facilidade de uso passou, mas não houve avaliação humana.
+
+- [Relatório acadêmico de testes e indicadores](docs/relatorio_testes_indicadores_fiap.md)
+- [Resultados completos por consulta e modelo](docs/resultados_avaliacao_cidada.json)
+
+A equipe deve revisar a base de fontes e a apresentação dos resultados antes da entrega.
 
 ## Funcionalidades integradas
 
