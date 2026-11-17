@@ -148,6 +148,13 @@ def horarios_onibus(viagem: dict) -> list[dict]:
     return saida
 
 
+def coordenadas_ponto(ponto):
+    lat, lon = ponto.get("lat"), ponto.get("lon")
+    if all(isinstance(x, (int,float)) and math.isfinite(x) for x in (lat,lon)) and -90 <= lat <= 90 and -180 <= lon <= 180:
+        return {"lat":lat,"lon":lon}
+    return None
+
+
 def etapas_completas(viagem):
     """Etapas ordenadas, inclusive sem traçado disponível."""
     etapas = []
@@ -160,6 +167,7 @@ def etapas_completas(viagem):
             "etapa": i, "modal": modo, "linha": linha, "cor_linha": cor,
             "operadora": leg.get("agencyName"), "sentido": leg.get("headsign"),
             "de": de.get("name"), "para": para.get("name"),
+            "inicio_geo": coordenadas_ponto(de), "fim_geo": coordenadas_ponto(para),
             "partida": horario_iso(leg.get("startTime")) or horario_iso(de.get("departure")) or horario_iso(leg.get("scheduledStartTime")) or horario_iso(de.get("scheduledDeparture")),
             "chegada": horario_iso(leg.get("endTime")) or horario_iso(para.get("arrival")) or horario_iso(leg.get("scheduledEndTime")) or horario_iso(para.get("scheduledArrival")),
             "tempo_real": leg.get("realTime") is True,
