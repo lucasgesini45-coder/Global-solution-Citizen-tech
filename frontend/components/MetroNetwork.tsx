@@ -313,11 +313,14 @@ export default function MetroNetwork({mobile}:{mobile:boolean}){
  const [erro,setErro]=useState("");
  const [mapaErro,setMapaErro]=useState(false);
  const [tentativa,setTentativa]=useState(0);
- const [zoom,setZoom]=useState(1);
- const [larguraMapa,setLarguraMapa]=useState(600);
- const {height}=useWindowDimensions();
- const alturaPainel=Math.max(600,Math.min(900,Math.round(height-220)));
- const mapaLargura=Math.max(1,larguraMapa)*zoom;
+ const {width}=useWindowDimensions();
+ const [larguraMapa,setLarguraMapa]=useState(0);
+ // A imagem original (2:3) contém mapa, legenda e contatos.
+ // Exibe apenas a região do desenho: de 9% a 57,5% da altura.
+ const mapaLargura=larguraMapa||Math.max(240,Math.min(1440,width)-(mobile?62:500));
+ const alturaImagem=mapaLargura*1.5;
+ const alturaRecorte=alturaImagem*0.485;
+ const alturaPainel=Math.ceil(alturaRecorte+96);
  const abrir=async(url:string)=>{
    setErro("");
    try{await Linking.openURL(url);}catch{setErro("Não foi possível abrir o site oficial. Tente novamente.");}
@@ -332,29 +335,20 @@ export default function MetroNetwork({mobile}:{mobile:boolean}){
    <View style={[s.layout,mobile?s.layoutMobile:{height:alturaPainel}]}>
      <View style={[s.mapCard,mobile&&s.mapMobile]}>
        <View style={s.header}><View style={{flex:1}}><Text style={s.title}>Mapa da rede</Text><Text style={s.small}>Documento oficial · julho de 2026</Text></View><Pressable onPress={()=>abrir(PDF_MAPA)} style={s.primary} accessibilityRole="button"><Ionicons name="expand-outline" size={16} color="#fff"/><Text style={s.primaryText}>Abrir PDF</Text></Pressable></View>
-       <View style={s.mapTools}>
-         <Text style={s.small}>Amplie para ler as estações</Text>
-         <View style={s.zoomGroup}>
-           <Pressable onPress={()=>setZoom(x=>Math.max(1,x-.5))} accessibilityLabel="Diminuir zoom" style={s.zoomButton}><Ionicons name="remove" size={18} color="#0069d2"/></Pressable>
-           <Pressable onPress={()=>setZoom(1)} style={s.zoomButton} accessibilityLabel="Restaurar zoom"><Text style={s.link}>{Math.round(zoom*100)}%</Text></Pressable>
-           <Pressable onPress={()=>setZoom(x=>Math.min(3,x+.5))} accessibilityLabel="Aumentar zoom" style={s.zoomButton}><Ionicons name="add" size={18} color="#0069d2"/></Pressable>
+       <View style={s.mapViewport} onLayout={e=>setLarguraMapa(Math.floor(e.nativeEvent.layout.width))}>
+         <View style={{height:alturaRecorte,width:"100%",overflow:"hidden",backgroundColor:"#fff"}}>
+           {mapaErro?<View style={s.nativePreview}>
+             <Ionicons name="map-outline" color="#0071e3" size={36}/>
+             <Text style={s.title}>Imagem indisponível</Text>
+             <Text style={s.small}>Recarregue a imagem ou abra o documento oficial.</Text>
+             <Pressable onPress={()=>{setMapaErro(false);setTentativa(x=>x+1);}} style={s.primary}><Text style={s.primaryText}>Tentar novamente</Text></Pressable>
+             <Pressable onPress={()=>abrir(PDF_MAPA)}><Text style={s.link}>Abrir PDF oficial</Text></Pressable>
+           </View>:<Image key={tentativa} source={{uri:tentativa?MAPA_IMAGEM+"?v="+tentativa:MAPA_IMAGEM}}
+             style={{position:"absolute",left:0,top:-alturaImagem*.09,width:mapaLargura,height:alturaImagem}}
+             resizeMode="stretch" accessibilityLabel="Rede de linhas e estações do transporte metropolitano de São Paulo, julho de 2026"
+             onError={()=>setMapaErro(true)}/>}
          </View>
        </View>
-       <View style={[s.mapViewport,mobile&&s.mapViewportMobile]} onLayout={e=>setLarguraMapa(Math.floor(e.nativeEvent.layout.width))}>
-         {mapaErro?<View style={s.nativePreview}>
-           <Ionicons name="map-outline" color="#0071e3" size={36}/>
-           <Text style={s.title}>Imagem indisponível</Text>
-           <Text style={s.small}>Recarregue a imagem ou abra o documento oficial em outra aba.</Text>
-           <Pressable onPress={()=>{setMapaErro(false);setTentativa(x=>x+1);}} style={s.primary}><Text style={s.primaryText}>Tentar novamente</Text></Pressable>
-           <Pressable onPress={()=>abrir(PDF_MAPA)}><Text style={s.link}>Abrir PDF oficial</Text></Pressable>
-         </View>:<ScrollView style={{flex:1}} nestedScrollEnabled showsVerticalScrollIndicator persistentScrollbar>
-           <ScrollView horizontal nestedScrollEnabled showsHorizontalScrollIndicator persistentScrollbar>
-             <Image key={tentativa} source={{uri:tentativa?MAPA_IMAGEM+"?v="+tentativa:MAPA_IMAGEM}} style={{width:mapaLargura,height:mapaLargura*1.5,backgroundColor:"#fff"}} resizeMode="contain" accessibilityLabel="Mapa oficial do transporte metropolitano de São Paulo, julho de 2026" onError={()=>setMapaErro(true)}/>
-           </ScrollView>
-         </ScrollView>}
-       </View>
-       <Text style={s.note}>Fonte: mapa oficial STM/Metrô, julho de 2026. Imagem via Trilhos Agora. Mapa esquemático, sem escala. Use o PDF oficial para versão vetorial.</Text>
-       <Pressable onPress={()=>abrir(PAGINA_MAPA)} accessibilityRole="link"><Text style={s.link}>Consultar a versão mais recente no site oficial ↗</Text></Pressable>
      </View>
      <View style={[s.details,mobile&&s.detailsMobile]}>
        <View style={s.header}><Text style={s.title}>Rede metropolitana</Text><Text style={s.small}>{painel==="linhas"?linhas.length+" linhas":"Valores 2026"}</Text></View>
@@ -408,6 +402,51 @@ export default function MetroNetwork({mobile}:{mobile:boolean}){
        </ScrollView>
      </View>
    </View>
+   <View style={s.belowMap}>
+     <View style={s.header}><View style={{flex:1}}><Text style={s.title}>Legenda e informações da rede</Text><Text style={s.small}>Referência do mapa oficial · julho de 2026</Text></View></View>
+     <View style={[s.infoColumns,mobile&&s.layoutMobile]}>
+       <View style={s.infoColumn}>
+         <Text style={s.title}>Linhas e operadores</Text>
+         <View style={s.legendGrid}>{LINHAS.map(l=><View key={l.numero} style={s.legendItem}>
+           <View style={[s.legendLine,{backgroundColor:l.cor}]}/><Text style={s.stationName}>Linha {l.numero} – {l.nome}</Text><Text style={s.note}>{l.operador}</Text>
+         </View>)}</View>
+         <Text style={s.title}>Outros serviços no mapa</Text>
+         <Text style={s.small}>Expresso Aeroporto · Trivia</Text>
+         <Text style={s.small}>Corredores São Mateus–Jabaquara, Guarulhos–SP e Itapevi–SP · ARTESP</Text>
+         <Text style={s.small}>Serviço complementar gratuito · Motiva; Expresso Tiradentes · SPTrans; Expresso Turístico · CPTM; Ponte Orca ao Zoológico · ARTESP.</Text>
+       </View>
+       <View style={s.infoColumn}>
+         <Text style={s.title}>Como interpretar o mapa</Text>
+         {[
+           ["radio-button-off-outline","Estação","Ponto de embarque ou desembarque."],
+           ["swap-horizontal-outline","Integração gratuita","Transferência sem nova cobrança nas áreas indicadas."],
+           ["time-outline","Integração horária","Gratuidade apenas nos horários definidos pelos operadores."],
+           ["card-outline","Integração tarifada","Pode exigir pagamento; consulte descontos e cartões."],
+           ["walk-outline","Distância a pé","Conexão com caminhada indicada em metros."],
+           ["bus-outline","Terminal de ônibus","Terminal integrado ou rodoviário, conforme o símbolo no mapa."],
+           ["airplane-outline","Aeroporto","Conexão com terminal aeroportuário."],
+         ].map(([icone,titulo,descricao])=><View key={titulo} style={s.infoRow}>
+           <Ionicons name={icone as React.ComponentProps<typeof Ionicons>["name"]} size={19} color="#0069d2"/>
+           <View style={{flex:1}}><Text style={s.lineName}>{titulo}</Text><Text style={s.small}>{descricao}</Text></View>
+         </View>)}
+       </View>
+     </View>
+     <Text style={s.title}>Canais de atendimento</Text>
+     <View style={s.contactGrid}>{[
+       ["ARTESP","0800 727 8377","https://www.artesp.sp.gov.br"],
+       ["CPTM","0800 055 0121",OPERADORES.CPTM],
+       ["Metrô","0800 770 7722",OPERADORES["Metrô"]],
+       ["Motiva","0800 770 7100",OPERADORES.Motiva],
+       ["Linha Uni","0800 580 3172",OPERADORES["Linha Uni"]],
+       ["SPTrans","156","https://www.sptrans.com.br"],
+       ["TIC Trens","0800 007 0670",OPERADORES["TIC Trens"]],
+       ["Trivia","0800 074 6733",OPERADORES.Trivia],
+     ].map(([nome,telefone,url])=><Pressable key={nome} style={s.contact} onPress={()=>abrir(url)} accessibilityRole="link">
+       <Text style={s.lineName}>{nome}</Text><Text style={s.small}>{telefone}</Text><Text style={s.link}>Site oficial ↗</Text>
+     </Pressable>)}</View>
+     <Text style={s.note}>Fonte: mapa oficial STM/Metrô de julho de 2026, imagem disponibilizada pelo Trilhos Agora. Mapa esquemático, sem escala. Os símbolos acima são explicações em texto, não uma reprodução dos símbolos gráficos. Confira a vigência dos contatos, horários e conexões nos canais oficiais.</Text>
+     <Pressable onPress={()=>abrir(PAGINA_MAPA)} accessibilityRole="link"><Text style={s.link}>Consultar a versão mais recente no site oficial ↗</Text></Pressable>
+   </View>
  </View>;
 }
 
@@ -438,11 +477,16 @@ const s=StyleSheet.create({
  active:{backgroundColor:"#dcebfa"},
  filterText:{fontSize:11,color:"#64748b"},
  activeText:{color:"#0069d2",fontWeight:"600"},
- mapTools:{flexDirection:"row",alignItems:"center",justifyContent:"space-between",gap:6,flexWrap:"wrap"},
- zoomGroup:{flexDirection:"row",gap:5,alignItems:"center"},
- zoomButton:{minWidth:34,minHeight:34,paddingHorizontal:8,backgroundColor:"#edf3f9",borderRadius:8,alignItems:"center",justifyContent:"center"},
- mapViewport:{flex:1,minHeight:0,borderRadius:12,overflow:"hidden",backgroundColor:"#f3f7fb",borderWidth:1,borderColor:"#e4edf5"},
- mapViewportMobile:{flex:0,height:520},
+ mapViewport:{width:"100%",borderRadius:12,overflow:"hidden",backgroundColor:"#fff"},
+ belowMap:{backgroundColor:"#fff",borderRadius:20,borderWidth:1,borderColor:"#d9e6f5",padding:18,gap:14},
+ infoColumns:{flexDirection:"row",gap:22,alignItems:"flex-start"},
+ infoColumn:{flex:1,minWidth:0,gap:9},
+ legendGrid:{gap:4},
+ legendItem:{flexDirection:"row",alignItems:"center",gap:8,flexWrap:"wrap",paddingVertical:5,borderBottomWidth:1,borderBottomColor:"#eaf0f6"},
+ legendLine:{width:20,height:5,borderRadius:3},
+ infoRow:{flexDirection:"row",alignItems:"flex-start",gap:9,paddingVertical:5},
+ contactGrid:{flexDirection:"row",flexWrap:"wrap",gap:10},
+ contact:{minWidth:140,flexGrow:1,flexBasis:160,padding:12,borderRadius:10,backgroundColor:"#f3f7fb",gap:4},
  sectionTabs:{flexDirection:"row",backgroundColor:"#edf3f9",borderRadius:11,padding:3,gap:3},
  sectionTab:{flex:1,alignItems:"center",justifyContent:"center",minHeight:34,borderRadius:9},
  sectionTabActive:{backgroundColor:"#fff"},
