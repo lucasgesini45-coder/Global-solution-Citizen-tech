@@ -41,3 +41,10 @@ def test_roteiro_terminal():
     assert "Digite uma pergunta" in texto
     assert "Fonte:" in texto
     assert "Modelo selecionado: A" in texto
+
+def test_relatorio_completo_para_entrega():
+    """Publica no log da execução os resultados efetivamente medidos em Python."""
+    import json
+    print("CITIZEN_RESULTADOS_INICIO")
+    print(json.dumps(avaliar(), ensure_ascii=False))
+    print("CITIZEN_RESULTADOS_FIM")
