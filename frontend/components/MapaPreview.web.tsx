@@ -3,7 +3,7 @@ import { Text, View } from "react-native";
 
 type Ponto = {lat:number;lon:number;nome?:string;tipo?:string};
 type Trecho = {modal:string;trajeto:number[][];linha?:string|null;cor_linha?:string|null;paradas?:{nome:string;lat:number;lon:number}[]};
-type Props = {url:string;trajeto?:number[][];trechos?:Trecho[];pontos?:Ponto[];height?:number;pickMode?:"origem"|"destino"|null;onMapPick?:(lat:number,lon:number)=>void};
+type Props = {posicao?:{lat:number;lon:number}|null;seguir?:boolean;url:string;trajeto?:number[][];trechos?:Trecho[];pontos?:Ponto[];height?:number;pickMode?:"origem"|"destino"|null;onMapPick?:(lat:number,lon:number)=>void};
 
 type MapLibreApi = {
  Map: new (options: Record<string, unknown>) => any;
@@ -53,10 +53,13 @@ function loadMapLibre(): Promise<MapLibreApi> {
 }
 
 /** Usa DOM direto no Expo Web: MapLibre não funciona com segurança em iframe srcDoc. */
-export default function MapaPreview({pontos=[],height=365,trajeto=[],trechos=[],pickMode=null,onMapPick}:Props) {
+export default function MapaPreview({pontos=[],height=365,trajeto=[],trechos=[],pickMode=null,onMapPick,posicao=null,seguir=false}:Props) {
  const containerRef=useRef<HTMLDivElement|null>(null);
  const mapRef=useRef<any>(null);
  const markersRef=useRef<any[]>([]);
+ const gpsMarker=useRef<any>(null);
+ const seguindo=useRef(seguir);
+ seguindo.current=seguir;
  const pickModeRef=useRef(pickMode);
  const onMapPickRef=useRef(onMapPick);
  pickModeRef.current=pickMode;
@@ -104,6 +107,7 @@ export default function MapaPreview({pontos=[],height=365,trajeto=[],trechos=[],
      active=false;
      if(timeout)clearTimeout(timeout);
      markersRef.current.forEach(marker=>marker.remove());markersRef.current=[];
+     gpsMarker.current?.remove();gpsMarker.current=null;
      mapRef.current?.remove();mapRef.current=null;
    };
  },[]);
@@ -195,7 +199,7 @@ export default function MapaPreview({pontos=[],height=365,trajeto=[],trechos=[],
        try{
          if(!map.getLayer(id+"-stations-labels"))map.addLayer({id:id+"-stations-labels",type:"symbol",source:id+"-stations",layout:{"text-field":["get","nome"],"text-size":11,"text-font":["Noto Sans Regular"],"text-offset":[0,1.1],"text-anchor":"top","text-optional":true},paint:{"text-color":"#244263","text-halo-color":"#fff","text-halo-width":1.5}});
        }catch(stationError){console.warn("Nomes das paradas indisponíveis:",stationError);}
-       if(featureList.length){
+       if(featureList.length&&!seguindo.current){
          const bounds=new (getMapLibre()!).LngLatBounds();
          featureList.forEach(f=>f.geometry.coordinates.forEach(p=>bounds.extend(p)));
          if(!bounds.isEmpty())map.fitBounds(bounds,{padding:65,maxZoom:15,duration:350});
@@ -211,6 +215,18 @@ export default function MapaPreview({pontos=[],height=365,trajeto=[],trechos=[],
    return ()=>{map.off("styledata",apply);};
  },[linhas,pronto]);
 
+ useEffect(()=>{
+   const map=mapRef.current, lib=getMapLibre();
+   if(!pronto||!map||!lib)return;
+   if(!posicao){gpsMarker.current?.remove();gpsMarker.current=null;return;}
+   if(!gpsMarker.current){
+     const el=document.createElement("div");
+     el.setAttribute("aria-label","Sua localização atual");
+     Object.assign(el.style,{width:"20px",height:"20px",border:"3px solid white",boxSizing:"border-box",background:"#0071e3",borderRadius:"50%",boxShadow:"0 0 0 9px rgba(0,113,227,.22)"});
+     gpsMarker.current=new lib.Marker({element:el,anchor:"center"}).setLngLat([posicao.lon,posicao.lat]).addTo(map);
+   }else gpsMarker.current.setLngLat([posicao.lon,posicao.lat]);
+   if(seguir)map.easeTo({center:[posicao.lon,posicao.lat],zoom:Math.max(map.getZoom(),16),duration:450});
+ },[pronto,posicao?.lat,posicao?.lon,seguir,linhas]);
  return <View style={{height,width:"100%",borderRadius:18,overflow:"hidden",backgroundColor:"#eff3f7",position:"relative"}}>
    {React.createElement("div",{
      ref:containerRef,
