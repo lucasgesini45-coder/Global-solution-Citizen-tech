@@ -27,7 +27,7 @@ def normalizar(v):
 def proximas_partidas(pedido: ConsultaPartidas):
     agora = datetime.now(timezone.utc)
     params = {"stopId": pedido.ponto_id, "time": agora.isoformat(),
-              "n": 50, "mode": "BUS", "arriveBy": "false", "fetchStop": "true"}
+              "n": 50, "mode": "BUS", "arriveBy": "false", "fetchStops": "true"}
     dados = _json_http(URL + "?" + urlencode(params), max_bytes=3_000_000,
                        headers={"User-Agent": "CitizenTechFIAP/0.3 (https://github.com/lucasgesini45-coder/Global-solution-Citizen-tech)"})
     if not isinstance(dados, dict) or not isinstance(dados.get("stopTimes"), list):
@@ -49,7 +49,8 @@ def proximas_partidas(pedido: ConsultaPartidas):
             continue
         # Verificar se o ônibus passa no ponto de desembarque, não só na mesma linha.
         seguintes = evento.get("nextStops") or []
-        if not any(isinstance(s, dict) and s.get("stopId") == pedido.desembarque_id for s in seguintes):
+        if not any(isinstance(s, dict) and s.get("stopId") == pedido.desembarque_id
+                   and not s.get("cancelled") and s.get("dropoffType") != "NOT_ALLOWED" for s in seguintes):
             continue
         programada = horario_iso(ponto.get("scheduledDeparture"))
         estimada = horario_iso(ponto.get("departure"))
