@@ -18,10 +18,10 @@ python -m backend.src.avaliacao_cidada
 python -m pytest backend/tests/test_citizen_fiap.py -v
 python src/sistema.py
 ```
-A avaliação usa 20 perguntas simuladas, incluindo reformulações, entrada vazia, ambiguidade e pergunta fora do escopo. Gera docs/resultados_avaliacao_cidada.json com status/ID esperado e obtido, texto, fontes, acerto, tempo e médias por modelo. Um acerto requer status correto, ID correto quando aplicável e presença/ausência apropriada de fonte. Resultados devem ser gerados e conferidos; não atribuir números sem execução. Não mede utilidade subjetiva nem veracidade futura da fonte.
+A avaliação usa 20 perguntas simuladas, incluindo reformulações, entrada vazia, ambiguidade e pergunta fora do escopo. Gera docs/resultados_avaliacao_cidada.json com status/ID esperado e obtido, texto, fontes, acerto, tempo e médias por modelo. Um acerto requer status correto, ID correto quando aplicável e presença/ausência apropriada de fonte. Resultados medidos em 17/11/2026: 19/20 (95%) em ambos os modelos; A: 0,2171 ms; B: 0,2092 ms. Consulte o [relatório completo](relatorio_testes_indicadores_fiap.md) e [dados brutos](resultados_avaliacao_cidada.json). Não mede utilidade subjetiva nem veracidade futura da fonte.
 
 ## Roteiro de facilidade de uso
 Teste automatizado: opção inexistente; pergunta vazia; escolher primeiro tema (acessibilidade) e orientação 10; alternar modelo A; consultar cartão comum e sair. Registra sucesso funcional por assertivas. Complementar com execução manual, tempo de tarefas, dificuldades observadas, taxa de conclusão e percepção de clareza. Não declarar participação humana sem realização.
 
 ## Entrega
-Pendente: nomes e RMs, nome final da equipe, revisão humana de fontes, relatório com resultados executados e interpretados, usabilidade, verificação da estrutura oficial (tabelas ausentes do texto recebido), vídeo não listado e TXT com apenas os dois links. A interface web e o mapa são diferenciais, não substituem o terminal.
+Pendente: nomes e RMs, nome final da equipe, revisão humana de fontes, avaliação manual de usabilidade com participante, verificação da estrutura oficial (tabelas ausentes do texto recebido), vídeo não listado e TXT com apenas os dois links. A interface web e o mapa são diferenciais, não substituem o terminal.
