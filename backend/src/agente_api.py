@@ -15,6 +15,9 @@ from .core import carregar, responder
 from .enderecos_api import Coordenadas, RotaRealPedido, rota_real
 from .assistente.rotas_api import preparar_modelo
 from .assistente.previsao import prever
+from .documentos_transporte import consultar_documentos, escopo, resposta_limite
+from .avaliacao_cidada import CASOS
+import json
 
 router = APIRouter(prefix="/agente", tags=["Agente Cidadão"])
 
@@ -62,11 +65,25 @@ def resumo_rota(rota: dict) -> str:
             + (" Há outras etapas no painel de trajetos." if len(etapas) > 8 else ""))
 
 
+@router.get("/perguntas-academicas")
+def perguntas_academicas():
+    """Cenários preparados pela equipe conforme o enunciado, não questões oficiais da FIAP."""
+    casos = json.loads(CASOS.read_text(encoding="utf-8"))
+    return [{"numero": i, "pergunta": caso["pergunta"],
+             "categoria": "Consulta" if caso["status_esperado"] == "ok" else "Limitação"}
+            for i, caso in enumerate(casos, 1)]
+
+
 @router.post("/conversar")
 def conversar(body: ConversaEntrada):
     pergunta = body.pergunta.strip()
     if len(pergunta) < 3:
         raise HTTPException(status_code=422, detail="Digite uma pergunta com pelo menos 3 caracteres.")
+
+    # Recusa explícita fora do escopo antes de executar ferramentas de rota.
+    # Consultas sobre o próprio aplicativo continuam disponíveis.
+    if not escopo(pergunta) and not re.search(r"\b(aplicativo|app|planejador)\b", normalizar(pergunta)):
+        return resposta_limite("Meu atendimento é exclusivo para transporte público, mobilidade urbana, tarifas, benefícios e acessibilidade.", "fora_escopo")
 
     if pede_trajeto(pergunta):
         if body.origem is None or body.destino is None:
@@ -102,27 +119,29 @@ def conversar(body: ConversaEntrada):
             "sugestoes": [], "aviso": rota.get("aviso"), "rota": rota,
         }
 
-    # Orientações cidadãs precisam de fonte revisada. A base antiga só libera
-    # registros cujo status é verificado.
+    # O núcleo acadêmico permanece independente para preservar a avaliação A/B.
+    # A interface livre pesquisa também a coleção documental complementar.
     try:
-        verificada = responder(pergunta, carregar(), "B")
-        if verificada["status"] == "ok":
+        registros = carregar()
+        resultado = consultar_documentos(pergunta, registros)
+        if resultado["origem_resposta"] in {"documento_oficial", "ambiguo"}:
+            return resultado
+        # Preservar o contrato de resposta verificada do núcleo para consultas
+        # sem desambiguação documental suficiente.
+        verificada = responder(pergunta, registros, "B")
+        if verificada["status"] == "ok" and escopo(pergunta):
             return {
                 "resposta": verificada["resposta"], "origem_resposta": "base_verificada",
                 "fontes": verificada["fontes"], "sugestoes": [],
                 "aviso": None, "rota": None,
             }
     except ValueError:
-        pass
+        return resposta_limite("A base de orientações está indisponível. Consulte os canais oficiais.")
 
-    # Direitos, benefícios e cartões são informações externas sensíveis a
-    # mudanças. Sem registro verificado, não usar classificação acadêmica.
-    if re.search(r"\b(gratuidade|direit[oa]s?|benefici[oa]s?|cartao|bilhete|passe|isencao|elevador|acessibil)\w*", normalizar(pergunta)):
-        return {
-            "resposta": "Não encontrei orientação oficial verificada para essa dúvida na base atual. Consulte o órgão ou operador responsável antes de tomar uma decisão.",
-            "origem_resposta": "sem_resposta_verificada", "fontes": [],
-            "sugestoes": [], "aviso": "Base de orientações ainda em revisão pela equipe.", "rota": None,
-        }
+    # O classificador de funcionalidades só recebe perguntas sobre o app;
+    # nunca é usado para inventar informações sobre operadores.
+    if not re.search(r"\b(aplicativo|app|planejador)\b", normalizar(pergunta)):
+        return resultado
 
     modelo = preparar_modelo()
     if modelo is None:
