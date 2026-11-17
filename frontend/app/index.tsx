@@ -83,8 +83,18 @@ function CampoEndereco({titulo,valor,mudar,selecionar,escolhido,placeholder}:{
  </View>;
 }
 
+// Desktop: rolagem própria em cada painel. Mobile: rolagem natural da página.
+function PainelRolavel({children,mobile,id}:{children:React.ReactNode;mobile:boolean;id:string}){
+ if(mobile)return <View style={v.panelContentMobile}>{children}</View>;
+ return <ScrollView nativeID={id} style={v.panelScroll} contentContainerStyle={v.panelContent}
+   nestedScrollEnabled showsVerticalScrollIndicator persistentScrollbar
+   keyboardShouldPersistTaps="handled">{children}</ScrollView>;
+}
+
 export default function Home(){
- const {width}=useWindowDimensions();const mobile=width<1180;
+ const {width,height}=useWindowDimensions();const mobile=width<1180;
+ const alturaPainel=Math.max(520,Math.min(760,Math.round(height-245)));
+ const [alturaMapa,setAlturaMapa]=useState(400);
  const [modal,setModal]=useState<Modal>("todos");
  const [origem,setOrigem]=useState("");const [destino,setDestino]=useState("");
  const [origemGeo,setOrigemGeo]=useState<Endereco|null>(null);const [destinoGeo,setDestinoGeo]=useState<Endereco|null>(null);
@@ -218,10 +228,13 @@ export default function Home(){
        {!mobile&&<View style={v.cityBadge}><Icone name="location-outline" size={17} color="#0069d2"/><Text style={v.cityText}>São Paulo, SP</Text></View>}
      </View>
 
-     <View style={[v.main,mobile&&v.mainMobile]}>
+     <View style={[v.main,mobile?v.mainMobile:{height:alturaPainel}]}>
        <View style={[v.sidebar,mobile&&v.sidebarMobile]}>
-         <View style={v.searchCard}>
+         <View style={[v.panelHeader,v.searchHeader]}>
            <Text style={v.searchTitle}>Para onde vamos?</Text>
+           <Icone name="navigate-outline" size={18} color="#667c92"/>
+         </View>
+         <PainelRolavel mobile={mobile} id="citizen-search-scroll">
            <View style={v.modeBar}>
              <Pressable onPress={()=>{setModal("todos");setResultado(null);setErro("");}} style={[v.modeItem,modal==="todos"&&v.modeActive]} accessibilityRole="button" accessibilityState={{selected:modal==="todos"}}><Text style={[v.modeText,modal==="todos"&&v.modeTextActive]}>Todos</Text></Pressable>
              {transportes.map(t=><Pressable key={t.id} onPress={()=>{setModal(t.id);setResultado(null);setErro("");}} style={[v.modeItem,modal===t.id&&v.modeActive]} accessibilityRole="button" accessibilityState={{selected:modal===t.id}}>
@@ -256,19 +269,27 @@ export default function Home(){
              </Pressable>
              {evitarEscadas&&<Text style={{color:"#855f2f",fontSize:11,lineHeight:16}}>Ainda não há confirmação de rampas ou elevadores nesta rota. A preferência não garante acessibilidade.</Text>}
            </View>
+           {!!erro&&<View style={v.warning}><Icone name="information-circle-outline" size={17} color="#94602c"/><Text style={v.warningText}>{erro}</Text></View>}
+         </PainelRolavel>
+         <View style={v.searchFooter}>
            <Pressable onPress={planejar} disabled={carregando} style={v.searchButton} accessibilityRole="button">
              {carregando?<ActivityIndicator color="#fff" size="small"/>:<Icone name="navigate-outline" size={18} color="#fff"/>}
              <Text style={v.searchButtonText}>{carregando?"Calculando...":"Encontrar trajeto"}</Text>
              <Icone name="arrow-forward-outline" size={18} color="#fff"/>
            </Pressable>
-           {!!erro&&<View style={v.warning}><Icone name="information-circle-outline" size={17} color="#94602c"/><Text style={v.warningText}>{erro}</Text></View>}
          </View>
-
        </View>
 
        <View style={[v.mapCard,mobile&&v.mapCardMobile]}>
-         <View style={v.mapHeader}><Text style={v.mapTitle}>Mapa do trajeto</Text><View style={v.mapBadge}><Icone name="map-outline" size={15} color="#0069d2"/><Text style={v.mapBadgeText}>Mapa interativo</Text></View></View>
-         <MapaPreview url={preview} pontos={pontos} trajeto={resultado?.trajeto} trechos={resultado?.trechos} height={mobile?390:680} pickMode={selecionarNoMapa} onMapPick={marcarNoMapa}/>
+         <View style={[v.panelHeader,v.mapHeader]}><Text style={v.mapTitle}>Mapa do trajeto</Text><View style={v.mapBadge}><Icone name="map-outline" size={15} color="#0069d2"/><Text style={v.mapBadgeText}>Mapa interativo</Text></View></View>
+         <View style={mobile?v.mapViewportMobile:v.mapViewport} onLayout={e=>{
+           if(!mobile){
+             const h=Math.max(1,Math.floor(e.nativeEvent.layout.height));
+             setAlturaMapa(prev=>prev===h?prev:h);
+           }
+         }}>
+           <MapaPreview url={preview} pontos={pontos} trajeto={resultado?.trajeto} trechos={resultado?.trechos} height={mobile?390:alturaMapa} pickMode={selecionarNoMapa} onMapPick={marcarNoMapa}/>
+         </View>
          <View style={v.mapBottom}>
            <Icone name="information-circle-outline" color="#63778c" size={17}/>
            <Text style={v.mapBottomText}>{resultado?"Trajeto calculado a partir dos dados de "+resultado.fonte+". Consulte as etapas e confira horários antes de sair.":"Selecione origem e destino e clique em Encontrar trajeto. O percurso só aparece quando o provedor retornar a geometria real."}</Text>
@@ -276,7 +297,8 @@ export default function Home(){
        </View>
 
        <View style={[v.routesPanel,mobile&&v.routesPanelMobile]}>
-         <View style={v.resultsHeader}><Text style={v.resultsTitle}>Trajetos sugeridos</Text><Icone name="options-outline" size={20} color="#667c92"/></View>
+         <View style={[v.panelHeader,v.resultsHeader]}><Text style={v.resultsTitle}>Trajetos sugeridos</Text><Icone name="options-outline" size={20} color="#667c92"/></View>
+         <PainelRolavel mobile={mobile} id="citizen-routes-scroll">
          <View style={v.departure}><Icone name="time-outline" size={15} color="#667c92"/><Text style={v.departureText}>Rota calculada</Text><Text style={v.departureCount}>{resultado?"1 itinerário":"Aguardando busca"}</Text></View>
          {resultado?<View style={v.recommended}>
             <Text style={v.recommendedBadge}>{"TRAJETO DISPONÍVEL · "+(resultado.modal==="onibus"?"ÔNIBUS":resultado.modal==="ferroviario"?"METRÔ / TREM":resultado.modal==="todos"?"TRANSPORTE PÚBLICO":"A PÉ")}</Text>
@@ -324,6 +346,7 @@ export default function Home(){
             </View>}
             <Text style={v.routeDisclaimer}>{resultado.caminhada_longa?"Atenção: avalie uma alternativa com menos caminhada. ":""}Os horários e tarifas podem mudar. Consulte o operador antes de viajar.</Text>
           </View>:<View style={v.emptyResults}><Icone name="git-compare-outline" size={27} color="#8ba2bd"/><Text style={v.emptyResultsTitle}>Seu trajeto aparecerá aqui</Text><Text style={v.emptyResultsCopy}>Selecione endereços sugeridos e um modo de transporte para consultar as opções disponíveis. As rotas são consultadas em serviços externos e podem não estar disponíveis em alguns horários e locais.</Text></View>}
+         </PainelRolavel>
        </View>
      </View>
 
@@ -393,22 +416,29 @@ const v=StyleSheet.create({
  heading:{color:"#1d2633",fontWeight:"700",fontSize:32,letterSpacing:-0.8,lineHeight:43},headingMobile:{fontSize:29,lineHeight:38},
  subtitle:{color:"#586c80",fontSize:15,marginTop:7,lineHeight:22},
  cityBadge:{position:"absolute",right:0,top:70,flexDirection:"row",alignItems:"center",gap:8,backgroundColor:"rgba(255,255,255,.7)",borderRadius:24,paddingHorizontal:16,paddingVertical:13},cityText:{color:"#1d2633",fontSize:13,fontWeight:"500"},
- main:{flexDirection:"row",alignItems:"flex-start",gap:14},mainMobile:{flexDirection:"column"},
- sidebar:{width:272,maxWidth:"100%",flexShrink:0},sidebarMobile:{width:"100%"},
- routesPanel:{width:324,maxWidth:"100%",flexShrink:0,backgroundColor:"rgba(255,255,255,.97)",borderRadius:20,padding:15,borderWidth:1,borderColor:"#d9e6f5"},routesPanelMobile:{width:"100%"},
- searchCard:{backgroundColor:"rgba(255,255,255,.96)",padding:18,borderRadius:20,shadowColor:"#336191",shadowOpacity:.08,shadowRadius:26,elevation:2},
- searchTitle:{fontSize:21,fontWeight:"700",color:"#1d2633",marginBottom:16},
+ main:{flexDirection:"row",alignItems:"stretch",gap:14},mainMobile:{flexDirection:"column",alignItems:"stretch"},
+ sidebar:{width:272,maxWidth:"100%",flexShrink:0,minHeight:0,backgroundColor:"#fff",borderRadius:20,borderWidth:1,borderColor:"#d9e6f5",padding:12},sidebarMobile:{width:"100%"},
+ routesPanel:{width:324,maxWidth:"100%",flexShrink:0,minHeight:0,backgroundColor:"#fff",borderRadius:20,padding:12,borderWidth:1,borderColor:"#d9e6f5"},routesPanelMobile:{width:"100%"},
+ panelHeader:{minHeight:44,flexShrink:0,marginBottom:12,paddingHorizontal:3,flexDirection:"row",alignItems:"center",justifyContent:"space-between",borderBottomWidth:1,borderBottomColor:"#e4edf5"},
+ searchHeader:{},
+ searchTitle:{fontSize:18,fontWeight:"600",color:"#1d2633",flexShrink:1},
+ panelScroll:{flex:1,minHeight:0},
+ panelContent:{paddingRight:6,paddingBottom:6},
+ panelContentMobile:{paddingBottom:6},
+ searchFooter:{flexShrink:0,borderTopWidth:1,borderTopColor:"#e4edf5",paddingTop:10,marginTop:8},
+ mapViewport:{flex:1,flexBasis:0,minHeight:0,overflow:"hidden",borderRadius:18},
+ mapViewportMobile:{height:390,borderRadius:18,overflow:"hidden"},
  modeBar:{flexDirection:"row",backgroundColor:"#eef3f8",borderRadius:11,padding:3,gap:0,justifyContent:"space-between",marginBottom:14},
  modeItem:{paddingHorizontal:5,minHeight:34,justifyContent:"center",alignItems:"center",flexDirection:"row",gap:4,borderRadius:10,flexGrow:1},
  modeActive:{backgroundColor:"#fff",shadowColor:"#336191",shadowOpacity:.08,shadowRadius:4,elevation:1},
  modeText:{fontSize:12,color:"#586c80",fontWeight:"500"},modeTextActive:{fontWeight:"600",color:"#0069d2"},
  addresses:{gap:7},middleActions:{alignSelf:"flex-end",flexDirection:"row",gap:7,marginVertical:1},
  smallAction:{borderWidth:1,borderColor:"#d2e2f1",backgroundColor:"#fff",height:32,width:36,borderRadius:16,alignItems:"center",justifyContent:"center"},
- searchButton:{marginTop:17,backgroundColor:"#0071e3",borderRadius:24,minHeight:48,flexDirection:"row",justifyContent:"center",alignItems:"center",gap:11},
+ searchButton:{marginTop:0,backgroundColor:"#0071e3",borderRadius:24,minHeight:48,flexDirection:"row",justifyContent:"center",alignItems:"center",gap:11},
  searchButtonText:{color:"#fff",fontSize:14,fontWeight:"700"},
  warning:{marginTop:12,backgroundColor:"#fff7e9",borderRadius:10,padding:10,flexDirection:"row",gap:8,alignItems:"center"},
  warningText:{flex:1,fontSize:12,color:"#94602c",lineHeight:18},
- resultsHeader:{marginTop:2,marginBottom:11,flexDirection:"row",alignItems:"center",justifyContent:"space-between"},resultsTitle:{fontWeight:"700",color:"#1d2633",fontSize:18},
+ resultsHeader:{},resultsTitle:{fontWeight:"600",color:"#1d2633",fontSize:18},
  departure:{flexDirection:"row",alignItems:"center",gap:7,marginBottom:14},departureText:{fontSize:12,color:"#586c80"},departureCount:{marginLeft:"auto",fontSize:12,color:"#586c80"},
  recommended:{backgroundColor:"#f9fcff",borderRadius:15,borderWidth:1,borderColor:"#d4e4f5",padding:14,shadowColor:"#336191",shadowOpacity:.08,shadowRadius:16,elevation:2},
  recommendedBadge:{color:"#0069d2",fontWeight:"700",fontSize:10,letterSpacing:1},
@@ -417,11 +447,11 @@ const v=StyleSheet.create({
  routeDisclaimer:{color:"#667c92",fontSize:11,marginTop:8},
  emptyResults:{backgroundColor:"rgba(255,255,255,.86)",borderRadius:24,minHeight:200,padding:23,justifyContent:"center",alignItems:"center",gap:10},
  emptyResultsTitle:{fontWeight:"600",color:"#1d2633",fontSize:14},emptyResultsCopy:{color:"#667c92",fontSize:12,textAlign:"center",lineHeight:19},
- mapCard:{backgroundColor:"#eff5fb",borderRadius:20,padding:12,flex:1,minWidth:0,borderWidth:1,borderColor:"rgba(255,255,255,.8)",shadowColor:"#336191",shadowOpacity:.10,shadowRadius:36,elevation:2},
+ mapCard:{backgroundColor:"#fff",borderRadius:20,padding:12,flex:1,minWidth:0,minHeight:0,borderWidth:1,borderColor:"#d9e6f5"},
  mapCardMobile:{flex:0,width:"100%"},
- mapHeader:{flexDirection:"row",alignItems:"center",justifyContent:"space-between",marginBottom:13,paddingHorizontal:2},
- mapTitle:{color:"#1d2633",fontSize:18,fontWeight:"700"},mapBadge:{backgroundColor:"#fff",paddingHorizontal:11,paddingVertical:8,borderRadius:16,flexDirection:"row",alignItems:"center",gap:6},mapBadgeText:{color:"#0069d2",fontSize:12,fontWeight:"500"},
- mapBottom:{backgroundColor:"rgba(255,255,255,.88)",borderRadius:15,padding:13,marginTop:12,flexDirection:"row",alignItems:"center",gap:9},
+ mapHeader:{},
+ mapTitle:{color:"#1d2633",fontSize:18,fontWeight:"600"},mapBadge:{backgroundColor:"#fff",paddingHorizontal:11,paddingVertical:8,borderRadius:16,flexDirection:"row",alignItems:"center",gap:6},mapBadgeText:{color:"#0069d2",fontSize:12,fontWeight:"500"},
+ mapBottom:{backgroundColor:"#f2f7fc",flexShrink:0,borderRadius:12,padding:10,marginTop:10,flexDirection:"row",alignItems:"center",gap:9},
  mapBottomText:{flex:1,fontSize:12,lineHeight:18,color:"#63778c"},
  demoPanel:{marginTop:18,backgroundColor:"#fff",borderRadius:23,padding:18,borderWidth:1,borderColor:"#d2e2f1"},
  demoHead:{flexDirection:"row",gap:9,alignItems:"center"},demoTitle:{fontSize:15,fontWeight:"700",color:"#1d2633",flex:1},
