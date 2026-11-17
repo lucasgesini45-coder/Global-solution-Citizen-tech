@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import MapaPreview from "../components/MapaPreview";
 import MetroNetwork from "../components/MetroNetwork";
+import HorariosOnibus, {type HorarioOnibus} from "../components/HorariosOnibus";
 
 const API = (process.env.EXPO_PUBLIC_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
 
@@ -21,7 +22,7 @@ type Icon = React.ComponentProps<typeof Ionicons>["name"];
 type Modal = "todos"|"ferroviario"|"onibus"|"ape";
 type Endereco = {nome:string;lat:number;lon:number;fonte:string};
 type Trecho = {modal:string;linha?:string|null;cor_linha?:string|null;paradas?:{nome:string;lat:number;lon:number}[];destino_linha?:string|null;de:string;para:string;tempo_min:number;trajeto:number[][]};
-type Resultado = {tipo:string;fonte:string;tempo_min:number;distancia_m:number|null;tarifa_centavos:number|null;seguranca:{status:string};trajeto:number[][];trechos?:Trecho[];aviso:string;modal?:string;caminhada_m?:number|null;caminhada_longa?:boolean;acessibilidade?:{status:string;aviso:string;solicitou_sem_degraus?:boolean}};
+type Resultado = {horarios_onibus?:HorarioOnibus[];tipo:string;fonte:string;tempo_min:number;distancia_m:number|null;tarifa_centavos:number|null;seguranca:{status:string};trajeto:number[][];trechos?:Trecho[];aviso:string;modal?:string;caminhada_m?:number|null;caminhada_longa?:boolean;acessibilidade?:{status:string;aviso:string;solicitou_sem_degraus?:boolean}};
 type PerguntaAcademica = {numero:number;pergunta:string;categoria:string};
 type FonteAgente = {referencia:string;data_verificacao:string;titulo?:string};
 type Consulta = {resposta:string;origem_resposta:string;fontes:FonteAgente[];sugestoes:string[];aviso:string|null;rota:Resultado|null};
@@ -96,7 +97,7 @@ function PainelRolavel({children,mobile,id}:{children:React.ReactNode;mobile:boo
 
 export default function Home(){
  const {width,height}=useWindowDimensions();const mobile=width<1180;
- const [aba,setAba]=useState<"planejar"|"metro">("planejar");
+ const [aba,setAba]=useState<"planejar"|"metro"|"horarios">("planejar");
  const alturaPainel=Math.max(520,Math.min(760,Math.round(height-245)));
  const [alturaMapa,setAlturaMapa]=useState(400);
  const [modal,setModal]=useState<Modal>("todos");
@@ -239,12 +240,13 @@ export default function Home(){
      <View style={[v.navTabs,mobile&&v.navTabsMobile]}>
        <Pressable onPress={()=>setAba("planejar")} style={[v.navTab,aba==="planejar"&&v.navActive]} accessibilityRole="tab" accessibilityState={{selected:aba==="planejar"}}><Icone name="navigate-outline" size={17} color={aba==="planejar"?"#0069d2":"#64748b"}/><Text style={[v.navTabText,aba==="planejar"&&v.navActiveText]}>Planejar trajeto</Text></Pressable>
        <Pressable onPress={()=>setAba("metro")} style={[v.navTab,aba==="metro"&&v.navActive]} accessibilityRole="tab" accessibilityState={{selected:aba==="metro"}}><Icone name="train-outline" size={17} color={aba==="metro"?"#0069d2":"#64748b"}/><Text style={[v.navTabText,aba==="metro"&&v.navActiveText]}>Mapa do metrô</Text></Pressable>
+       <Pressable onPress={()=>setAba("horarios")} style={[v.navTab,aba==="horarios"&&v.navActive]} accessibilityRole="tab" accessibilityState={{selected:aba==="horarios"}}><Icone name="time-outline" size={17} color={aba==="horarios"?"#0069d2":"#64748b"}/><Text style={[v.navTabText,aba==="horarios"&&v.navActiveText]}>Horários dos ônibus</Text></Pressable>
      </View>
      <Text style={v.navMeta}>Global Solution · 2026</Text>
    </View>
 
    <View style={[v.container,mobile&&v.containerMobile]}>
-     {aba==="metro"?<MetroNetwork mobile={mobile}/>:<>
+     {aba==="metro"?<MetroNetwork mobile={mobile}/>:aba==="horarios"?<HorariosOnibus api={API} horarios={resultado?.horarios_onibus||[]} temRota={!!resultado} carregando={carregando} voltar={()=>setAba("planejar")}/>:<>
      <View style={[v.intro,mobile&&v.introMobile]}>
        <Text style={v.eyebrow}>MENOS COMPLICAÇÃO. MAIS CIDADE.</Text>
        <Text style={[v.heading,mobile&&v.headingMobile]}>Seu próximo destino começa aqui.</Text>
@@ -328,6 +330,7 @@ export default function Home(){
             <Text style={v.recommendedBadge}>{"TRAJETO DISPONÍVEL · "+(resultado.modal==="onibus"?"ÔNIBUS":resultado.modal==="ferroviario"?"METRÔ / TREM":resultado.modal==="todos"?"TRANSPORTE PÚBLICO":"A PÉ")}</Text>
             <View style={v.recommendedTop}><Text style={v.duration}>{resultado.tempo_min} min</Text><Text style={v.fare}>{resultado.tarifa_centavos===null?"Tarifa não informada":resultado.tarifa_centavos===0?"Gratuito":"R$ "+(resultado.tarifa_centavos/100).toFixed(2).replace(".",",")}</Text></View>
             <Text style={v.routeSequenceText}>Fonte: Transitous / OpenStreetMap · Horários estimados</Text>
+            {!!resultado.horarios_onibus?.length&&<Pressable onPress={()=>setAba("horarios")} style={v.detailsToggle} accessibilityRole="button"><Text style={v.detailsToggleText}>Ver horários dos ônibus</Text><Icone name="time-outline" size={17} color="#0069d2"/></Pressable>}
             <View style={v.itineraryHeader}>
               <Text style={v.itineraryHeading}>Etapas da viagem</Text>
               <Text style={v.itineraryCount}>{(resultado.trechos||[]).length} etapas</Text>
