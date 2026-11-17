@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet,
- Text as RNText, TextInput, View, Platform, useWindowDimensions } from "react-native";
+ Text as RNText, TextInput, View, Platform, Linking, useWindowDimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import MapaPreview from "../components/MapaPreview";
@@ -22,7 +22,9 @@ type Modal = "todos"|"ferroviario"|"onibus"|"ape";
 type Endereco = {nome:string;lat:number;lon:number;fonte:string};
 type Trecho = {modal:string;linha?:string|null;cor_linha?:string|null;paradas?:{nome:string;lat:number;lon:number}[];destino_linha?:string|null;de:string;para:string;tempo_min:number;trajeto:number[][]};
 type Resultado = {tipo:string;fonte:string;tempo_min:number;distancia_m:number|null;tarifa_centavos:number|null;seguranca:{status:string};trajeto:number[][];trechos?:Trecho[];aviso:string;modal?:string;caminhada_m?:number|null;caminhada_longa?:boolean;acessibilidade?:{status:string;aviso:string;solicitou_sem_degraus?:boolean}};
-type Consulta = {resposta:string;origem_resposta:string;fontes:{referencia:string;data_verificacao:string}[];sugestoes:string[];aviso:string|null;rota:Resultado|null};
+type PerguntaAcademica = {numero:number;pergunta:string;categoria:string};
+type FonteAgente = {referencia:string;data_verificacao:string;titulo?:string};
+type Consulta = {resposta:string;origem_resposta:string;fontes:FonteAgente[];sugestoes:string[];aviso:string|null;rota:Resultado|null};
 type RotaDemo = {ordem:number;tempo_total_min:number;espera_min:number;caminhada_m:number;baldeacoes:number;saida:string;chegada:string;custo:{centavos:number|null;confirmado:boolean};seguranca:{status:string};acessibilidade:string;trechos:{tipo:string;modal:string|null;linha:string|null}[]};
 type RespostaDemo = {modo:string;origem_dados:string;cenario:string;partida_exemplo:string;aviso:string;resultado:{rotas:RotaDemo[];erro?:{mensagem:string}|null}};
 
@@ -32,7 +34,7 @@ const transportes: {id:Modal;nome:string;icone:Icon}[] = [
  {id:"onibus",nome:"Ônibus",icone:"bus-outline"},
  {id:"ape",nome:"A pé",icone:"walk-outline"},
 ];
-const sugestoesChat=["Como emitir cartão?","Quem tem direito à gratuidade?","Quais são meus direitos?","Como funciona a integração?"];
+const sugestoesChat=["Quanto custa a passagem de metrô?","Como emitir cartão comum?","Como pedir gratuidade PCD?","Posso levar bicicleta dobrável no metrô?"];
 
 function Icone({name,color="#5e62bd",size=20}:{name:Icon;color?:string;size?:number}) {
  return <Ionicons name={name} color={color} size={size}/>;
@@ -102,8 +104,22 @@ export default function Home(){
  const [origemGeo,setOrigemGeo]=useState<Endereco|null>(null);const [destinoGeo,setDestinoGeo]=useState<Endereco|null>(null);
  const [localizando,setLocalizando]=useState(false);const [carregando,setCarregando]=useState(false);
  const [erro,setErro]=useState("");const [resultado,setResultado]=useState<Resultado|null>(null);
- const [chatTexto,setChatTexto]=useState("");const [chat,setChat]=useState<{autor:"pessoa"|"agente";texto:string;fonte?:string;aviso?:string;sugestoes?:string[]}[]>([]);
+ const [chatTexto,setChatTexto]=useState("");const [chat,setChat]=useState<{autor:"pessoa"|"agente";texto:string;fonte?:string;fontes?:FonteAgente[];aviso?:string;sugestoes?:string[]}[]>([]);
  const [chatCarregando,setChatCarregando]=useState(false);
+ const [perguntasAcademicas,setPerguntasAcademicas]=useState<PerguntaAcademica[]>([]);
+ const [erroPerguntas,setErroPerguntas]=useState("");
+ const [filtroAcademico,setFiltroAcademico]=useState<"Todas"|"Consulta"|"Limitação">("Todas");
+ async function carregarPerguntas(){
+   setErroPerguntas("");
+   try{
+     const r=await fetch(API+"/agente/perguntas-academicas");
+     if(!r.ok)throw new Error();
+     const dados=await r.json();
+     if(!Array.isArray(dados))throw new Error();
+     setPerguntasAcademicas(dados);
+   }catch{setErroPerguntas("Não foi possível carregar as perguntas. Confira o backend.");}
+ }
+ useEffect(()=>{void carregarPerguntas();},[]);
  const [demo,setDemo]=useState<RespostaDemo|null>(null);
  const [demoCarregando,setDemoCarregando]=useState(false);
  const [demoErro,setDemoErro]=useState("");
@@ -175,7 +191,8 @@ export default function Home(){
  }
  async function perguntar(pergunta=chatTexto){
    const texto=pergunta.trim();
-   if(!texto || chatCarregando)return;
+   if(chatCarregando)return;
+   if(!texto){setChat(c=>[...c,{autor:"agente",texto:"Digite uma pergunta válida sobre mobilidade urbana."}]);return;}
    setChatTexto("");
    setChat(c=>[...c,{autor:"pessoa",texto}]);
    setChatCarregando(true);
@@ -206,7 +223,8 @@ export default function Home(){
      setChat(c=>[...c,{
        autor:"agente",
        texto:data.resposta,
-       fonte:fontes||academic,
+       fonte:academic||(!data.fontes?.length?fontes:undefined),
+       fontes:data.fontes||[],
        aviso:data.aviso||undefined,
        sugestoes:Array.isArray(data.sugestoes)?data.sugestoes.slice(0,3):[],
      }]);
@@ -383,15 +401,29 @@ export default function Home(){
          </View>}
      </View>
 
+     <View style={[v.assistantArea,mobile&&v.assistantAreaMobile]}>
      <View style={v.assistant}>
        <View style={v.assistantHeader}>
-         <View style={v.assistantHeaderLeft}><Icone name="chatbubble-ellipses-outline" color="#0069d2" size={23}/><View style={{flex:1}}><Text style={v.assistantTitle}>Pergunte ao agente de IA</Text><Text style={v.assistantSubtitle}>Tire dúvidas e consulte trajetos reais com origem e destino selecionados</Text></View></View>
+         <View style={v.assistantHeaderLeft}><Icone name="chatbubble-ellipses-outline" color="#0069d2" size={23}/><View style={{flex:1}}><Text style={v.assistantTitle}>Pergunte ao agente de IA</Text><Text style={v.assistantSubtitle}>Perguntas livres sobre transporte, benefícios, tarifas e acessibilidade, com fontes</Text></View></View>
          <Text style={v.assistantTag}>ASSISTENTE CIDADÃO</Text>
        </View>
        <View style={v.suggestions}>{sugestoesChat.map(t=><Pressable key={t} style={v.suggestion} onPress={()=>perguntar(t)}><Text style={v.suggestionText}>{t}</Text></Pressable>)}</View>
-       <ScrollView style={v.chatHistory} nestedScrollEnabled><View style={{gap:10}}>{chat.length===0?<Text style={v.chatEmpty}>Pergunte sobre mobilidade ou peça um trajeto. Para calcular uma viagem, selecione origem e destino no planejador.</Text>:chat.map((m,i)=><View key={i} style={[v.chatBubble,m.autor==="pessoa"?v.chatBubbleUser:v.chatBubbleAi]}><Text style={[v.chatBubbleText,m.autor==="pessoa"&&{color:"#fff"}]}>{m.texto}</Text>{!!m.fonte&&<Text style={v.chatSource}>{m.fonte}</Text>}{!!m.aviso&&<Text style={v.chatSource}>{m.aviso}</Text>}{!!m.sugestoes?.length&&<View style={{flexDirection:"row",gap:6,flexWrap:"wrap",marginTop:8}}>{m.sugestoes.map((s,j)=><Pressable key={j} onPress={()=>perguntar(s)} style={v.suggestion}><Text style={v.suggestionText}>{s}</Text></Pressable>)}</View>}</View>)}</View></ScrollView>
-       <View style={v.chatInput}><TextInput accessibilityLabel="Pergunta para o agente de IA" value={chatTexto} onChangeText={setChatTexto} placeholder="Escreva sua pergunta..." placeholderTextColor="#9baec2" onSubmitEditing={()=>perguntar()} returnKeyType="send" style={v.chatField}/><Pressable style={v.chatSend} onPress={()=>perguntar()} accessibilityLabel="Enviar pergunta">{chatCarregando?<ActivityIndicator color="#fff"/>:<Icone name="send" size={18} color="#fff"/>}</Pressable></View>
-       <Text style={v.assistantFootnote}>As rotas são consultadas em dados externos; respostas sobre o aplicativo podem vir de uma base acadêmica. Confirme tarifas, acessibilidade e direitos em fontes oficiais.</Text>
+       <ScrollView style={v.chatHistory} nestedScrollEnabled><View style={{gap:10}}>{chat.length===0?<Text style={v.chatEmpty}>Pergunte sobre mobilidade ou peça um trajeto. Para calcular uma viagem, selecione origem e destino no planejador.</Text>:chat.map((m,i)=><View key={i} style={[v.chatBubble,m.autor==="pessoa"?v.chatBubbleUser:v.chatBubbleAi]}><Text style={[v.chatBubbleText,m.autor==="pessoa"&&{color:"#fff"}]}>{m.texto}</Text>{!!m.fonte&&<Text style={v.chatSource}>{m.fonte}</Text>}{m.fontes?.map((f,j)=><Pressable key={j} disabled={!f.referencia.startsWith("https://")} onPress={()=>{void Linking.openURL(f.referencia).catch(()=>{});}} accessibilityRole="link"><Text style={[v.chatSource,{color:"#0069d2"}]}>{f.titulo||f.referencia}{f.data_verificacao?" · "+f.data_verificacao:""}</Text></Pressable>)}{!!m.aviso&&<Text style={v.chatSource}>{m.aviso}</Text>}{!!m.sugestoes?.length&&<View style={{flexDirection:"row",gap:6,flexWrap:"wrap",marginTop:8}}>{m.sugestoes.map((s,j)=><Pressable key={j} onPress={()=>perguntar(s)} style={v.suggestion}><Text style={v.suggestionText}>{s}</Text></Pressable>)}</View>}</View>)}</View></ScrollView>
+       <View style={v.chatInput}><TextInput accessibilityLabel="Pergunta para o agente de IA" value={chatTexto} onChangeText={setChatTexto} maxLength={300} placeholder="Escreva sua pergunta..." placeholderTextColor="#9baec2" onSubmitEditing={()=>perguntar()} returnKeyType="send" style={v.chatField}/><Pressable style={v.chatSend} onPress={()=>perguntar()} accessibilityLabel="Enviar pergunta">{chatCarregando?<ActivityIndicator color="#fff"/>:<Icone name="send" size={18} color="#fff"/>}</Pressable></View>
+       <Text style={v.assistantFootnote}>Consulta a resumos locais de fontes institucionais. Não responde assuntos externos ao projeto. Confirme informações atualizadas nos links oficiais.</Text>
+     </View>
+     <View style={[v.academicPanel,mobile&&v.academicMobile]}>
+       <View style={v.academicHeader}><Icone name="school-outline" color="#0069d2" size={22}/><View style={{flex:1}}><Text style={v.assistantTitle}>Perguntas da avaliação FIAP</Text><Text style={v.assistantSubtitle}>Cenários elaborados pela equipe conforme o enunciado · {perguntasAcademicas.length} casos</Text></View></View>
+       <View style={v.academicFilters}>{(["Todas","Consulta","Limitação"] as const).map(t=><Pressable key={t} style={[v.academicFilter,filtroAcademico===t&&v.navActive]} accessibilityRole="button" accessibilityState={{selected:filtroAcademico===t}} onPress={()=>setFiltroAcademico(t)}><Text style={v.suggestionText}>{t}</Text></Pressable>)}</View>
+       <ScrollView style={v.academicScroll} nestedScrollEnabled persistentScrollbar showsVerticalScrollIndicator keyboardShouldPersistTaps="handled">
+         {perguntasAcademicas.filter(p=>filtroAcademico==="Todas"||p.categoria===filtroAcademico).map(p=><Pressable key={p.numero} disabled={chatCarregando} style={v.academicQuestion} onPress={()=>perguntar(p.pergunta)} accessibilityRole="button">
+           <View style={v.academicNumber}><Text style={v.suggestionText}>{String(p.numero).padStart(2,"0")}</Text></View>
+           <View style={{flex:1}}><Text style={v.chatBubbleText}>{p.pergunta||"Entrada vazia (teste de validação)"}</Text><Text style={v.assistantSubtitle}>{p.categoria}</Text></View><Icone name="arrow-forward-outline" size={15} color="#0069d2"/>
+         </Pressable>)}
+         {!!erroPerguntas&&<Pressable onPress={carregarPerguntas}><Text style={v.chatSource}>{erroPerguntas} Toque para tentar novamente.</Text></Pressable>}
+       </ScrollView>
+       <Text style={v.assistantFootnote}>Clique para testar no chat. Os indicadores A/B documentados são do núcleo acadêmico, avaliado separadamente.</Text>
+     </View>
      </View>
 
      </>}
@@ -478,17 +510,19 @@ const v=StyleSheet.create({
  labSection:{marginTop:18},
  labToggle:{backgroundColor:"#f4f8fe",borderWidth:1,borderColor:"#cfdff1",borderRadius:12,paddingHorizontal:18,paddingVertical:14,flexDirection:"row",alignItems:"center",justifyContent:"space-between"},
  labToggleText:{fontSize:13,fontWeight:"600",color:"#56739a"},
- assistant:{marginTop:24,backgroundColor:"rgba(255,255,255,.93)",borderRadius:25,padding:24,shadowColor:"#336191",shadowOpacity:.07,shadowRadius:20,elevation:1},
+ assistantArea:{flexDirection:"row",gap:14,marginTop:24,alignItems:"stretch"},assistantAreaMobile:{flexDirection:"column"},
+ assistant:{flex:1,minWidth:0,backgroundColor:"rgba(255,255,255,.93)",borderRadius:25,padding:24,shadowColor:"#336191",shadowOpacity:.07,shadowRadius:20,elevation:1},
  assistantHeader:{flexDirection:"row",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12},
  assistantHeaderLeft:{flexDirection:"row",alignItems:"center",gap:11,flex:1},
  assistantTitle:{fontSize:19,fontWeight:"700",color:"#1d2633"},assistantSubtitle:{fontSize:12,color:"#586c80",marginTop:4},
  assistantTag:{fontWeight:"700",fontSize:10,letterSpacing:1,color:"#0069d2"},
  suggestions:{flexDirection:"row",gap:8,flexWrap:"wrap",marginTop:17},suggestion:{borderRadius:18,paddingHorizontal:13,paddingVertical:8,backgroundColor:"#e8f2fd"},suggestionText:{color:"#0069d2",fontSize:12,fontWeight:"500"},
- chatHistory:{minHeight:65,maxHeight:230,marginVertical:15},chatEmpty:{fontSize:12,color:"#7388a0",paddingTop:12},
+ chatHistory:{minHeight:180,maxHeight:340,marginVertical:15},chatEmpty:{fontSize:12,color:"#7388a0",paddingTop:12},
  chatBubble:{borderRadius:18,padding:12,maxWidth:"90%"},chatBubbleUser:{backgroundColor:"#0071e3",alignSelf:"flex-end"},chatBubbleAi:{backgroundColor:"#eaf3fc",alignSelf:"flex-start"},
  chatBubbleText:{color:"#1d2633",fontSize:13,lineHeight:20},chatSource:{color:"#586c80",fontSize:10,marginTop:8},
  chatInput:{flexDirection:"row",alignItems:"center",minHeight:49,backgroundColor:"#f0f5fa",borderRadius:25,paddingLeft:15,paddingRight:5},
  chatField:{flex:1,color:"#1d2633",fontSize:14,paddingVertical:11},chatSend:{height:39,width:39,borderRadius:20,backgroundColor:"#0071e3",alignItems:"center",justifyContent:"center"},
+ academicPanel:{width:360,flexShrink:0,borderRadius:25,padding:20,backgroundColor:"#fff",borderWidth:1,borderColor:"#d9e6f5"},academicMobile:{width:"100%"},academicHeader:{flexDirection:"row",alignItems:"center",gap:10,marginBottom:12},academicFilters:{flexDirection:"row",gap:5,marginBottom:10,flexWrap:"wrap"},academicFilter:{paddingHorizontal:10,paddingVertical:7,borderRadius:10,backgroundColor:"#f0f5fa"},academicScroll:{maxHeight:320,minHeight:100},academicQuestion:{flexDirection:"row",alignItems:"center",gap:9,paddingVertical:10,borderBottomWidth:1,borderBottomColor:"#e5edf5",paddingRight:6},academicNumber:{backgroundColor:"#e8f2fd",borderRadius:9,padding:8},
  assistantFootnote:{fontSize:10,color:"#71859b",marginTop:9},
  footer:{marginVertical:22,textAlign:"center",fontSize:11,color:"#667c92"}
 });
