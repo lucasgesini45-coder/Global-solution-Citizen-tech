@@ -11,6 +11,7 @@ import os
 import re
 import unicodedata
 from urllib.parse import urlencode
+from datetime import datetime, timezone
 
 from fastapi import HTTPException
 
@@ -107,6 +108,44 @@ def decodificar_polilinha(geometry: dict) -> list[list[float]]:
     except (OverflowError, ValueError):
         return []
     return coords
+
+
+def horario_iso(valor):
+    """Preserva somente horários absolutos com fuso, informados pelo provedor."""
+    if not isinstance(valor, str):
+        return None
+    try:
+        dt = datetime.fromisoformat(valor.replace("Z", "+00:00"))
+        return dt.astimezone(timezone.utc).isoformat() if dt.tzinfo is not None else None
+    except (ValueError, OverflowError):
+        return None
+
+
+def horarios_onibus(viagem: dict) -> list[dict]:
+    """Inclui inclusive etapas de ônibus sem geometria, sem inferir horários."""
+    saida = []
+    for indice, item in enumerate(viagem.get("legs", []), 1):
+        if str(item.get("mode", "")).upper() != "BUS":
+            continue
+        de, para = item.get("from") or {}, item.get("to") or {}
+        linha, _ = identificar_linha(item)
+        tempo_real = item.get("realTime") is True
+        partida_programada = horario_iso(item.get("scheduledStartTime")) or horario_iso(de.get("scheduledDeparture"))
+        chegada_programada = horario_iso(item.get("scheduledEndTime")) or horario_iso(para.get("scheduledArrival"))
+        partida = horario_iso(item.get("startTime")) or horario_iso(de.get("departure"))
+        chegada = horario_iso(item.get("endTime")) or horario_iso(para.get("arrival"))
+        saida.append({
+            "etapa": indice, "linha": linha, "sentido": item.get("headsign"),
+            "operadora": item.get("agencyName"), "operadora_id": item.get("agencyId"),
+            "codigo_linha": item.get("routeShortName"),
+            "ponto": de.get("name"), "ponto_id": de.get("stopId"),
+            "desembarque": para.get("name"), "desembarque_id": para.get("stopId"),
+            "partida_programada": partida_programada, "chegada_programada": chegada_programada,
+            "partida": partida or partida_programada, "chegada": chegada or chegada_programada,
+            "tempo_real": tempo_real and partida is not None,
+            "viagem_id": item.get("tripId"),
+        })
+    return saida
 
 
 def _trechos_viagem(viagem: dict) -> list[dict]:
@@ -271,6 +310,7 @@ def consultar_transitous(origem, destino, modal: str, priorizar_menos_caminhada:
         "distancia_m": distancia, "tarifa_centavos": None,
         "seguranca": {"status": "nao_verificada", "exposicao": None},
         "trajeto": trajeto, "trechos": trechos,
+        "horarios_onibus": horarios_onibus(v),
         "busca_ampliada": busca_ampliada,
         "caminhada_m": caminhada_m,
         "caminhada_longa": caminhada_longa,
