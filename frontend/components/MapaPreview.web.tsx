@@ -108,6 +108,19 @@ export default function MapaPreview({pontos=[],height=365,trajeto=[],trechos=[],
    };
  },[]);
 
+ // O mapa usa um canvas próprio: acompanhe mudanças reais do painel,
+ // inclusive as que não disparam resize na janela.
+ useEffect(()=>{
+   const container=containerRef.current;
+   if(!pronto||!container||!mapRef.current)return;
+   const ajustar=()=>mapRef.current?.resize();
+   ajustar();
+   if(typeof ResizeObserver==="undefined")return;
+   const observer=new ResizeObserver(ajustar);
+   observer.observe(container);
+   return ()=>observer.disconnect();
+ },[pronto,height]);
+
  useEffect(()=>{
    if(!pronto||!mapRef.current)return;
    let cancelled=false;
