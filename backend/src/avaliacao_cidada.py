@@ -10,6 +10,7 @@ CASOS = RAIZ / "backend/data/perguntas_cidadas_teste.json"
 
 def avaliar():
     dados = carregar()
+    por_id = {r["id"]: r for r in dados}
     casos = json.loads(CASOS.read_text(encoding="utf-8"))
     resultados = []
     for modelo in ("A", "B"):
@@ -21,7 +22,14 @@ def avaliar():
             acertou = (r["status"] == caso["status_esperado"]
                        and r.get("id") == caso["id_esperado"]
                        and (bool(r["fontes"]) == (r["status"] == "ok")))
-            linhas.append({**caso, "status_obtido": r["status"], "id_obtido": r.get("id"),
+            esperado = por_id.get(caso["id_esperado"])
+            respostas_limite = {
+                "entrada_invalida": "Solicitar uma pergunta válida.",
+                "ambiguo": "Pedir esclarecimento sem escolher uma orientação.",
+                "sem_resposta": "Informar ausência de orientação verificada e sugerir consulta alternativa.",
+            }
+            linhas.append({**caso, "resposta_esperada": esperado["orientacao"] if esperado else respostas_limite[caso["status_esperado"]],
+                           "status_obtido": r["status"], "id_obtido": r.get("id"),
                            "resposta_obtida": r["resposta"], "fontes": r["fontes"],
                            "acerto": acertou, "tempo_ms": round(tempo, 6)})
         acertos = sum(l["acerto"] for l in linhas)
