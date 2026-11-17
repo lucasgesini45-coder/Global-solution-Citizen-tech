@@ -9,6 +9,9 @@ BASE = Path(__file__).resolve().parents[1] / "data" / "documentos_transporte.jso
 DOMINIOS = {"www.metro.sp.gov.br", "www.sptrans.com.br", "bilheteunico.sptrans.com.br", "atendimento.sptrans.com.br", "www.cptm.sp.gov.br", "passelivre.antt.gov.br", "www.gov.br"}
 ESCOPO = set("metro trem trens onibus transporte transportes mobilidade bilhete cartao sptrans cptm antt passagem tarifa tarifas estacao estacoes baldeacao integracao gratuidade passe cadeira cadeirante acessibilidade elevador catraca atende bicicleta rota trajeto caminhada".split())
 FORA = set("receita bolo futebol politica eleicao presidente bitcoin investimento programacao python javascript matematica astrologia".split())
+
+def bloqueado(texto):
+    return bool(termos(texto) & FORA or re.search(r"\b(ignore|desconsidere|esqueca|esqueça)\b.{0,40}\b(instrucoes|instruções|regras|prompt|escopo)\b", texto.lower()))
 SINONIMOS = {"precos":"preco","valor":"preco","custa":"preco","custo":"preco","pago":"preco","passagens":"passagem","tarifas":"tarifa","cartoes":"cartao","estacoes":"estacao","trens":"trem","bike":"bicicleta","pet":"animal","pets":"animal","cachorro":"cao","cachorros":"cao","gatos":"gato","perdido":"perda","perdi":"perda","roubaram":"roubo","roubado":"roubo","extraviado":"perda","idosos":"idoso","cadeirantes":"cadeirante","elevadores":"elevador","gratuito":"gratuidade","gratis":"gratuidade","gratuita":"gratuidade","recarregar":"recarga","recarrego":"recarga","creditos":"credito","coloco":"colocar","colocar":"recarga","fechamento":"fecha","fecham":"fecha","abertura":"abre","abrem":"abre"}
 GENERICOS = set("oi ola bom boa dia tarde noite gostaria saber favor por gentileza tenho funciona funciona fazer consigo pode poderia pode me informar dizer explicar preciso quero posso qual quais acerca sobre ai e entao".split())
 SUGESTOES = ["Quanto custa a passagem de metrô?", "Como pedir gratuidade PCD?", "Posso levar bicicleta dobrável no metrô?"]
@@ -18,9 +21,9 @@ def tokens(texto):
 
 def escopo(texto):
     t=tokens(texto)
-    if t & FORA:
+    if bloqueado(texto):
         return False
-    return bool(t & ESCOPO or {"passe","livre"} <= t or "pcd" in t)
+    return bool(t & ESCOPO or {"passe","livre"} <= t or "pcd" in t or "atende" in t)
 
 def documentos():
     dados=json.loads(BASE.read_text(encoding="utf-8"))
@@ -35,6 +38,8 @@ def consultar_documentos(pergunta, registros):
     p=tokens(pergunta)
     if not p or not escopo(pergunta):
         return resposta_limite("Meu atendimento é exclusivo para transporte público, mobilidade urbana, tarifas, benefícios e acessibilidade.", "fora_escopo")
+    if p <= {"cartao","comum","bilhete","unico"}:
+        return resposta_limite("Você quer emitir, recarregar ou solicitar a segunda via do Bilhete Único?", "ambiguo", ["Como emitir cartão comum?", "Onde recarregar o Bilhete Único Comum?", "Quanto custa a segunda via do Bilhete Único?"])
     candidatos=[]
     fontes=[]
     for r in registros:
