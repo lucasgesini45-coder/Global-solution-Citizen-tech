@@ -74,6 +74,14 @@ A equipe deve revisar a base de fontes e a apresentação dos resultados antes d
 | `backend/src/transporte/` | Importador GTFS |
 | `docs/` | PRD, documentação e roteiro de implantação |
 
+## Assistente de viagem e planejamento econômico
+
+Após calcular a rota real, abra **Assistente de viagem** para seguir etapas, consultar embarque, desembarque, horários e paradas intermediárias. A conclusão é manual; o progresso não usa localização contínua. Para uma conexão perdida, retorne ao planejador, confirme a origem atual e recalcule.
+
+**Planejamento econômico** compara até cinco itinerários retornados na mesma consulta e modal. A estimativa soma tarifas comuns avulsas de serviços identificados (SPTrans R$ 5,30, rede ferroviária convencional R$ 5,40; ônibus municipais gratuitos aos domingos quando identificados). Não presume descontos, gratuidades pessoais ou integração. O custo fica indefinido se alguma etapa não tiver tarifa identificada. A tarifa integrada comum de R$ 9,38 é apresentada como referência, sujeita às regras do Bilhete Único. Não representa garantia de cobrança. Fontes: [SPTrans](https://www.sptrans.com.br/tarifas), [Metrô](https://www.metro.sp.gov.br/sua-viagem/bilhetes-cartoes/), [Tarifa Zero](https://www.sptrans.com.br/perguntas-e-respostas/?sobre=tarifa-zero), consultadas em 17/11/2026. Selecionar uma alternativa atualiza o mapa, as etapas e horários.
+
+Testes específicos: `python -m pytest backend/tests/test_viagem_economia.py -v`. A disponibilidade de opções, identificação de operadoras e horários depende do Transitous. A comparação não busca exaustivamente todas as modalidades nem certifica acessibilidade.
+
 ## Instalação no Windows
 
 No PowerShell, a partir da **raiz do repositório**:
