@@ -307,6 +307,7 @@ const normalizar=(s:string)=>s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").t
 
 export default function MetroNetwork({mobile}:{mobile:boolean}){
  const [filtro,setFiltro]=useState<Filtro>("todos");
+ const [painel,setPainel]=useState<"linhas"|"tarifas">("linhas");
  const [busca,setBusca]=useState("");
  const [selecionada,setSelecionada]=useState<string|null>(null);
  const [erro,setErro]=useState("");
@@ -348,7 +349,7 @@ export default function MetroNetwork({mobile}:{mobile:boolean}){
            <Pressable onPress={()=>abrir(PDF_MAPA)}><Text style={s.link}>Abrir PDF oficial</Text></Pressable>
          </View>:<ScrollView style={{flex:1}} nestedScrollEnabled showsVerticalScrollIndicator persistentScrollbar>
            <ScrollView horizontal nestedScrollEnabled showsHorizontalScrollIndicator persistentScrollbar>
-             <Image key={tentativa} source={{uri:MAPA_IMAGEM+"?v="+tentativa}} style={{width:mapaLargura,height:mapaLargura*1.5,backgroundColor:"#fff"}} resizeMode="contain" accessibilityLabel="Mapa oficial do transporte metropolitano de São Paulo, julho de 2026" onError={()=>setMapaErro(true)}/>
+             <Image key={tentativa} source={{uri:tentativa?MAPA_IMAGEM+"?v="+tentativa:MAPA_IMAGEM}} style={{width:mapaLargura,height:mapaLargura*1.5,backgroundColor:"#fff"}} resizeMode="contain" accessibilityLabel="Mapa oficial do transporte metropolitano de São Paulo, julho de 2026" onError={()=>setMapaErro(true)}/>
            </ScrollView>
          </ScrollView>}
        </View>
@@ -356,10 +357,16 @@ export default function MetroNetwork({mobile}:{mobile:boolean}){
        <Pressable onPress={()=>abrir(PAGINA_MAPA)} accessibilityRole="link"><Text style={s.link}>Consultar a versão mais recente no site oficial ↗</Text></Pressable>
      </View>
      <View style={[s.details,mobile&&s.detailsMobile]}>
-       <View style={s.header}><Text style={s.title}>Linhas da rede</Text><Text style={s.small}>{linhas.length} linhas</Text></View>
-       <View style={s.search}><Ionicons name="search-outline" size={17} color="#64748b"/><TextInput value={busca} onChangeText={setBusca} placeholder="Buscar linha, operador ou terminal..." placeholderTextColor="#8898a8" style={s.input} accessibilityLabel="Buscar linhas ferroviárias"/></View>
+       <View style={s.header}><Text style={s.title}>Rede metropolitana</Text><Text style={s.small}>{painel==="linhas"?linhas.length+" linhas":"Valores 2026"}</Text></View>
+       <View style={s.sectionTabs}>
+         {(["linhas","tarifas"] as const).map(p=><Pressable key={p} onPress={()=>setPainel(p)} accessibilityRole="tab" accessibilityState={{selected:painel===p}} style={[s.sectionTab,painel===p&&s.sectionTabActive]}><Text style={[s.filterText,painel===p&&s.activeText]}>{p==="linhas"?"Linhas e estações":"Tarifas"}</Text></Pressable>)}
+       </View>
+       {painel==="linhas"&&<>
+       <View style={s.search}><Ionicons name="search-outline" size={17} color="#64748b"/><TextInput value={busca} onChangeText={setBusca} placeholder="Buscar linha ou estação..." placeholderTextColor="#8898a8" style={s.input} accessibilityLabel="Buscar linhas ferroviárias"/></View>
        <View style={s.filters}>{filtros.map(f=><Pressable key={f.id} onPress={()=>setFiltro(f.id)} style={[s.filter,filtro===f.id&&s.active]} accessibilityRole="button" accessibilityState={{selected:filtro===f.id}}><Text style={[s.filterText,filtro===f.id&&s.activeText]}>{f.label}</Text></Pressable>)}</View>
-       <ScrollView style={mobile?undefined:s.lineScroll} contentContainerStyle={s.lineScrollContent} nestedScrollEnabled persistentScrollbar showsVerticalScrollIndicator keyboardShouldPersistTaps="handled">
+       </>}
+       <ScrollView key={painel} style={mobile?undefined:s.lineScroll} contentContainerStyle={s.lineScrollContent} nestedScrollEnabled persistentScrollbar showsVerticalScrollIndicator keyboardShouldPersistTaps="handled">
+       {painel==="linhas"&&<>
        {linhas.map(l=><View key={l.numero} style={s.lineGroup}>
          <Pressable onPress={()=>setSelecionada(x=>x===l.numero?null:l.numero)} style={s.line} accessibilityRole="button" accessibilityState={{expanded:selecionada===l.numero}}>
            <View style={[s.number,{backgroundColor:l.cor}]}><Text style={[s.numberText,["4","8","15","17"].includes(l.numero)&&{color:"#172333"}]}>{l.numero}</Text></View>
@@ -382,14 +389,15 @@ export default function MetroNetwork({mobile}:{mobile:boolean}){
          </View>}
        </View>)}
        {!linhas.length&&<Text style={s.note}>Nenhuma linha encontrada. Tente outro termo.</Text>}
-       <View style={s.info}>
+       </>}
+       {painel==="tarifas"&&<View style={s.info}>
          <Text style={s.title}>Tarifas e integrações</Text>
          <Text style={s.note}>Vigência de referência: 06/01/2026. Consulta das fontes: 17/11/2026. Tarifa comum não depende da distância nem da estação. Transferências podem exigir pagamento fora das áreas ou horários gratuitos.</Text>
          {TABELA_TARIFAS.map(([nome,valor])=><View key={nome} style={s.station}><Text style={[s.stationName,{flex:1}]}>{nome}</Text><Text style={s.fare}>{valor}</Text></View>)}
          <Text style={s.note}>Linhas 6 e 17: operação especial gratuita enquanto vigente. Tatuapé e Corinthians-Itaquera: segunda a sexta, 10h–17h e 20h–24h; sábados, domingos e feriados durante operação comercial.</Text>
          <Pressable onPress={()=>abrir(TARIFAS)} accessibilityRole="link"><Text style={s.link}>Tarifas oficiais do Metrô ↗</Text></Pressable>
          <Pressable onPress={()=>abrir(TARIFAS_SPTRANS)} accessibilityRole="link"><Text style={s.link}>Tarifas de integração SPTrans ↗</Text></Pressable>
-       </View>
+       </View>}
        <View style={s.info}>
          <Text style={s.title}>Informações úteis</Text>
          <Pressable onPress={()=>abrir(HORARIOS)} style={s.infoLink}><Ionicons name="time-outline" size={19} color="#0071e3"/><Text style={s.link}>Horários do Metrô</Text></Pressable>
@@ -435,6 +443,9 @@ const s=StyleSheet.create({
  zoomButton:{minWidth:34,minHeight:34,paddingHorizontal:8,backgroundColor:"#edf3f9",borderRadius:8,alignItems:"center",justifyContent:"center"},
  mapViewport:{flex:1,minHeight:0,borderRadius:12,overflow:"hidden",backgroundColor:"#f3f7fb",borderWidth:1,borderColor:"#e4edf5"},
  mapViewportMobile:{flex:0,height:520},
+ sectionTabs:{flexDirection:"row",backgroundColor:"#edf3f9",borderRadius:11,padding:3,gap:3},
+ sectionTab:{flex:1,alignItems:"center",justifyContent:"center",minHeight:34,borderRadius:9},
+ sectionTabActive:{backgroundColor:"#fff"},
  lineScroll:{flex:1,minHeight:0},
  lineScrollContent:{paddingRight:5,paddingBottom:12},
  lineGroup:{borderBottomWidth:1,borderBottomColor:"#eaf0f6"},
