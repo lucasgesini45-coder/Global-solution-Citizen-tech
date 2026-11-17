@@ -4,7 +4,7 @@ import {Ionicons} from "@expo/vector-icons";
 import type {HorarioOnibus} from "./HorariosOnibus";
 
 export type EtapaViagem={etapa:number;modal:string;linha?:string|null;cor_linha?:string|null;operadora?:string|null;sentido?:string|null;de?:string|null;para?:string|null;partida?:string|null;chegada?:string|null;tempo_real?:boolean;tempo_min?:number|null;paradas?:string[]};
-export type CustoViagem={centavos:number|null;status:string;detalhes:{linha:string;centavos:number}[];pendencias:string[];fontes:string[];data_referencia:string;aviso:string};
+export type CustoViagem={centavos:number|null;integracao_centavos?:number|null;integracao_condicao?:string|null;status:string;detalhes:{linha:string;centavos:number}[];pendencias:string[];fontes:string[];data_referencia:string;aviso:string};
 export type AlternativaEconomica={id:number;tempo_min:number;caminhada_m:number|null;etapas_viagem:EtapaViagem[];horarios_onibus:HorarioOnibus[];custo:CustoViagem;trajeto:number[][];trechos:any[];modal:string};
 const dinheiro=(n:number)=>"R$ "+(n/100).toFixed(2).replace(".",",");
 function hora(t?:string|null){if(!t)return "Não informado";const d=new Date(t);return Number.isNaN(d.getTime())?"Não informado":new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).format(d);}
@@ -41,23 +41,28 @@ export function AssistenteViagem({etapas,indice,setIndice,voltar,horarios,recalc
 }
 export function PlanejamentoEconomico({opcoes,selecionada,selecionar,voltar,temRota}:{opcoes:AlternativaEconomica[];selecionada:number|null;selecionar:(o:AlternativaEconomica)=>void;voltar:()=>void;temRota:boolean}){
  const [orcamento,setOrcamento]=useState("10,00");
+ const [bilheteUnico,setBilheteUnico]=useState(false);
+ const custoOpcao=(o:AlternativaEconomica)=>bilheteUnico?(o.custo.integracao_centavos??o.custo.centavos):o.custo.centavos;
  const valido=/^\d{1,5}([,.]\d{1,2})?$/.test(orcamento.trim());
  const limite=valido?Math.round(Number(orcamento.replace(",","."))*100):null;
- const classificadas=[...opcoes].sort((a,b)=>(a.custo.centavos??Infinity)-(b.custo.centavos??Infinity)||a.tempo_min-b.tempo_min);
+ const classificadas=[...opcoes].sort((a,b)=>(custoOpcao(a)??Infinity)-(custoOpcao(b)??Infinity)||a.tempo_min-b.tempo_min);
  return <View style={s.page}>
  <Text style={s.eyebrow}>MOBILIDADE QUE CABE NO BOLSO</Text><Text style={s.heading}>Planejamento econômico</Text><Text style={s.sub}>Compare itinerários disponíveis para o mesmo trajeto e modal. Valores de referência, não garantia de cobrança.</Text><Voltar onPress={voltar}/>
- <View style={s.card}><Text style={s.title}>Quanto você pode gastar?</Text><Text style={s.sub}>Orçamento de uma viagem (ida), em reais.</Text><TextInput accessibilityLabel="Orçamento em reais" keyboardType="decimal-pad" value={orcamento} onChangeText={setOrcamento} style={s.input} maxLength={8}/>{!valido&&<Text style={s.error}>Informe um valor válido, como 10,50.</Text>}</View>
+ <View style={s.card}><Text style={s.title}>Quanto você pode gastar?</Text><Text style={s.sub}>Orçamento de uma viagem (ida), em reais.</Text><TextInput accessibilityLabel="Orçamento em reais" keyboardType="decimal-pad" value={orcamento} onChangeText={setOrcamento} style={s.input} maxLength={8}/>{!valido&&<Text style={s.error}>Informe um valor válido, como 10,50.</Text>}<Pressable onPress={()=>setBilheteUnico(x=>!x)} style={s.item} accessibilityRole="checkbox" accessibilityState={{checked:bilheteUnico}}><Ionicons name={bilheteUnico?"checkbox":"square-outline"} color="#0069d2" size={22}/><View style={{flex:1}}><Text style={s.title}>Considerar Bilhete Único Comum</Text><Text style={s.sub}>Estimativa de integração quando houver dados suficientes e as condições de embarque forem atendidas. Não verifica seu saldo ou elegibilidade.</Text></View></Pressable></View>
  {!temRota||!opcoes.length?<View style={s.card}><Text style={s.title}>Nenhuma opção disponível</Text><Text style={s.sub}>Calcule um trajeto no planejador para consultar as alternativas. Caminhadas podem não ter custo de passagem.</Text></View>:classificadas.map(o=>{
- const custo=o.custo.centavos;const dentro=limite!==null&&custo!==null&&custo<=limite;
+ const custo=custoOpcao(o);const dentro=limite!==null&&custo!==null&&custo<=limite;
  return <View key={o.id} style={s.card}><View style={s.row}><Text style={s.title}>Opção {o.id}{selecionada===o.id?" · Selecionada":""}</Text><Text style={s.heading}>{custo===null?"Indefinido":dinheiro(custo)}</Text></View>
  <Text style={s.sub}>{o.tempo_min} min · {o.caminhada_m==null?"Caminhada não informada":(o.caminhada_m/1000).toFixed(2)+" km a pé"}</Text>
  <Text style={[s.label,{color:custo===null||limite===null?"#64748b":dentro?"#008e5a":"#9d4f20"}]}>{custo===null?"CUSTO NÃO CONFIRMADO":limite===null?"INFORME O ORÇAMENTO":dentro?"ESTIMATIVA DENTRO DO ORÇAMENTO":"ESTIMATIVA ACIMA DO ORÇAMENTO"}</Text>
  <Text style={s.sub}>{o.etapas_viagem.map(e=>modo(e)+(e.linha?" "+e.linha:"")).join(" → ")}</Text>
+ {bilheteUnico&&o.custo.integracao_centavos!=null&&<Text style={s.sub}>{o.custo.integracao_condicao} Total avulso de referência: {dinheiro(o.custo.centavos??0)}.</Text>}
+ {bilheteUnico&&o.custo.integracao_centavos==null&&<Text style={s.sub}>Sem confirmação suficiente para estimar integração; exibe o cenário avulso quando conhecido.</Text>}
+ <Text style={s.label}>REFERÊNCIAS AVULSAS POR EMBARQUE</Text>
  {o.custo.detalhes.map((d,i)=><View key={i} style={s.row}><Text style={s.sub}>{d.linha}</Text><Text style={s.title}>{dinheiro(d.centavos)}</Text></View>)}
  {o.custo.pendencias.map((p,i)=><Text key={i} style={s.error}>{p}</Text>)}
  <Botao titulo="Usar esta alternativa" onPress={()=>selecionar(o)} secondary={selecionada===o.id}/>
  </View>})}
- <View style={s.card}><Text style={s.title}>Como os custos são calculados</Text><Text style={s.sub}>Tarifa comum municipal SPTrans: R$ 5,30; ônibus municipais gratuitos aos domingos quando a data/operadora são identificadas; rede ferroviária convencional identificada: R$ 5,40 por embarque. A referência integrada ônibus + trilhos é R$ 9,38 com Bilhete Único Comum e condições específicas. O cálculo soma tarifas avulsas, sem presumir descontos, integrações ou benefícios pessoais. Linhas especiais, intermunicipais e operadoras não identificadas ficam sem estimativa completa.</Text>
+ <View style={s.card}><Text style={s.title}>Como os custos são calculados</Text><Text style={s.sub}>Tarifa comum municipal SPTrans: R$ 5,30; ônibus municipais gratuitos aos domingos quando a data/operadora são identificadas; rede ferroviária convencional identificada: R$ 5,40 por embarque. A referência integrada ônibus + trilhos é R$ 9,38 com Bilhete Único Comum e condições específicas. Por padrão, o cálculo soma tarifas avulsas. A opção Bilhete Único aplica uma estimativa de integração somente quando a operação e os horários fornecem dados suficientes. Benefícios pessoais e gratuidades especiais não são presumidos. Linhas especiais, intermunicipais e operadoras não identificadas ficam sem estimativa completa.</Text>
  {["https://www.sptrans.com.br/tarifas","https://www.metro.sp.gov.br/sua-viagem/bilhetes-cartoes/","https://www.sptrans.com.br/perguntas-e-respostas/?sobre=tarifa-zero"].map(u=><Pressable key={u} onPress={()=>{void Linking.openURL(u).catch(()=>{})}} accessibilityRole="link"><Text style={s.link}>{u}</Text></Pressable>)}
  <Text style={s.sub}>Referências consultadas em 17/11/2026. Confirme valores e regras atuais antes de viajar. Não há garantia de economia nem de percurso acessível.</Text></View>
  </View>;
