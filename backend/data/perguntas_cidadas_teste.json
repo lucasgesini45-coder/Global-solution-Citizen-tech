@@ -1,0 +1,102 @@
+[
+  {
+    "pergunta": "Como emitir cartão comum?",
+    "status_esperado": "ok",
+    "id_esperado": 1
+  },
+  {
+    "pergunta": "segunda via cartão comum",
+    "status_esperado": "ok",
+    "id_esperado": 2
+  },
+  {
+    "pergunta": "recarga bilhete unico comum",
+    "status_esperado": "ok",
+    "id_esperado": 3
+  },
+  {
+    "pergunta": "posto atendimento cartao comum",
+    "status_esperado": "ok",
+    "id_esperado": 4
+  },
+  {
+    "pergunta": "bilhete especial pcd laudo medico",
+    "status_esperado": "ok",
+    "id_esperado": 5
+  },
+  {
+    "pergunta": "cartao idoso 65",
+    "status_esperado": "ok",
+    "id_esperado": 6
+  },
+  {
+    "pergunta": "desconto estudante transporte",
+    "status_esperado": "ok",
+    "id_esperado": 7
+  },
+  {
+    "pergunta": "requisitos passe livre antt",
+    "status_esperado": "ok",
+    "id_esperado": 8
+  },
+  {
+    "pergunta": "pedir passe livre digital",
+    "status_esperado": "ok",
+    "id_esperado": 9
+  },
+  {
+    "pergunta": "assento preferencial metro",
+    "status_esperado": "ok",
+    "id_esperado": 10
+  },
+  {
+    "pergunta": "cachorro guia metro",
+    "status_esperado": "ok",
+    "id_esperado": 11
+  },
+  {
+    "pergunta": "van adaptada atende mais",
+    "status_esperado": "ok",
+    "id_esperado": 12
+  },
+  {
+    "pergunta": "telefone atende mais",
+    "status_esperado": "ok",
+    "id_esperado": 13
+  },
+  {
+    "pergunta": "horario abre fecha estacao",
+    "status_esperado": "ok",
+    "id_esperado": 14
+  },
+  {
+    "pergunta": "perdi documento estacao",
+    "status_esperado": "ok",
+    "id_esperado": 15
+  },
+  {
+    "pergunta": "Quando o metrô fecha na estação?",
+    "status_esperado": "ok",
+    "id_esperado": 14
+  },
+  {
+    "pergunta": "Como coloco crédito no cartão comum?",
+    "status_esperado": "ok",
+    "id_esperado": 3
+  },
+  {
+    "pergunta": "",
+    "status_esperado": "entrada_invalida",
+    "id_esperado": null
+  },
+  {
+    "pergunta": "cartão comum",
+    "status_esperado": "ambiguo",
+    "id_esperado": null
+  },
+  {
+    "pergunta": "Qual a receita de bolo de chocolate?",
+    "status_esperado": "sem_resposta",
+    "id_esperado": null
+  }
+]
