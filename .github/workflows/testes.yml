@@ -30,6 +30,10 @@ jobs:
           python -m pip install -r backend/requirements.txt
       - name: Testes backend
         run: python -m pytest backend/tests -v
+      - name: Avaliação acadêmica A/B
+        run: |
+          python -m backend.src.avaliacao_cidada
+          cat docs/resultados_avaliacao_cidada.json
       - name: Typecheck frontend
         working-directory: frontend
         run: |
