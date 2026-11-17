@@ -3,7 +3,7 @@ import {Pressable,StyleSheet,Text,TextInput,View,Linking} from "react-native";
 import {Ionicons} from "@expo/vector-icons";
 import type {HorarioOnibus} from "./HorariosOnibus";
 
-export type EtapaViagem={etapa:number;modal:string;linha?:string|null;cor_linha?:string|null;operadora?:string|null;sentido?:string|null;de?:string|null;para?:string|null;partida?:string|null;chegada?:string|null;tempo_real?:boolean;tempo_min?:number|null;paradas?:string[]};
+export type EtapaViagem={inicio_geo?:{lat:number;lon:number}|null;fim_geo?:{lat:number;lon:number}|null;etapa:number;modal:string;linha?:string|null;cor_linha?:string|null;operadora?:string|null;sentido?:string|null;de?:string|null;para?:string|null;partida?:string|null;chegada?:string|null;tempo_real?:boolean;tempo_min?:number|null;paradas?:string[]};
 export type CustoViagem={centavos:number|null;integracao_centavos?:number|null;integracao_condicao?:string|null;status:string;detalhes:{linha:string;centavos:number}[];pendencias:string[];fontes:string[];data_referencia:string;aviso:string};
 export type AlternativaEconomica={id:number;tempo_min:number;caminhada_m:number|null;etapas_viagem:EtapaViagem[];horarios_onibus:HorarioOnibus[];custo:CustoViagem;trajeto:number[][];trechos:any[];modal:string};
 const dinheiro=(n:number)=>"R$ "+(n/100).toFixed(2).replace(".",",");
@@ -12,28 +12,31 @@ const modo=(e:EtapaViagem)=>e.modal==="WALK"?"A pé":e.modal==="BUS"?"Ônibus":e
 
 function Voltar({onPress}:{onPress:()=>void}){return <Pressable style={s.back} onPress={onPress} accessibilityRole="button"><Ionicons name="arrow-back-outline" size={18} color="#0069d2"/><Text style={s.link}>Voltar ao planejamento</Text></Pressable>}
 function Botao({titulo,onPress,secondary=false,disabled=false}:{titulo:string;onPress:()=>void;secondary?:boolean;disabled?:boolean}){return <Pressable accessibilityRole="button" disabled={disabled} onPress={onPress} style={[s.button,secondary&&s.secondary,disabled&&{opacity:.45}]}><Text style={[s.buttonText,secondary&&{color:"#0069d2"}]}>{titulo}</Text></Pressable>}
-export function AssistenteViagem({etapas,indice,setIndice,voltar,horarios,recalcular,temRota,carregando}:{etapas:EtapaViagem[];indice:number;setIndice:(n:number)=>void;voltar:()=>void;horarios:()=>void;recalcular:()=>void;temRota:boolean;carregando:boolean}){
+export function AssistenteViagem({etapas,indice,setIndice,voltar,horarios,recalcular,temRota,carregando,gpsAtivo,statusGPS,mapa}:{etapas:EtapaViagem[];indice:number;setIndice:(n:number)=>void;voltar:()=>void;horarios:()=>void;recalcular:()=>void;temRota:boolean;carregando:boolean;gpsAtivo:boolean;statusGPS:string;mapa:React.ReactNode}){
  const atual=etapas[indice], seguinte=etapas[indice+1], total=etapas.length;
  const encerrada=total>0&&indice>=total;
  return <View style={s.page}>
-   <Text style={s.eyebrow}>ACOMPANHAMENTO DE VIAGEM</Text><Text style={s.heading}>Assistente de viagem</Text><Text style={s.sub}>Siga cada etapa do percurso e confirme seu progresso manualmente. Sem rastreamento em segundo plano.</Text><Voltar onPress={voltar}/>
+   <Text style={s.eyebrow}>ACOMPANHAMENTO DE VIAGEM</Text><Text style={s.heading}>Assistente de viagem</Text><Text style={s.sub}>Ative o GPS para acompanhar o percurso e avançar automaticamente nas etapas reconhecidas. O modo manual continua disponível.</Text><Voltar onPress={voltar}/>
+   {mapa}
+   <Text style={s.sub}>{statusGPS} · {gpsAtivo?"Avanço automático quando o GPS confirma o percurso.":"Ative o GPS para habilitar avanço automático."}</Text>
    {!temRota||!total?<View style={s.card}><Text style={s.title}>Calcule um trajeto para começar</Text><Text style={s.sub}>Assim que o itinerário estiver disponível, suas instruções aparecerão aqui.</Text></View>:<>
      <View style={s.card}>
        <View style={s.row}><Text style={s.title}>Progresso da viagem</Text><Text style={s.link}>{Math.min(indice,total)} de {total} etapas concluídas</Text></View>
        <View style={s.track}><View style={[s.fill,{width:(Math.min(indice,total)/total*100).toFixed(2)+"%" as `${number}%`}]}/></View>
-       {encerrada?<><Text style={s.heading}>Viagem concluída</Text><Text style={s.sub}>Todas as etapas foram marcadas como concluídas por você.</Text><Botao titulo="Reiniciar acompanhamento" onPress={()=>setIndice(0)} secondary/></>:atual&&<>
+       {encerrada?<><Text style={s.heading}>Viagem concluída</Text><Text style={s.sub}>Todas as etapas foram concluídas no acompanhamento.</Text><Botao titulo="Reiniciar acompanhamento" onPress={()=>setIndice(0)} secondary/></>:atual&&<>
          <Text style={s.eyebrow}>ETAPA ATUAL · {indice+1}</Text><Text style={s.heading}>{modo(atual)}{atual.linha?" · "+atual.linha:""}</Text>
          <View style={s.stop}><Text style={s.label}>{atual.modal==="WALK"?"PONTO DE PARTIDA":"EMBARQUE"}</Text><Text style={s.title}>{atual.de||"Não informado"}</Text><Text style={s.label}>{atual.modal==="WALK"?"DESTINO DA CAMINHADA":"DESEMBARQUE"}</Text><Text style={s.title}>{atual.para||"Não informado"}</Text>{!!atual.sentido&&<Text style={s.sub}>Sentido: {atual.sentido}</Text>}</View>
          <Text style={s.sub}>Partida: {hora(atual.partida)}  ·  Chegada: {hora(atual.chegada)}{atual.tempo_min!=null?"  ·  "+atual.tempo_min+" min":""}</Text>
          <Text style={s.sub}>{atual.tempo_real?"Horários informados com dados em tempo real na consulta original; não são atualizados automaticamente.":"Horários do itinerário, sem confirmação em tempo real."}</Text>
          {!!atual.paradas?.length&&<Text style={s.sub}>Paradas intermediárias: {atual.paradas.join(" · ")}</Text>}
          {seguinte&&<Text style={s.sub}>Próxima etapa: {modo(seguinte)} {seguinte.linha||""} — {seguinte.de||"ponto não informado"}</Text>}
+         {gpsAtivo&&(!atual.inicio_geo||!atual.fim_geo)&&<Text style={s.sub}>Coordenadas desta etapa indisponíveis; confirme manualmente.</Text>}
          <Botao titulo={indice===total-1?"Concluir viagem":"Concluir etapa e avançar"} onPress={()=>setIndice(indice+1)}/>
          <Botao titulo="Etapa anterior" onPress={()=>setIndice(Math.max(0,indice-1))} secondary disabled={indice===0}/>
        </>}
        <Botao titulo="Consultar horários de ônibus" onPress={horarios} secondary/>
        <Botao titulo={carregando?"Recalculando...":"Recalcular a partir do planejador"} onPress={recalcular} disabled={carregando} secondary/>
-       <Text style={s.sub}>Em caso de atraso, perda de conexão ou mudança de percurso, confirme sua localização no planejador e calcule uma nova rota. Esta ferramenta não monitora sua posição, nem garante a acessibilidade.</Text>
+       <Text style={s.sub}>Em caso de atraso, perda de conexão ou mudança de percurso, confirme sua localização no planejador e calcule uma nova rota. O GPS funciona somente com o aplicativo aberto e autorização. Em túneis, estações próximas ou leitura imprecisa, confirme manualmente. Não garante acessibilidade.</Text>
      </View>
      <View style={s.card}><Text style={s.title}>Todas as etapas</Text>{etapas.map((e,i)=><Pressable key={i} onPress={()=>setIndice(i)} style={s.item} accessibilityRole="button"><Ionicons name={i<indice?"checkmark-circle":i===indice?"radio-button-on-outline":"ellipse-outline"} size={20} color={i<indice?"#008e5a":"#0069d2"}/><View style={{flex:1}}><Text style={s.title}>{modo(e)} {e.linha||""}</Text><Text style={s.sub}>{e.de||"Origem"} → {e.para||"Destino"}</Text></View></Pressable>)}</View>
    </>}
