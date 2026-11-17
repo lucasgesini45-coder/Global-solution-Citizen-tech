@@ -342,7 +342,7 @@ export default function MetroNetwork({mobile}:{mobile:boolean}){
              <Text style={s.title}>Imagem indisponível</Text>
              <Text style={s.small}>Recarregue a imagem ou abra o documento oficial.</Text>
              <Pressable onPress={()=>{setMapaErro(false);setTentativa(x=>x+1);}} style={s.primary}><Text style={s.primaryText}>Tentar novamente</Text></Pressable>
-             <Pressable onPress={()=>abrir(PDF_MAPA)}><Text style={s.link}>Abrir PDF oficial</Text></Pressable>
+             <Pressable onPress={()=>abrir(PDF_MAPA)} style={s.linkButton} accessibilityRole="button"><Text style={s.link}>Abrir PDF oficial</Text></Pressable>
            </View>:<Image key={tentativa} source={{uri:tentativa?MAPA_IMAGEM+"?v="+tentativa:MAPA_IMAGEM}}
              style={{position:"absolute",left:0,top:-alturaImagem*.09,width:mapaLargura,height:alturaImagem}}
              resizeMode="stretch" accessibilityLabel="Rede de linhas e estações do transporte metropolitano de São Paulo, julho de 2026"
@@ -362,7 +362,7 @@ export default function MetroNetwork({mobile}:{mobile:boolean}){
        <ScrollView key={painel} style={mobile?undefined:s.lineScroll} contentContainerStyle={s.lineScrollContent} nestedScrollEnabled persistentScrollbar showsVerticalScrollIndicator keyboardShouldPersistTaps="handled">
        {painel==="linhas"&&<>
        {linhas.map(l=><View key={l.numero} style={s.lineGroup}>
-         <Pressable onPress={()=>setSelecionada(x=>x===l.numero?null:l.numero)} style={s.line} accessibilityRole="button" accessibilityState={{expanded:selecionada===l.numero}}>
+         <Pressable onPress={()=>setSelecionada(x=>x===l.numero?null:l.numero)} style={[s.line,selecionada===l.numero&&s.active]} accessibilityRole="button" accessibilityState={{expanded:selecionada===l.numero}}>
            <View style={[s.number,{backgroundColor:l.cor}]}><Text style={[s.numberText,["4","8","15","17"].includes(l.numero)&&{color:"#172333"}]}>{l.numero}</Text></View>
            <View style={s.lineLabel}><Text style={s.lineName}>Linha {l.numero} – {l.nome}</Text><Text style={s.small}>{l.operador}{gratuita(l.numero)?" · Operação especial":""}</Text></View>
            <Text style={s.fare}>{tarifa(l.numero)}</Text>
@@ -379,7 +379,7 @@ export default function MetroNetwork({mobile}:{mobile:boolean}){
              <Text style={s.fare}>{tarifa(l.numero)}</Text>
            </View>)}
            {gratuita(l.numero)&&<Text style={s.note}>* Gratuidade provisória na operação assistida/transitória; consulte o operador. Não inclui outros transportes.</Text>}
-           <Pressable onPress={()=>abrir(OPERADORES[l.operador])} accessibilityRole="link"><Text style={s.link}>Informações no operador ↗</Text></Pressable>
+           <Pressable onPress={()=>abrir(OPERADORES[l.operador])} accessibilityRole="link" style={s.linkButton}><Text style={s.link}>Informações no operador ↗</Text></Pressable>
          </View>}
        </View>)}
        {!linhas.length&&<Text style={s.note}>Nenhuma linha encontrada. Tente outro termo.</Text>}
@@ -389,8 +389,8 @@ export default function MetroNetwork({mobile}:{mobile:boolean}){
          <Text style={s.note}>Vigência de referência: 06/01/2026. Consulta das fontes: 17/11/2026. Tarifa comum não depende da distância nem da estação. Transferências podem exigir pagamento fora das áreas ou horários gratuitos.</Text>
          {TABELA_TARIFAS.map(([nome,valor])=><View key={nome} style={s.station}><Text style={[s.stationName,{flex:1}]}>{nome}</Text><Text style={s.fare}>{valor}</Text></View>)}
          <Text style={s.note}>Linhas 6 e 17: operação especial gratuita enquanto vigente. Tatuapé e Corinthians-Itaquera: segunda a sexta, 10h–17h e 20h–24h; sábados, domingos e feriados durante operação comercial.</Text>
-         <Pressable onPress={()=>abrir(TARIFAS)} accessibilityRole="link"><Text style={s.link}>Tarifas oficiais do Metrô ↗</Text></Pressable>
-         <Pressable onPress={()=>abrir(TARIFAS_SPTRANS)} accessibilityRole="link"><Text style={s.link}>Tarifas de integração SPTrans ↗</Text></Pressable>
+         <Pressable onPress={()=>abrir(TARIFAS)} accessibilityRole="link" style={s.linkButton}><Text style={s.link}>Tarifas oficiais do Metrô ↗</Text></Pressable>
+         <Pressable onPress={()=>abrir(TARIFAS_SPTRANS)} accessibilityRole="link" style={s.linkButton}><Text style={s.link}>Tarifas de integração SPTrans ↗</Text></Pressable>
        </View>}
        <View style={s.info}>
          <Text style={s.title}>Informações úteis</Text>
@@ -445,7 +445,7 @@ export default function MetroNetwork({mobile}:{mobile:boolean}){
        <Text style={s.lineName}>{nome}</Text><Text style={s.small}>{telefone}</Text><Text style={s.link}>Site oficial ↗</Text>
      </Pressable>)}</View>
      <Text style={s.note}>Fonte: mapa oficial STM/Metrô de julho de 2026, imagem disponibilizada pelo Trilhos Agora. Mapa esquemático, sem escala. Os símbolos acima são explicações em texto, não uma reprodução dos símbolos gráficos. Confira a vigência dos contatos, horários e conexões nos canais oficiais.</Text>
-     <Pressable onPress={()=>abrir(PAGINA_MAPA)} accessibilityRole="link"><Text style={s.link}>Consultar a versão mais recente no site oficial ↗</Text></Pressable>
+     <Pressable onPress={()=>abrir(PAGINA_MAPA)} accessibilityRole="link" style={s.linkButton}><Text style={s.link}>Consultar a versão mais recente no site oficial ↗</Text></Pressable>
    </View>
  </View>;
 }
@@ -465,7 +465,7 @@ const s=StyleSheet.create({
  header:{flexShrink:0,minHeight:52,flexDirection:"row",justifyContent:"space-between",alignItems:"center",gap:10,borderBottomWidth:1,borderBottomColor:"#e4edf5",paddingBottom:12},
  title:{fontSize:17,fontWeight:"600",color:"#1d2633"},
  small:{fontSize:12,color:"#64748b",lineHeight:18},
- primary:{flexDirection:"row",alignItems:"center",gap:6,paddingHorizontal:12,paddingVertical:10,borderRadius:10,backgroundColor:"#0071e3"},
+ primary:{minHeight:44,flexDirection:"row",alignItems:"center",gap:6,paddingHorizontal:12,paddingVertical:10,borderRadius:10,backgroundColor:"#0071e3"},
  primaryText:{fontSize:12,color:"#fff",fontWeight:"600"},
  nativePreview:{minHeight:240,backgroundColor:"#f2f7fc",borderRadius:14,alignItems:"center",justifyContent:"center",padding:20,gap:12},
  note:{fontSize:11,color:"#64748b",lineHeight:17},
@@ -473,8 +473,8 @@ const s=StyleSheet.create({
  search:{flexDirection:"row",alignItems:"center",backgroundColor:"#f0f5fa",borderRadius:10,paddingHorizontal:10,gap:7},
  input:{flex:1,minWidth:0,paddingVertical:12,fontSize:12,color:"#1d2633"},
  filters:{flexDirection:"row",flexWrap:"wrap",gap:5,paddingVertical:4},
- filter:{paddingHorizontal:9,paddingVertical:7,borderRadius:9,backgroundColor:"#f0f5fa"},
- active:{backgroundColor:"#dcebfa"},
+ filter:{paddingHorizontal:9,paddingVertical:10,minHeight:44,justifyContent:"center",borderRadius:10,borderWidth:1,borderColor:"#c1d6eb",backgroundColor:"#fff"},
+ active:{backgroundColor:"#dcecff",borderColor:"#0071e3"},
  filterText:{fontSize:11,color:"#64748b"},
  activeText:{color:"#0069d2",fontWeight:"600"},
  mapViewport:{width:"100%",borderRadius:12,overflow:"hidden",backgroundColor:"#fff"},
@@ -486,14 +486,14 @@ const s=StyleSheet.create({
  legendLine:{width:20,height:5,borderRadius:3},
  infoRow:{flexDirection:"row",alignItems:"flex-start",gap:9,paddingVertical:5},
  contactGrid:{flexDirection:"row",flexWrap:"wrap",gap:10},
- contact:{minWidth:140,flexGrow:1,flexBasis:160,padding:12,borderRadius:10,backgroundColor:"#f3f7fb",gap:4},
+ contact:{minWidth:140,flexGrow:1,flexBasis:160,padding:12,borderRadius:10,backgroundColor:"#edf5ff",borderWidth:1,borderColor:"#afccec",gap:4},
  sectionTabs:{flexDirection:"row",backgroundColor:"#edf3f9",borderRadius:11,padding:3,gap:3},
- sectionTab:{flex:1,alignItems:"center",justifyContent:"center",minHeight:34,borderRadius:9},
- sectionTabActive:{backgroundColor:"#fff"},
+ sectionTab:{flex:1,alignItems:"center",justifyContent:"center",minHeight:44,borderRadius:9,borderWidth:1,borderColor:"#c1d6eb",backgroundColor:"#fff"},
+ sectionTabActive:{backgroundColor:"#dcecff",borderColor:"#0071e3"},
  lineScroll:{flex:1,minHeight:0},
  lineScrollContent:{paddingRight:5,paddingBottom:12},
  lineGroup:{borderBottomWidth:1,borderBottomColor:"#eaf0f6"},
- line:{flexDirection:"row",alignItems:"center",gap:8,minHeight:63,paddingVertical:9},
+ line:{flexDirection:"row",alignItems:"center",gap:8,minHeight:63,padding:9,borderWidth:1,borderColor:"#c1d6eb",borderRadius:10,backgroundColor:"#fff",marginVertical:4},
  lineLabel:{flex:1,minWidth:0},
  fare:{fontSize:12,fontWeight:"600",color:"#1d2633",flexShrink:0},
  expanded:{marginLeft:8,padding:10,backgroundColor:"#f5f8fc",borderRadius:10,gap:7,marginBottom:8},
@@ -504,5 +504,5 @@ const s=StyleSheet.create({
  lineName:{fontSize:13,fontWeight:"600",color:"#1d2633",lineHeight:18},
  extremos:{fontSize:12,lineHeight:18,color:"#41566c"},
  info:{gap:10,marginTop:8,padding:12,borderRadius:12,backgroundColor:"#f3f7fb"},
- infoLink:{flexDirection:"row",alignItems:"center",gap:8},
+ infoLink:{minHeight:44,flexDirection:"row",alignItems:"center",gap:8,padding:10,borderRadius:10,borderWidth:1,borderColor:"#afccec",backgroundColor:"#edf5ff"},linkButton:{minHeight:44,justifyContent:"center",padding:10,borderRadius:10,borderWidth:1,borderColor:"#afccec",backgroundColor:"#edf5ff"},
 });
