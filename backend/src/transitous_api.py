@@ -148,6 +148,27 @@ def horarios_onibus(viagem: dict) -> list[dict]:
     return saida
 
 
+def etapas_completas(viagem):
+    """Etapas ordenadas, inclusive sem traçado disponível."""
+    etapas = []
+    for i, leg in enumerate(viagem.get("legs", []), 1):
+        de, para = leg.get("from") or {}, leg.get("to") or {}
+        linha, cor = identificar_linha(leg)
+        modo = str(leg.get("mode", "")).upper()
+        duração = leg.get("duration")
+        etapas.append({
+            "etapa": i, "modal": modo, "linha": linha, "cor_linha": cor,
+            "operadora": leg.get("agencyName"), "sentido": leg.get("headsign"),
+            "de": de.get("name"), "para": para.get("name"),
+            "partida": horario_iso(leg.get("startTime")) or horario_iso(de.get("departure")) or horario_iso(leg.get("scheduledStartTime")) or horario_iso(de.get("scheduledDeparture")),
+            "chegada": horario_iso(leg.get("endTime")) or horario_iso(para.get("arrival")) or horario_iso(leg.get("scheduledEndTime")) or horario_iso(para.get("scheduledArrival")),
+            "tempo_real": leg.get("realTime") is True,
+            "tempo_min": round(duração / 60) if isinstance(duração, (int, float)) and math.isfinite(duração) and duração >= 0 else None,
+            "paradas": [p.get("name") for p in leg.get("intermediateStops") or [] if isinstance(p, dict) and p.get("name")],
+        })
+    return etapas
+
+
 def _trechos_viagem(viagem: dict) -> list[dict]:
     trechos = []
     for item in viagem.get("legs", []):
@@ -296,7 +317,24 @@ def consultar_transitous(origem, destino, modal: str, priorizar_menos_caminhada:
         limite = 400 if priorizar_menos_caminhada else 1200
         penalidade = max(0, (caminhada - limite) / (35 if priorizar_menos_caminhada else 100)) if caminhada is not None else 0
         return tempo + penalidade
-    v, trechos = min(opcoes, key=pontuacao)
+    from .economia import estimar
+    ordenadas = sorted(opcoes, key=pontuacao)
+    v, trechos = ordenadas[0]
+    def resumir_alternativa(opcao, indice):
+        viagem, partes = opcao
+        etapas = etapas_completas(viagem)
+        return {
+            "id": indice, "tempo_min": round(float(viagem.get("duration", 0)) / 60),
+            "caminhada_m": caminhar_metros(viagem),
+            "etapas_viagem": etapas,
+            "horarios_onibus": horarios_onibus(viagem),
+            "custo": estimar(etapas),
+            "trajeto": [pt for t in partes for pt in t["trajeto"]],
+            "trechos": partes,
+            "modal": modal,
+        }
+    alternativas = [resumir_alternativa(o, i) for i, o in enumerate(ordenadas[:5], 1)]
+
     caminhada_m = caminhar_metros(v)
     caminhada_longa = caminhada_m is not None and caminhada_m > 1500
     faltam_trechos = len(trechos) < len(v.get("legs", []))
@@ -311,6 +349,9 @@ def consultar_transitous(origem, destino, modal: str, priorizar_menos_caminhada:
         "seguranca": {"status": "nao_verificada", "exposicao": None},
         "trajeto": trajeto, "trechos": trechos,
         "horarios_onibus": horarios_onibus(v),
+        "etapas_viagem": etapas_completas(v),
+        "economia": alternativas[0]["custo"],
+        "alternativas_economicas": alternativas,
         "busca_ampliada": busca_ampliada,
         "caminhada_m": caminhada_m,
         "caminhada_longa": caminhada_longa,
