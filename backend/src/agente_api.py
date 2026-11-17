@@ -15,7 +15,7 @@ from .core import carregar, responder
 from .enderecos_api import Coordenadas, RotaRealPedido, rota_real
 from .assistente.rotas_api import preparar_modelo
 from .assistente.previsao import prever
-from .documentos_transporte import consultar_documentos, escopo, resposta_limite
+from .documentos_transporte import consultar_documentos, escopo, resposta_limite, bloqueado
 from .avaliacao_cidada import CASOS
 import json
 
@@ -82,7 +82,7 @@ def conversar(body: ConversaEntrada):
 
     # Recusa explícita fora do escopo antes de executar ferramentas de rota.
     # Consultas sobre o próprio aplicativo continuam disponíveis.
-    if not escopo(pergunta) and not re.search(r"\b(aplicativo|app|planejador)\b", normalizar(pergunta)):
+    if bloqueado(pergunta) or (not escopo(pergunta) and not pede_trajeto(pergunta) and not re.search(r"\b(aplicativo|app|planejador)\b", normalizar(pergunta))):
         return resposta_limite("Meu atendimento é exclusivo para transporte público, mobilidade urbana, tarifas, benefícios e acessibilidade.", "fora_escopo")
 
     if pede_trajeto(pergunta):
