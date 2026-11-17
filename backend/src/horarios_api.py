@@ -1,5 +1,6 @@
 """Partidas de ônibus por parada, linha, operador e sentido do itinerário."""
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date, time, timedelta
+from zoneinfo import ZoneInfo
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, HTTPException
@@ -17,6 +18,7 @@ class ConsultaPartidas(BaseModel):
     operadora_id: str = Field(min_length=1, max_length=250)
     sentido: str = Field(min_length=1, max_length=250)
     desembarque_id: str = Field(min_length=1, max_length=250)
+    dia: date | None = None
 
 
 def normalizar(v):
@@ -26,9 +28,18 @@ def normalizar(v):
 @router.post("/onibus")
 def proximas_partidas(pedido: ConsultaPartidas):
     agora = datetime.now(timezone.utc)
-    params = {"stopId": pedido.ponto_id, "time": agora.isoformat(),
-              "n": 50, "mode": "BUS", "arriveBy": "false", "fetchStops": "true"}
-    dados = _json_http(URL + "?" + urlencode(params), max_bytes=3_000_000,
+    fuso = ZoneInfo("America/Sao_Paulo")
+    dia = pedido.dia or agora.astimezone(fuso).date()
+    hoje = agora.astimezone(fuso).date()
+    if not hoje <= dia <= hoje + timedelta(days=1):
+        raise HTTPException(422, "Selecione hoje ou amanhã.")
+    inicio = datetime.combine(dia, time.min, fuso).astimezone(timezone.utc)
+    fim = datetime.combine(dia + timedelta(days=1), time.min, fuso).astimezone(timezone.utc)
+    params = {"stopId": pedido.ponto_id, "time": inicio.isoformat(),
+              "window": int((fim-inicio).total_seconds()), "mode": "BUS",
+              "arriveBy": "false", "fetchStops": "true", "withAlerts": "false"}
+
+    dados = _json_http(URL + "?" + urlencode(params), max_bytes=24_000_000,
                        headers={"User-Agent": "CitizenTechFIAP/0.3 (https://github.com/lucasgesini45-coder/Global-solution-Citizen-tech)"})
     if not isinstance(dados, dict) or not isinstance(dados.get("stopTimes"), list):
         raise HTTPException(503, "Horários indisponíveis no provedor.")
@@ -56,7 +67,7 @@ def proximas_partidas(pedido: ConsultaPartidas):
         estimada = horario_iso(ponto.get("departure"))
         tempo_real = evento.get("realTime") is True and estimada is not None
         partida = estimada if tempo_real else programada or estimada
-        if not partida or datetime.fromisoformat(partida) < agora:
+        if not partida or not inicio <= datetime.fromisoformat(partida) < fim:
             continue
         chave = (evento.get("tripId"), partida)
         if chave in vistos:
@@ -65,6 +76,7 @@ def proximas_partidas(pedido: ConsultaPartidas):
         partidas.append({"partida": partida, "programada": programada,
                          "tempo_real": tempo_real, "viagem_id": evento.get("tripId")})
     partidas.sort(key=lambda p: p["partida"])
-    return {"partidas": partidas[:8], "consultado_em": agora.isoformat(),
+    proxima = next((p for p in partidas if datetime.fromisoformat(p["partida"]) >= agora), None)
+    return {"partidas": partidas, "proxima": proxima, "dia": dia.isoformat(), "consultado_em": agora.isoformat(),
             "fonte": "Transitous / MOTIS (GTFS e dados em tempo real quando disponíveis)",
-            "aviso": "Consulta limitada às partidas retornadas pelo provedor nesta janela, com desembarque confirmado. A ausência de horários não significa ausência de serviço."}
+            "aviso": "Horários de passagem retornados pelo provedor para o dia selecionado, no ponto e sentido do trajeto. A cobertura pode ser incompleta. Horários passados são referências, não confirmação de passagem."}
