@@ -151,7 +151,7 @@ export default function Home(){
    evidencia.current=r.estado;
    if(r.concluiu){evidencia.current=novaEvidencia(etapaAtual+1);setEtapaAtual(i=>i===etapaAtual?i+1:i);}
  },[posicao,gpsAtivo,gpsConfiavel,etapaAtual,resultado,relogioGPS]);
- const controleGPS=<View style={{gap:6,paddingVertical:8}}><View style={{flexDirection:"row",gap:8,flexWrap:"wrap"}}><Pressable onPress={alternarGPS} style={v.detailsToggle} accessibilityRole="button"><Icone name="locate-outline" size={17} color="#0069d2"/><Text style={v.detailsToggleText}>{gpsAtivo?"Desativar GPS":"Ativar GPS em tempo real"}</Text></Pressable>{gpsAtivo&&<Pressable onPress={()=>setSeguirGPS(x=>!x)} style={v.detailsToggle} accessibilityRole="button"><Text style={v.detailsToggleText}>{seguirGPS?"Pausar centralização":"Seguir localização"}</Text></Pressable>}</View><Text style={{fontSize:12,color:gpsConfiavel?"#008e5a":"#64748b"}}>{statusGPS}{posicao?.accuracy!=null?" · precisão ±"+Math.round(posicao.accuracy)+" m":""}</Text></View>;
+ const controleGPS=<View style={{gap:6,paddingVertical:8}}><View style={{flexDirection:"row",gap:8,flexWrap:"wrap"}}><Pressable onPress={alternarGPS} style={[v.detailsToggle,gpsAtivo&&v.preferenceActive]} accessibilityRole="button"><Icone name="locate-outline" size={17} color="#0069d2"/><Text style={v.detailsToggleText}>{gpsAtivo?"Desativar GPS":"Ativar GPS em tempo real"}</Text></Pressable>{gpsAtivo&&<Pressable onPress={()=>setSeguirGPS(x=>!x)} style={[v.detailsToggle,seguirGPS&&v.preferenceActive]} accessibilityRole="button"><Text style={v.detailsToggleText}>{seguirGPS?"Pausar centralização":"Seguir localização"}</Text></Pressable>}</View><Text style={{fontSize:12,color:gpsConfiavel?"#008e5a":"#64748b"}}>{statusGPS}{posicao?.accuracy!=null?" · precisão ±"+Math.round(posicao.accuracy)+" m":""}</Text></View>;
  function usarAlternativa(o:AlternativaEconomica){
    if(!resultado)return;
    setResultado({...resultado,tempo_min:o.tempo_min,caminhada_m:o.caminhada_m,caminhada_longa:o.caminhada_m!==null&&o.caminhada_m>1500,distancia_m:null,tarifa_centavos:null,trajeto:o.trajeto,trechos:o.trechos,etapas_viagem:o.etapas_viagem,horarios_onibus:o.horarios_onibus,economia:o.custo,modal:o.modal,aviso:"Alternativa do Transitous. Confira horários, acessibilidade e valores nos canais oficiais."});
@@ -329,23 +329,23 @@ export default function Home(){
              </View>
              <CampoEndereco titulo="DESTINO" valor={destino} escolhido={destinoGeo} mudar={atualizarDestino} selecionar={e=>{setDestino(e.nome);setDestinoGeo(e);setResultado(null);}} placeholder="Para onde você quer ir?"/>
              <View style={{flexDirection:"row",gap:8,flexWrap:"wrap",marginTop:8}}>
-               <Pressable onPress={()=>setSelecionarNoMapa(t=>t==="origem"?null:"origem")} accessibilityRole="button" style={{backgroundColor:selecionarNoMapa==="origem"?"#d5eaff":"#f0f5fa",borderRadius:12,padding:10,flexGrow:1}}>
+               <Pressable onPress={()=>setSelecionarNoMapa(t=>t==="origem"?null:"origem")} accessibilityRole="button" style={[v.mapPickButton,selecionarNoMapa==="origem"&&v.preferenceActive]}>
                  <Text style={{color:"#0069d2",fontSize:11,fontWeight:"600"}}>{selecionarNoMapa==="origem"?"Cancelar origem":"Marcar origem no mapa"}</Text>
                </Pressable>
-               <Pressable onPress={()=>setSelecionarNoMapa(t=>t==="destino"?null:"destino")} accessibilityRole="button" style={{backgroundColor:selecionarNoMapa==="destino"?"#d5eaff":"#f0f5fa",borderRadius:12,padding:10,flexGrow:1}}>
+               <Pressable onPress={()=>setSelecionarNoMapa(t=>t==="destino"?null:"destino")} accessibilityRole="button" style={[v.mapPickButton,selecionarNoMapa==="destino"&&v.preferenceActive]}>
                  <Text style={{color:"#0069d2",fontSize:11,fontWeight:"600"}}>{selecionarNoMapa==="destino"?"Cancelar destino":"Marcar destino no mapa"}</Text>
                </Pressable>
              </View>
            </View>
            <View style={{marginTop:15,gap:9}}>
              <Text style={{fontSize:12,fontWeight:"600",color:"#445b74"}}>Preferências de mobilidade</Text>
-             <Pressable onPress={()=>setMenosCaminhada(x=>!x)} accessibilityRole="checkbox" accessibilityState={{checked:menosCaminhada}} style={{flexDirection:"row",alignItems:"center",gap:9,minHeight:35}}>
+             <Pressable onPress={()=>setMenosCaminhada(x=>!x)} accessibilityRole="checkbox" accessibilityState={{checked:menosCaminhada}} style={[v.preferenceButton,menosCaminhada&&v.preferenceActive]}>
                <Icone name={menosCaminhada?"checkbox":"square-outline"} size={20} color="#0069d2"/>
-               <Text style={{color:"#425a73",fontSize:12}}>Priorizar menos caminhada</Text>
+               <Text style={[v.preferenceLabel,menosCaminhada&&v.activeLabel]}>Priorizar menos caminhada</Text>
              </Pressable>
-             <Pressable onPress={()=>setEvitarEscadas(x=>!x)} accessibilityRole="checkbox" accessibilityState={{checked:evitarEscadas}} style={{flexDirection:"row",alignItems:"center",gap:9,minHeight:35}}>
+             <Pressable onPress={()=>setEvitarEscadas(x=>!x)} accessibilityRole="checkbox" accessibilityState={{checked:evitarEscadas}} style={[v.preferenceButton,evitarEscadas&&v.preferenceActive]}>
                <Icone name={evitarEscadas?"checkbox":"square-outline"} size={20} color="#0069d2"/>
-               <Text style={{color:"#425a73",fontSize:12}}>Preciso de percurso sem escadas</Text>
+               <Text style={[v.preferenceLabel,evitarEscadas&&v.activeLabel]}>Preciso de percurso sem escadas</Text>
              </Pressable>
              {evitarEscadas&&<Text style={{color:"#855f2f",fontSize:11,lineHeight:16}}>Ainda não há confirmação de rampas ou elevadores nesta rota. A preferência não garante acessibilidade.</Text>}
            </View>
@@ -385,7 +385,7 @@ export default function Home(){
             <Text style={v.recommendedBadge}>{"TRAJETO DISPONÍVEL · "+(resultado.modal==="onibus"?"ÔNIBUS":resultado.modal==="ferroviario"?"METRÔ / TREM":resultado.modal==="todos"?"TRANSPORTE PÚBLICO":"A PÉ")}</Text>
             <View style={v.recommendedTop}><Text style={v.duration}>{resultado.tempo_min} min</Text><Text style={v.fare}>{resultado.tarifa_centavos===null?"Tarifa não informada":resultado.tarifa_centavos===0?"Gratuito":"R$ "+(resultado.tarifa_centavos/100).toFixed(2).replace(".",",")}</Text></View>
             <Text style={v.routeSequenceText}>Fonte: Transitous / OpenStreetMap · Horários estimados</Text>
-            <Pressable onPress={()=>setAba("viagem")} style={v.detailsToggle} accessibilityRole="button"><Text style={v.detailsToggleText}>Iniciar acompanhamento da viagem</Text><Icone name="navigate-outline" size={17} color="#0069d2"/></Pressable>
+            <Pressable onPress={()=>setAba("viagem")} style={[v.detailsToggle,v.primaryAction]} accessibilityRole="button"><Text style={[v.detailsToggleText,v.primaryActionText]}>Iniciar acompanhamento da viagem</Text><Icone name="navigate-outline" size={17} color="#fff"/></Pressable>
             <Pressable onPress={()=>setAba("economia")} style={v.detailsToggle} accessibilityRole="button"><Text style={v.detailsToggleText}>Comparar opções e custos</Text><Icone name="wallet-outline" size={17} color="#0069d2"/></Pressable>
             {!!resultado.horarios_onibus?.length&&<Pressable onPress={()=>setAba("horarios")} style={v.detailsToggle} accessibilityRole="button"><Text style={v.detailsToggleText}>Ver horários dos ônibus</Text><Icone name="time-outline" size={17} color="#0069d2"/></Pressable>}
             <View style={v.itineraryHeader}>
@@ -468,7 +468,7 @@ export default function Home(){
          <Text style={v.assistantTag}>ASSISTENTE CIDADÃO</Text>
        </View>
        <View style={v.suggestions}>{sugestoesChat.map(t=><Pressable key={t} style={v.suggestion} onPress={()=>perguntar(t)}><Text style={v.suggestionText}>{t}</Text></Pressable>)}</View>
-       <ScrollView style={v.chatHistory} nestedScrollEnabled><View style={{gap:10}}>{chat.length===0?<Text style={v.chatEmpty}>Pergunte sobre mobilidade ou peça um trajeto. Para calcular uma viagem, selecione origem e destino no planejador.</Text>:chat.map((m,i)=><View key={i} style={[v.chatBubble,m.autor==="pessoa"?v.chatBubbleUser:v.chatBubbleAi]}><Text style={[v.chatBubbleText,m.autor==="pessoa"&&{color:"#fff"}]}>{m.texto}</Text>{!!m.fonte&&<Text style={v.chatSource}>{m.fonte}</Text>}{m.fontes?.map((f,j)=><Pressable key={j} disabled={!f.referencia.startsWith("https://")} onPress={()=>{void Linking.openURL(f.referencia).catch(()=>{});}} accessibilityRole="link"><Text style={[v.chatSource,{color:"#0069d2"}]}>{f.titulo||f.referencia}{f.data_verificacao?" · "+f.data_verificacao:""}</Text></Pressable>)}{!!m.aviso&&<Text style={v.chatSource}>{m.aviso}</Text>}{!!m.sugestoes?.length&&<View style={{flexDirection:"row",gap:6,flexWrap:"wrap",marginTop:8}}>{m.sugestoes.map((s,j)=><Pressable key={j} onPress={()=>perguntar(s)} style={v.suggestion}><Text style={v.suggestionText}>{s}</Text></Pressable>)}</View>}</View>)}</View></ScrollView>
+       <ScrollView style={v.chatHistory} nestedScrollEnabled><View style={{gap:10}}>{chat.length===0?<Text style={v.chatEmpty}>Pergunte sobre mobilidade ou peça um trajeto. Para calcular uma viagem, selecione origem e destino no planejador.</Text>:chat.map((m,i)=><View key={i} style={[v.chatBubble,m.autor==="pessoa"?v.chatBubbleUser:v.chatBubbleAi]}><Text style={[v.chatBubbleText,m.autor==="pessoa"&&{color:"#fff"}]}>{m.texto}</Text>{!!m.fonte&&<Text style={v.chatSource}>{m.fonte}</Text>}{m.fontes?.map((f,j)=><Pressable key={j} disabled={!f.referencia.startsWith("https://")} onPress={()=>{void Linking.openURL(f.referencia).catch(()=>{});}} accessibilityRole="link" style={[v.sourceButton,!f.referencia.startsWith("https://")&&{opacity:.65}]}><Text style={v.sourceButtonText}>{f.titulo||f.referencia}{f.data_verificacao?" · "+f.data_verificacao:""}</Text></Pressable>)}{!!m.aviso&&<Text style={v.chatSource}>{m.aviso}</Text>}{!!m.sugestoes?.length&&<View style={{flexDirection:"row",gap:6,flexWrap:"wrap",marginTop:8}}>{m.sugestoes.map((s,j)=><Pressable key={j} onPress={()=>perguntar(s)} style={v.suggestion}><Text style={v.suggestionText}>{s}</Text></Pressable>)}</View>}</View>)}</View></ScrollView>
        <View style={v.chatInput}><TextInput accessibilityLabel="Pergunta para o agente de IA" value={chatTexto} onChangeText={setChatTexto} maxLength={300} placeholder="Escreva sua pergunta..." placeholderTextColor="#9baec2" onSubmitEditing={()=>perguntar()} returnKeyType="send" style={v.chatField}/><Pressable style={v.chatSend} onPress={()=>perguntar()} accessibilityLabel="Enviar pergunta">{chatCarregando?<ActivityIndicator color="#fff"/>:<Icone name="send" size={18} color="#fff"/>}</Pressable></View>
        <Text style={v.assistantFootnote}>Consulta a resumos locais de fontes institucionais. Não responde assuntos externos ao projeto. Confirme informações atualizadas nos links oficiais.</Text>
      </View>
@@ -480,7 +480,7 @@ export default function Home(){
            <View style={v.academicNumber}><Text style={v.suggestionText}>{String(p.numero).padStart(2,"0")}</Text></View>
            <View style={{flex:1}}><Text style={v.chatBubbleText}>{p.pergunta||"Entrada vazia (teste de validação)"}</Text><Text style={v.assistantSubtitle}>{p.categoria}</Text></View><Icone name="arrow-forward-outline" size={15} color="#0069d2"/>
          </Pressable>)}
-         {!!erroPerguntas&&<Pressable onPress={carregarPerguntas}><Text style={v.chatSource}>{erroPerguntas} Toque para tentar novamente.</Text></Pressable>}
+         {!!erroPerguntas&&<Pressable onPress={carregarPerguntas} style={v.detailsToggle} accessibilityRole="button"><Text style={v.detailsToggleText}>{erroPerguntas} Toque para tentar novamente.</Text></Pressable>}
        </ScrollView>
        <Text style={v.assistantFootnote}>Clique para testar no chat. Os indicadores A/B documentados são do núcleo acadêmico, avaliado separadamente.</Text>
      </View>
@@ -508,7 +508,7 @@ const v=StyleSheet.create({
  page:{minHeight:"100%"},
  nav:{backgroundColor:"rgba(247,251,255,0.90)",minHeight:88,paddingHorizontal:48,paddingVertical:20,borderBottomWidth:1,borderBottomColor:"#bfd6ec",flexDirection:"row",alignItems:"center",gap:30,flexWrap:"wrap"},
  navMobile:{minHeight:68,paddingHorizontal:16,paddingVertical:15,gap:10},navBrand:{fontSize:24,fontWeight:"600",letterSpacing:-1.1,color:"#1d2633"},navBrandMobile:{fontSize:19},navBrandAccent:{fontWeight:"500",color:"#0069d2"},
- navTabs:{flexDirection:"row",alignItems:"center",gap:8,flexWrap:"wrap"},navTabsMobile:{width:"100%"},navTab:{flexDirection:"row",alignItems:"center",gap:7,paddingHorizontal:14,paddingVertical:11,borderRadius:14},navTabText:{color:"#64748b",fontSize:13,fontWeight:"500"},navActive:{backgroundColor:"#dcebfa"},navActiveText:{color:"#0069d2",fontSize:14,fontWeight:"600"},navMeta:{fontSize:11,color:"#62758a",marginLeft:"auto"},
+ navTabs:{flexDirection:"row",alignItems:"center",gap:8,flexWrap:"wrap"},navTabsMobile:{width:"100%"},navTab:{flexDirection:"row",alignItems:"center",gap:7,paddingHorizontal:14,paddingVertical:11,minHeight:44,borderRadius:12,borderWidth:1,borderColor:"#c8d9ea",backgroundColor:"#fff"},navTabText:{color:"#64748b",fontSize:13,fontWeight:"500"},navActive:{backgroundColor:"#dcecff",borderColor:"#0071e3"},navActiveText:{color:"#0069d2",fontSize:14,fontWeight:"600"},navMeta:{fontSize:11,color:"#62758a",marginLeft:"auto"},
  container:{maxWidth:1440,width:"100%",alignSelf:"center",paddingHorizontal:48,paddingBottom:28},
  containerMobile:{paddingHorizontal:16},intro:{minHeight:140,paddingTop:22,justifyContent:"center",position:"relative",paddingBottom:18},introMobile:{paddingTop:24,minHeight:0},
  eyebrow:{color:"#0069d2",fontSize:11,fontWeight:"700",letterSpacing:1.7,marginBottom:12},
@@ -527,12 +527,12 @@ const v=StyleSheet.create({
  searchFooter:{flexShrink:0,borderTopWidth:1,borderTopColor:"#e4edf5",paddingTop:10,marginTop:8},
  mapViewport:{flex:1,flexBasis:0,minHeight:0,overflow:"hidden",borderRadius:18},
  mapViewportMobile:{height:390,borderRadius:18,overflow:"hidden"},
- modeBar:{flexDirection:"row",backgroundColor:"#eef3f8",borderRadius:11,padding:3,gap:0,justifyContent:"space-between",marginBottom:14},
- modeItem:{paddingHorizontal:5,minHeight:34,justifyContent:"center",alignItems:"center",flexDirection:"row",gap:4,borderRadius:10,flexGrow:1},
- modeActive:{backgroundColor:"#fff",shadowColor:"#336191",shadowOpacity:.08,shadowRadius:4,elevation:1},
+ modeBar:{flexDirection:"row",backgroundColor:"#eef3f8",borderRadius:11,padding:3,gap:3,justifyContent:"space-between",marginBottom:14},
+ modeItem:{paddingHorizontal:5,minHeight:40,justifyContent:"center",alignItems:"center",flexDirection:"row",gap:3,borderRadius:9,flexGrow:1,borderWidth:1,borderColor:"#c9d9e9",backgroundColor:"#fff"},
+ modeActive:{backgroundColor:"#dcecff",borderColor:"#0071e3",shadowColor:"#336191",shadowOpacity:.08,shadowRadius:4,elevation:1},
  modeText:{fontSize:12,color:"#586c80",fontWeight:"500"},modeTextActive:{fontWeight:"600",color:"#0069d2"},
  addresses:{gap:7},middleActions:{alignSelf:"flex-end",flexDirection:"row",gap:7,marginVertical:1},
- smallAction:{borderWidth:1,borderColor:"#d2e2f1",backgroundColor:"#fff",height:32,width:36,borderRadius:16,alignItems:"center",justifyContent:"center"},
+ smallAction:{borderWidth:1,borderColor:"#d2e2f1",backgroundColor:"#fff",height:44,width:44,borderRadius:10,alignItems:"center",justifyContent:"center"},
  searchButton:{marginTop:0,backgroundColor:"#0071e3",borderRadius:24,minHeight:48,flexDirection:"row",justifyContent:"center",alignItems:"center",gap:11},
  searchButtonText:{color:"#fff",fontSize:14,fontWeight:"700"},
  warning:{marginTop:12,backgroundColor:"#fff7e9",borderRadius:10,padding:10,flexDirection:"row",gap:8,alignItems:"center"},
@@ -565,8 +565,14 @@ const v=StyleSheet.create({
  itineraryHeader:{marginTop:18,flexDirection:"row",justifyContent:"space-between",alignItems:"center"},
  itineraryHeading:{fontSize:13,fontWeight:"700",color:"#253750"},
  itineraryCount:{fontSize:11,color:"#657b94"},
- detailsToggle:{marginTop:10,paddingVertical:10,flexDirection:"row",justifyContent:"center",alignItems:"center",gap:6,borderTopWidth:1,borderTopColor:"#e0eafa"},
- detailsToggleText:{fontWeight:"600",fontSize:11,color:"#0069d2"},
+ detailsToggle:{marginTop:8,minHeight:44,paddingHorizontal:10,paddingVertical:10,flexDirection:"row",justifyContent:"center",alignItems:"center",gap:7,borderWidth:1,borderColor:"#9bbfe7",backgroundColor:"#edf5ff",borderRadius:10},
+ detailsToggleText:{fontWeight:"600",fontSize:12,color:"#005bb5",flexShrink:1,textAlign:"center"},
+ primaryAction:{backgroundColor:"#0071e3",borderColor:"#0071e3"},primaryActionText:{color:"#fff"},
+ preferenceButton:{flexDirection:"row",alignItems:"center",gap:8,minHeight:44,paddingHorizontal:10,paddingVertical:10,borderWidth:1,borderColor:"#c1d6eb",borderRadius:10,backgroundColor:"#fff"},
+ preferenceActive:{backgroundColor:"#dcecff",borderColor:"#0071e3"},
+ preferenceLabel:{flex:1,color:"#425a73",fontSize:12,fontWeight:"600"},activeLabel:{color:"#005bb5"},
+ mapPickButton:{backgroundColor:"#edf5ff",borderWidth:1,borderColor:"#a8c9ec",borderRadius:10,padding:10,flexGrow:1,minHeight:44,justifyContent:"center",alignItems:"center"},
+ sourceButton:{minHeight:44,borderWidth:1,borderColor:"#b5d0ec",backgroundColor:"#fff",borderRadius:9,padding:10,marginTop:7,justifyContent:"center"},sourceButtonText:{color:"#005bb5",fontWeight:"600",fontSize:11},
  labSection:{marginTop:18},
  labToggle:{backgroundColor:"#f4f8fe",borderWidth:1,borderColor:"#cfdff1",borderRadius:12,paddingHorizontal:18,paddingVertical:14,flexDirection:"row",alignItems:"center",justifyContent:"space-between"},
  labToggleText:{fontSize:13,fontWeight:"600",color:"#56739a"},
@@ -576,13 +582,13 @@ const v=StyleSheet.create({
  assistantHeaderLeft:{flexDirection:"row",alignItems:"center",gap:11,flex:1},
  assistantTitle:{fontSize:19,fontWeight:"700",color:"#1d2633"},assistantSubtitle:{fontSize:12,color:"#586c80",marginTop:4},
  assistantTag:{fontWeight:"700",fontSize:10,letterSpacing:1,color:"#0069d2"},
- suggestions:{flexDirection:"row",gap:8,flexWrap:"wrap",marginTop:17},suggestion:{borderRadius:18,paddingHorizontal:13,paddingVertical:8,backgroundColor:"#e8f2fd"},suggestionText:{color:"#0069d2",fontSize:12,fontWeight:"500"},
+ suggestions:{flexDirection:"row",gap:8,flexWrap:"wrap",marginTop:17},suggestion:{borderRadius:10,paddingHorizontal:13,paddingVertical:10,minHeight:44,justifyContent:"center",borderWidth:1,borderColor:"#afccec",backgroundColor:"#e8f2fd"},suggestionText:{color:"#0069d2",fontSize:12,fontWeight:"500"},
  chatHistory:{minHeight:180,maxHeight:340,marginVertical:15},chatEmpty:{fontSize:12,color:"#7388a0",paddingTop:12},
  chatBubble:{borderRadius:18,padding:12,maxWidth:"90%"},chatBubbleUser:{backgroundColor:"#0071e3",alignSelf:"flex-end"},chatBubbleAi:{backgroundColor:"#eaf3fc",alignSelf:"flex-start"},
  chatBubbleText:{color:"#1d2633",fontSize:13,lineHeight:20},chatSource:{color:"#586c80",fontSize:10,marginTop:8},
  chatInput:{flexDirection:"row",alignItems:"center",minHeight:49,backgroundColor:"#f0f5fa",borderRadius:25,paddingLeft:15,paddingRight:5},
- chatField:{flex:1,color:"#1d2633",fontSize:14,paddingVertical:11},chatSend:{height:39,width:39,borderRadius:20,backgroundColor:"#0071e3",alignItems:"center",justifyContent:"center"},
- academicPanel:{width:360,flexShrink:0,borderRadius:25,padding:20,backgroundColor:"#fff",borderWidth:1,borderColor:"#d9e6f5"},academicMobile:{width:"100%"},academicHeader:{flexDirection:"row",alignItems:"center",gap:10,marginBottom:12},academicFilters:{flexDirection:"row",gap:5,marginBottom:10,flexWrap:"wrap"},academicFilter:{paddingHorizontal:10,paddingVertical:7,borderRadius:10,backgroundColor:"#f0f5fa"},academicScroll:{maxHeight:320,minHeight:100},academicQuestion:{flexDirection:"row",alignItems:"center",gap:9,paddingVertical:10,borderBottomWidth:1,borderBottomColor:"#e5edf5",paddingRight:6},academicNumber:{backgroundColor:"#e8f2fd",borderRadius:9,padding:8},
+ chatField:{flex:1,color:"#1d2633",fontSize:14,paddingVertical:11},chatSend:{height:44,width:44,borderRadius:20,backgroundColor:"#0071e3",alignItems:"center",justifyContent:"center"},
+ academicPanel:{width:360,flexShrink:0,borderRadius:25,padding:20,backgroundColor:"#fff",borderWidth:1,borderColor:"#d9e6f5"},academicMobile:{width:"100%"},academicHeader:{flexDirection:"row",alignItems:"center",gap:10,marginBottom:12},academicFilters:{flexDirection:"row",gap:5,marginBottom:10,flexWrap:"wrap"},academicFilter:{paddingHorizontal:10,paddingVertical:9,minHeight:44,justifyContent:"center",borderRadius:10,borderWidth:1,borderColor:"#c1d6eb",backgroundColor:"#f0f5fa"},academicScroll:{maxHeight:320,minHeight:100},academicQuestion:{flexDirection:"row",alignItems:"center",gap:9,minHeight:44,padding:10,borderWidth:1,borderColor:"#c1d6eb",borderRadius:10,backgroundColor:"#f6faff",marginBottom:6},academicNumber:{backgroundColor:"#e8f2fd",borderRadius:9,padding:8},
  assistantFootnote:{fontSize:10,color:"#71859b",marginTop:9},
  footer:{marginVertical:22,textAlign:"center",fontSize:11,color:"#667c92"}
 });
