@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet,
  Text as RNText, TextInput, View, Platform, Linking, useWindowDimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -7,6 +7,8 @@ import MapaPreview from "../components/MapaPreview";
 import MetroNetwork from "../components/MetroNetwork";
 import HorariosOnibus, {type HorarioOnibus} from "../components/HorariosOnibus";
 import {AssistenteViagem, PlanejamentoEconomico, type EtapaViagem, type CustoViagem, type AlternativaEconomica} from "../components/ViagemEconomia";
+
+import {avaliarEtapa,novaEvidencia,gpsValido,type PosicaoGPS} from "../components/gpsViagem";
 
 const API = (process.env.EXPO_PUBLIC_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
 
@@ -107,9 +109,49 @@ export default function Home(){
  const [localizando,setLocalizando]=useState(false);const [carregando,setCarregando]=useState(false);
  const [erro,setErro]=useState("");const [resultado,setResultado]=useState<Resultado|null>(null);
  const [etapaAtual,setEtapaAtual]=useState(0);
+ const [gpsAtivo,setGpsAtivo]=useState(false);
+ const [seguirGPS,setSeguirGPS]=useState(true);
+ const [posicao,setPosicao]=useState<PosicaoGPS|null>(null);
+ const [avisoGPS,setAvisoGPS]=useState("");
+ const [relogioGPS,setRelogioGPS]=useState(Date.now());
+ const evidencia=useRef(novaEvidencia(0));
+ useEffect(()=>{
+   if(!gpsAtivo){setPosicao(null);setAvisoGPS("");return;}
+   let ativo=true,subscricao:Location.LocationSubscription|undefined;
+   setAvisoGPS("Aguardando localização...");
+   async function iniciar(){
+     try{
+       const permissao=await Location.requestForegroundPermissionsAsync();
+       if(!ativo)return;
+       if(permissao.status!=="granted"){setAvisoGPS("Permissão negada. Use o modo manual ou habilite o GPS nas configurações.");return;}
+       const s=await Location.watchPositionAsync({accuracy:Location.Accuracy.High,timeInterval:3000,distanceInterval:5},l=>{
+         if(!ativo)return;
+         setPosicao({lat:l.coords.latitude,lon:l.coords.longitude,accuracy:l.coords.accuracy,timestamp:l.timestamp});
+         setRelogioGPS(Date.now());setAvisoGPS("");
+       });
+       if(ativo)subscricao=s;else s.remove();
+     }catch{if(ativo)setAvisoGPS("GPS indisponível. Confira as permissões e a conexão.");}
+   }
+   void iniciar();
+   const timer=setInterval(()=>setRelogioGPS(Date.now()),3000);
+   return ()=>{ativo=false;subscricao?.remove();clearInterval(timer);};
+ },[gpsAtivo]);
+ const gpsConfiavel=gpsValido(posicao,relogioGPS);
+ const statusGPS=!gpsAtivo?"GPS desativado":avisoGPS||(gpsConfiavel?"GPS ativo · acompanhando sua posição":"Aguardando sinal GPS com precisão suficiente");
+ function alternarGPS(){if(gpsAtivo){setGpsAtivo(false);}else{setSeguirGPS(true);setGpsAtivo(true);}}
  const [opcaoEconomica,setOpcaoEconomica]=useState<number|null>(null);
  const etapasAtuais:EtapaViagem[]=resultado?.etapas_viagem??(resultado?.trechos||[]).map((t,i)=>({...t,etapa:i+1,paradas:t.paradas?.map(p=>p.nome)}));
- useEffect(()=>{setEtapaAtual(0);setOpcaoEconomica(null);},[resultado]);
+ useEffect(()=>{setEtapaAtual(0);setOpcaoEconomica(null);evidencia.current=novaEvidencia(0);},[resultado]);
+ useEffect(()=>{
+   if(evidencia.current.indice!==etapaAtual)evidencia.current=novaEvidencia(etapaAtual);
+ },[etapaAtual]);
+ useEffect(()=>{
+   if(!gpsAtivo||!gpsConfiavel||!posicao||!resultado||etapaAtual>=etapasAtuais.length)return;
+   const r=avaliarEtapa(etapasAtuais[etapaAtual],posicao,evidencia.current,relogioGPS);
+   evidencia.current=r.estado;
+   if(r.concluiu){evidencia.current=novaEvidencia(etapaAtual+1);setEtapaAtual(i=>i===etapaAtual?i+1:i);}
+ },[posicao,gpsAtivo,gpsConfiavel,etapaAtual,resultado,relogioGPS]);
+ const controleGPS=<View style={{gap:6,paddingVertical:8}}><View style={{flexDirection:"row",gap:8,flexWrap:"wrap"}}><Pressable onPress={alternarGPS} style={v.detailsToggle} accessibilityRole="button"><Icone name="locate-outline" size={17} color="#0069d2"/><Text style={v.detailsToggleText}>{gpsAtivo?"Desativar GPS":"Ativar GPS em tempo real"}</Text></Pressable>{gpsAtivo&&<Pressable onPress={()=>setSeguirGPS(x=>!x)} style={v.detailsToggle} accessibilityRole="button"><Text style={v.detailsToggleText}>{seguirGPS?"Pausar centralização":"Seguir localização"}</Text></Pressable>}</View><Text style={{fontSize:12,color:gpsConfiavel?"#008e5a":"#64748b"}}>{statusGPS}{posicao?.accuracy!=null?" · precisão ±"+Math.round(posicao.accuracy)+" m":""}</Text></View>;
  function usarAlternativa(o:AlternativaEconomica){
    if(!resultado)return;
    setResultado({...resultado,tempo_min:o.tempo_min,caminhada_m:o.caminhada_m,caminhada_longa:o.caminhada_m!==null&&o.caminhada_m>1500,distancia_m:null,tarifa_centavos:null,trajeto:o.trajeto,trechos:o.trechos,etapas_viagem:o.etapas_viagem,horarios_onibus:o.horarios_onibus,economia:o.custo,modal:o.modal,aviso:"Alternativa do Transitous. Confira horários, acessibilidade e valores nos canais oficiais."});
@@ -258,7 +300,7 @@ export default function Home(){
    </View>
 
    <View style={[v.container,mobile&&v.containerMobile]}>
-     {aba==="metro"?<MetroNetwork mobile={mobile}/>:aba==="horarios"?<HorariosOnibus api={API} horarios={resultado?.horarios_onibus||[]} temRota={!!resultado} carregando={carregando} voltar={()=>setAba("planejar")}/>:aba==="viagem"?<AssistenteViagem etapas={etapasAtuais} indice={etapaAtual} setIndice={setEtapaAtual} voltar={()=>setAba("planejar")} horarios={()=>setAba("horarios")} recalcular={()=>setAba("planejar")} temRota={!!resultado} carregando={carregando}/>:aba==="economia"?<PlanejamentoEconomico opcoes={resultado?.alternativas_economicas??(resultado?.modal==="ape"&&resultado.tarifa_centavos===0?[{id:1,tempo_min:resultado.tempo_min,caminhada_m:resultado.distancia_m,etapas_viagem:etapasAtuais,horarios_onibus:[],trajeto:resultado.trajeto,trechos:resultado.trechos||[],modal:"ape",custo:{centavos:0,status:"estimativa",detalhes:[],pendencias:[],fontes:[],data_referencia:"2026-11-17",aviso:"Caminhada sem tarifa de transporte."}}]:[])} selecionada={resultado?.alternativas_economicas?.find(o=>o.etapas_viagem===resultado.etapas_viagem||o.trajeto===resultado.trajeto)?.id??opcaoEconomica} selecionar={usarAlternativa} voltar={()=>setAba("planejar")} temRota={!!resultado}/>:<>
+     {aba==="metro"?<MetroNetwork mobile={mobile}/>:aba==="horarios"?<HorariosOnibus api={API} horarios={resultado?.horarios_onibus||[]} temRota={!!resultado} carregando={carregando} voltar={()=>setAba("planejar")}/>:aba==="viagem"?<AssistenteViagem etapas={etapasAtuais} indice={etapaAtual} setIndice={setEtapaAtual} voltar={()=>setAba("planejar")} horarios={()=>setAba("horarios")} recalcular={()=>setAba("planejar")} temRota={!!resultado} carregando={carregando} gpsAtivo={gpsAtivo} statusGPS={statusGPS} mapa={<View>{controleGPS}<MapaPreview url={preview} pontos={pontos} trajeto={resultado?.trajeto} trechos={resultado?.trechos} height={mobile?320:420} posicao={gpsConfiavel?posicao:null} seguir={gpsAtivo&&seguirGPS}/></View>}/>:aba==="economia"?<PlanejamentoEconomico opcoes={resultado?.alternativas_economicas??(resultado?.modal==="ape"&&resultado.tarifa_centavos===0?[{id:1,tempo_min:resultado.tempo_min,caminhada_m:resultado.distancia_m,etapas_viagem:etapasAtuais,horarios_onibus:[],trajeto:resultado.trajeto,trechos:resultado.trechos||[],modal:"ape",custo:{centavos:0,status:"estimativa",detalhes:[],pendencias:[],fontes:[],data_referencia:"2026-11-17",aviso:"Caminhada sem tarifa de transporte."}}]:[])} selecionada={resultado?.alternativas_economicas?.find(o=>o.etapas_viagem===resultado.etapas_viagem||o.trajeto===resultado.trajeto)?.id??opcaoEconomica} selecionar={usarAlternativa} voltar={()=>setAba("planejar")} temRota={!!resultado}/>:<>
      <View style={[v.intro,mobile&&v.introMobile]}>
        <Text style={v.eyebrow}>MENOS COMPLICAÇÃO. MAIS CIDADE.</Text>
        <Text style={[v.heading,mobile&&v.headingMobile]}>Seu próximo destino começa aqui.</Text>
@@ -326,8 +368,9 @@ export default function Home(){
              setAlturaMapa(prev=>prev===h?prev:h);
            }
          }}>
-           <MapaPreview url={preview} pontos={pontos} trajeto={resultado?.trajeto} trechos={resultado?.trechos} height={mobile?390:alturaMapa} pickMode={selecionarNoMapa} onMapPick={marcarNoMapa}/>
+           <MapaPreview url={preview} pontos={pontos} trajeto={resultado?.trajeto} trechos={resultado?.trechos} height={mobile?390:alturaMapa} pickMode={selecionarNoMapa} onMapPick={marcarNoMapa} posicao={gpsConfiavel?posicao:null} seguir={gpsAtivo&&seguirGPS&&!selecionarNoMapa}/>
          </View>
+         {controleGPS}
          <View style={v.mapBottom}>
            <Icone name="information-circle-outline" color="#63778c" size={17}/>
            <Text style={v.mapBottomText}>{resultado?"Trajeto calculado a partir dos dados de "+resultado.fonte+". Consulte as etapas e confira horários antes de sair.":"Selecione origem e destino e clique em Encontrar trajeto. O percurso só aparece quando o provedor retornar a geometria real."}</Text>
