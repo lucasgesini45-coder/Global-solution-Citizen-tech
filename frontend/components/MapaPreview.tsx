@@ -1,12 +1,15 @@
-import React from "react";
+import React,{useEffect,useRef,useMemo} from "react";
 import { View } from "react-native";
 import WebView from "react-native-webview";
 
 type Ponto={lat:number;lon:number;nome?:string;tipo?:string};
 type Trecho={modal:string;trajeto:number[][];linha?:string|null;cor_linha?:string|null;paradas?:{nome:string;lat:number;lon:number}[]};
-type Props={url:string;trajeto?:number[][];trechos?:Trecho[];pontos?:Ponto[];height?:number;pickMode?:"origem"|"destino"|null;onMapPick?:(lat:number,lon:number)=>void};
+type Props={posicao?:{lat:number;lon:number}|null;seguir?:boolean;url:string;trajeto?:number[][];trechos?:Trecho[];pontos?:Ponto[];height?:number;pickMode?:"origem"|"destino"|null;onMapPick?:(lat:number,lon:number)=>void};
 
-export default function MapaPreview({pontos=[],height=365,trajeto=[],trechos=[],pickMode=null,onMapPick}:Props){
+export default function MapaPreview({pontos=[],height=365,trajeto=[],trechos=[],pickMode=null,onMapPick,posicao=null,seguir=false}:Props){
+ const web=useRef<WebView>(null);
+ const atualizar=()=>web.current?.injectJavaScript("window.citizenGPS && window.citizenGPS("+JSON.stringify(posicao)+","+JSON.stringify(seguir)+");true;");
+ useEffect(()=>{atualizar();},[posicao?.lat,posicao?.lon,seguir]);
  const marcas=pontos.filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lon));
  const payload=JSON.stringify({marcas}).replace(/</g,"\\u003c");
  const modo=JSON.stringify(pickMode);
@@ -39,6 +42,12 @@ html,body,#map{margin:0;width:100%;height:100%;background:#eff3f7;font-family:In
  if(!window.maplibregl){showError("Biblioteca do mapa indisponível. Verifique sua conexão.");return;}
  try {
   const map=new maplibregl.Map({container:"map",style:"https://tiles.openfreemap.org/styles/positron",center:[-46.6333,-23.5505],zoom:12.5,attributionControl:true});
+  let gpsMarker=null;
+  window.citizenGPS=function(p,follow){
+    if(!p){if(gpsMarker)gpsMarker.remove();gpsMarker=null;return;}
+    if(!gpsMarker){const el=document.createElement("div");Object.assign(el.style,{width:"20px",height:"20px",border:"3px solid white",background:"#0071e3",borderRadius:"50%",boxShadow:"0 0 0 8px rgba(0,113,227,.22)"});gpsMarker=new maplibregl.Marker({element:el}).setLngLat([p.lon,p.lat]).addTo(map);}else gpsMarker.setLngLat([p.lon,p.lat]);
+    if(follow)map.easeTo({center:[p.lon,p.lat],zoom:Math.max(map.getZoom(),16),duration:450});
+  };
   map.addControl(new maplibregl.NavigationControl({showCompass:false}),"top-right");
   map.on("click",function(event){
     if(pickMode && window.ReactNativeWebView){
@@ -88,14 +97,17 @@ html,body,#map{margin:0;width:100%;height:100%;background:#eff3f7;font-family:In
    else if(data.marcas.length===1&& !bounds.isEmpty())map.jumpTo({center:bounds.getCenter(),zoom:15});
    else if(data.marcas.length>1&& !bounds.isEmpty())map.fitBounds(bounds,{padding:65,maxZoom:16,duration:0});
    map.resize();
+   if(window.ReactNativeWebView)window.ReactNativeWebView.postMessage(JSON.stringify({type:"map_ready"}));
   });
  }catch(e){showError("Falha ao iniciar o mapa Positron.");}
 })();
 </script></body></html>`;
+ const source=useMemo(()=>({html,baseUrl:"https://tiles.openfreemap.org/"}),[html]);
  return <View style={{height,width:"100%",borderRadius:18,overflow:"hidden",backgroundColor:"#eff3f7"}}>
-   <WebView originWhitelist={["*"]} source={{html,baseUrl:"https://tiles.openfreemap.org/"}} style={{flex:1}} javaScriptEnabled domStorageEnabled onMessage={(event)=>{
+   <WebView ref={web} originWhitelist={["*"]} source={source} style={{flex:1}} javaScriptEnabled domStorageEnabled onMessage={(event)=>{
      try{
        const msg=JSON.parse(event.nativeEvent.data);
+       if(msg.type==="map_ready")atualizar();
        if(msg.type==="map_pick"&&Number.isFinite(msg.lat)&&Number.isFinite(msg.lon))onMapPick?.(msg.lat,msg.lon);
      }catch{/* mensagem não reconhecida */}
    }}/>
