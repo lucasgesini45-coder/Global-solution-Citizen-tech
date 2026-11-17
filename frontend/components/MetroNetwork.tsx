@@ -24,11 +24,11 @@ const LINHAS: Linha[] = [
  {numero:"3",nome:"Vermelha",cor:"#ED1C24",operador:"Metrô",extremos:"Palmeiras-Barra Funda · Corinthians-Itaquera",tipo:"metro"},
  {numero:"4",nome:"Amarela",cor:"#F9C80E",operador:"Motiva",extremos:"Vila Sônia · Luz",tipo:"metro"},
  {numero:"5",nome:"Lilás",cor:"#9B3894",operador:"Motiva",extremos:"Capão Redondo · Chácara Klabin",tipo:"metro"},
- {numero:"6",nome:"Laranja",cor:"#F47920",operador:"Linha Uni",extremos:"Brasilândia · São Joaquim (consulte o operador sobre a implantação)",tipo:"metro"},
+ {numero:"6",nome:"Laranja",cor:"#F47920",operador:"Linha Uni",extremos:"Em implantação — Brasilândia · São Joaquim (projeto; confira a abertura de trechos com a Linha Uni)",tipo:"metro"},
  {numero:"7",nome:"Rubi",cor:"#A6192E",operador:"TIC Trens",extremos:"Palmeiras-Barra Funda · Jundiaí",tipo:"trem"},
- {numero:"8",nome:"Diamante",cor:"#8F9498",operador:"Motiva",extremos:"Júlio Prestes · Itapevi",tipo:"trem"},
+ {numero:"8",nome:"Diamante",cor:"#8F9498",operador:"Motiva",extremos:"Júlio Prestes · Amador Bueno",tipo:"trem"},
  {numero:"9",nome:"Esmeralda",cor:"#008A72",operador:"Motiva",extremos:"Osasco · Varginha",tipo:"trem"},
- {numero:"10",nome:"Turquesa",cor:"#008F95",operador:"CPTM",extremos:"Brás · Rio Grande da Serra",tipo:"trem"},
+ {numero:"10",nome:"Turquesa",cor:"#008F95",operador:"CPTM",extremos:"Palmeiras-Barra Funda · Rio Grande da Serra",tipo:"trem"},
  {numero:"11",nome:"Coral",cor:"#F36C38",operador:"Trivia",extremos:"Palmeiras-Barra Funda · Estudantes",tipo:"trem"},
  {numero:"12",nome:"Safira",cor:"#153E84",operador:"Trivia",extremos:"Brás · Calmon Viana",tipo:"trem"},
  {numero:"13",nome:"Jade",cor:"#00A5A5",operador:"Trivia",extremos:"Eng. Goulart · Aeroporto-Guarulhos",tipo:"trem"},
@@ -64,11 +64,11 @@ export default function MetroNetwork({mobile}:{mobile:boolean}){
      </View>
      <View style={[s.details,mobile&&s.detailsMobile]}>
        <View style={s.header}><Text style={s.title}>Linhas da rede</Text><Text style={s.small}>{linhas.length} linhas</Text></View>
-       <View style={s.search}><Ionicons name="search-outline" size={17} color="#64748b"/><TextInput value={busca} onChangeText={setBusca} placeholder="Buscar linha, estação terminal..." placeholderTextColor="#8898a8" style={s.input} accessibilityLabel="Buscar linhas ferroviárias"/></View>
+       <View style={s.search}><Ionicons name="search-outline" size={17} color="#64748b"/><TextInput value={busca} onChangeText={setBusca} placeholder="Buscar linha, operador ou terminal..." placeholderTextColor="#8898a8" style={s.input} accessibilityLabel="Buscar linhas ferroviárias"/></View>
        <View style={s.filters}>{filtros.map(f=><Pressable key={f.id} onPress={()=>setFiltro(f.id)} style={[s.filter,filtro===f.id&&s.active]} accessibilityRole="button" accessibilityState={{selected:filtro===f.id}}><Text style={[s.filterText,filtro===f.id&&s.activeText]}>{f.label}</Text></Pressable>)}</View>
        {linhas.map(l=><Pressable key={l.numero} onPress={()=>setSelecionada(x=>x===l.numero?null:l.numero)} style={s.line} accessibilityRole="button" accessibilityState={{expanded:selecionada===l.numero}}>
          <View style={[s.number,{backgroundColor:l.cor}]}><Text style={[s.numberText,["4","8","15","17"].includes(l.numero)&&{color:"#172333"}]}>{l.numero}</Text></View>
-         <View style={{flex:1,minWidth:0}}><Text style={s.lineName}>Linha {l.numero} – {l.nome}</Text><Text style={s.small}>{l.operador}</Text>{selecionada===l.numero&&<View style={{marginTop:7,gap:5}}><Text style={s.extremos}>{l.extremos}</Text><Pressable onPress={()=>abrir(OPERADORES[l.operador])} accessibilityRole="link"><Text style={s.link}>Informações no operador ↗</Text></Pressable></View>}</View>
+         <View style={{flex:1,minWidth:0}}><Text style={s.lineName}>Linha {l.numero} – {l.nome}</Text><Text style={s.small}>{l.operador}{l.numero==="6"?" · Em implantação":""}</Text>{selecionada===l.numero&&<View style={{marginTop:7,gap:5}}><Text style={s.extremos}>{l.extremos}</Text><Pressable onPress={()=>abrir(OPERADORES[l.operador])} accessibilityRole="link"><Text style={s.link}>Informações no operador ↗</Text></Pressable></View>}</View>
          <Ionicons name={selecionada===l.numero?"chevron-up":"chevron-down"} size={16} color="#8797a7"/>
        </Pressable>)}
        {!linhas.length&&<Text style={s.note}>Nenhuma linha encontrada. Tente outro termo.</Text>}
