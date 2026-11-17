@@ -1,0 +1,682 @@
+[
+  {
+    "modelo": "A",
+    "quantidade": 20,
+    "acertos": 19,
+    "taxa_acerto_pct": 95,
+    "tempo_medio_ms": 0.2171,
+    "respostas_com_aviso": 0,
+    "resultados": [
+      {
+        "pergunta": "Como emitir cartão comum?",
+        "status_esperado": "ok",
+        "id_esperado": 1,
+        "resposta_esperada": "Para obter o Bilhete Único Comum, preencha o cadastro no site de atendimento da SPTrans. Consulte no portal as instruções de emissão e retirada.",
+        "status_obtido": "ok",
+        "id_obtido": 1,
+        "resposta_obtida": "Para obter o Bilhete Único Comum, preencha o cadastro no site de atendimento da SPTrans. Consulte no portal as instruções de emissão e retirada.",
+        "fontes": [
+          {
+            "referencia": "https://bilheteunico.sptrans.com.br/comum/",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": true,
+        "tempo_ms": 0.355309
+      },
+      {
+        "pergunta": "segunda via cartão comum",
+        "status_esperado": "ok",
+        "id_esperado": 2,
+        "resposta_esperada": "A SPTrans informa que a emissão da segunda via do Bilhete Único comum custa o equivalente a sete tarifas de ônibus vigentes. Confira as condições e procedimentos atuais no portal.",
+        "status_obtido": "ok",
+        "id_obtido": 2,
+        "resposta_obtida": "A SPTrans informa que a emissão da segunda via do Bilhete Único comum custa o equivalente a sete tarifas de ônibus vigentes. Confira as condições e procedimentos atuais no portal.",
+        "fontes": [
+          {
+            "referencia": "https://www.sptrans.com.br/perguntas-e-respostas/?sobre=bilhete-unico",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": true,
+        "tempo_ms": 0.237506
+      },
+      {
+        "pergunta": "recarga bilhete unico comum",
+        "status_esperado": "ok",
+        "id_esperado": 3,
+        "resposta_esperada": "Consulte as opções de recarga na página do Bilhete Único Comum, incluindo a loja virtual indicada pela SPTrans.",
+        "status_obtido": "ok",
+        "id_obtido": 3,
+        "resposta_obtida": "Consulte as opções de recarga na página do Bilhete Único Comum, incluindo a loja virtual indicada pela SPTrans.",
+        "fontes": [
+          {
+            "referencia": "https://bilheteunico.sptrans.com.br/comum/",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": true,
+        "tempo_ms": 0.227886
+      },
+      {
+        "pergunta": "posto atendimento cartao comum",
+        "status_esperado": "ok",
+        "id_esperado": 4,
+        "resposta_esperada": "Os postos nos terminais municipais atendem usuários de Bilhete Único Comum, Vale-Transporte, Estudante e Professor. Consulte a relação de postos antes de ir.",
+        "status_obtido": "ok",
+        "id_obtido": 4,
+        "resposta_obtida": "Os postos nos terminais municipais atendem usuários de Bilhete Único Comum, Vale-Transporte, Estudante e Professor. Consulte a relação de postos antes de ir.",
+        "fontes": [
+          {
+            "referencia": "https://atendimento.sptrans.com.br/lp/postos-atendimento",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": true,
+        "tempo_ms": 0.222804
+      },
+      {
+        "pergunta": "bilhete especial pcd laudo medico",
+        "status_esperado": "ok",
+        "id_esperado": 5,
+        "resposta_esperada": "Consulte o procedimento do Bilhete Único Especial PCD da SPTrans. A emissão de relatório médico e/ou funcional pode ser realizada em estabelecimento de saúde cadastrado conforme os critérios da SPTrans. A concessão depende da análise do órgão.",
+        "status_obtido": "ok",
+        "id_obtido": 5,
+        "resposta_obtida": "Consulte o procedimento do Bilhete Único Especial PCD da SPTrans. A emissão de relatório médico e/ou funcional pode ser realizada em estabelecimento de saúde cadastrado conforme os critérios da SPTrans. A concessão depende da análise do órgão.",
+        "fontes": [
+          {
+            "referencia": "https://www.sptrans.com.br/bilheteunicopcd",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": true,
+        "tempo_ms": 0.242759
+      },
+      {
+        "pergunta": "cartao idoso 65",
+        "status_esperado": "ok",
+        "id_esperado": 6,
+        "resposta_esperada": "Pessoas a partir de 65 anos podem solicitar o Bilhete Único Especial Pessoa Idosa pelo atendimento da SPTrans ou nos postos indicados no portal oficial.",
+        "status_obtido": "ok",
+        "id_obtido": 6,
+        "resposta_obtida": "Pessoas a partir de 65 anos podem solicitar o Bilhete Único Especial Pessoa Idosa pelo atendimento da SPTrans ou nos postos indicados no portal oficial.",
+        "fontes": [
+          {
+            "referencia": "https://bilheteunico.sptrans.com.br/especial/pessoa-idosa/",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": true,
+        "tempo_ms": 0.219798
+      },
+      {
+        "pergunta": "desconto estudante transporte",
+        "status_esperado": "ok",
+        "id_esperado": 7,
+        "resposta_esperada": "O Bilhete Único de Estudante na modalidade meia-tarifa possibilita adquirir créditos com redução de 50% sobre a tarifa básica comum, para estudantes elegíveis. Consulte a SPTrans sobre cadastro e condições.",
+        "status_obtido": "ok",
+        "id_obtido": 7,
+        "resposta_obtida": "O Bilhete Único de Estudante na modalidade meia-tarifa possibilita adquirir créditos com redução de 50% sobre a tarifa básica comum, para estudantes elegíveis. Consulte a SPTrans sobre cadastro e condições.",
+        "fontes": [
+          {
+            "referencia": "https://www.sptrans.com.br/perguntas-e-respostas/?sobre=bilhete-estudante",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": true,
+        "tempo_ms": 0.216222
+      },
+      {
+        "pergunta": "requisitos passe livre antt",
+        "status_esperado": "ok",
+        "id_esperado": 8,
+        "resposta_esperada": "O Passe Livre Interestadual é destinado à pessoa com deficiência que comprove também o requisito de renda familiar por pessoa de até um salário mínimo. Confira os critérios e documentação da ANTT.",
+        "status_obtido": "ok",
+        "id_obtido": 8,
+        "resposta_obtida": "O Passe Livre Interestadual é destinado à pessoa com deficiência que comprove também o requisito de renda familiar por pessoa de até um salário mínimo. Confira os critérios e documentação da ANTT.",
+        "fontes": [
+          {
+            "referencia": "https://www.gov.br/pt-br/servicos/obter-passe-livre-interestadual-digital?id=23712&origem=servico",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": true,
+        "tempo_ms": 0.217067
+      },
+      {
+        "pergunta": "pedir passe livre digital",
+        "status_esperado": "ok",
+        "id_esperado": 9,
+        "resposta_esperada": "Acesse o portal do Passe Livre da ANTT, confira os requisitos e siga as etapas de preenchimento, validação e envio do requerimento. O benefício não substitui os cartões de transporte urbano.",
+        "status_obtido": "ok",
+        "id_obtido": 9,
+        "resposta_obtida": "Acesse o portal do Passe Livre da ANTT, confira os requisitos e siga as etapas de preenchimento, validação e envio do requerimento. O benefício não substitui os cartões de transporte urbano.",
+        "fontes": [
+          {
+            "referencia": "https://passelivre.antt.gov.br/passo-a-passo",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": true,
+        "tempo_ms": 0.229543
+      },
+      {
+        "pergunta": "assento preferencial metro",
+        "status_esperado": "ok",
+        "id_esperado": 10,
+        "resposta_esperada": "O Metrô prevê atendimento preferencial a pessoas com deficiência, idosos, gestantes, pessoas com crianças de colo, obesos, autistas e pessoas com restrição de mobilidade, conforme suas regras de atendimento.",
+        "status_obtido": "ok",
+        "id_obtido": 10,
+        "resposta_obtida": "O Metrô prevê atendimento preferencial a pessoas com deficiência, idosos, gestantes, pessoas com crianças de colo, obesos, autistas e pessoas com restrição de mobilidade, conforme suas regras de atendimento.",
+        "fontes": [
+          {
+            "referencia": "https://www.metro.sp.gov.br/pt_BR/sua-viagem/acessibilidade/atendimento-preferencial/",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": true,
+        "tempo_ms": 0.220642
+      },
+      {
+        "pergunta": "cachorro guia metro",
+        "status_esperado": "ok",
+        "id_esperado": 11,
+        "resposta_esperada": "O Metrô permite que pessoas com deficiência visual sejam acompanhadas por cão-guia nas estações e nos trens. Consulte os procedimentos oficiais de atendimento.",
+        "status_obtido": "ok",
+        "id_obtido": 11,
+        "resposta_obtida": "O Metrô permite que pessoas com deficiência visual sejam acompanhadas por cão-guia nas estações e nos trens. Consulte os procedimentos oficiais de atendimento.",
+        "fontes": [
+          {
+            "referencia": "https://www.metro.sp.gov.br/pt_BR/sua-viagem/acessibilidade/atendimento-preferencial/",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": true,
+        "tempo_ms": 0.21572
+      },
+      {
+        "pergunta": "van adaptada atende mais",
+        "status_esperado": "ok",
+        "id_esperado": 12,
+        "resposta_esperada": "O Atende+ é um serviço municipal de transporte especial gratuito, porta a porta, destinado a pessoas com autismo, surdocegueira ou deficiência física severa, observados os critérios do programa.",
+        "status_obtido": "ok",
+        "id_obtido": 12,
+        "resposta_obtida": "O Atende+ é um serviço municipal de transporte especial gratuito, porta a porta, destinado a pessoas com autismo, surdocegueira ou deficiência física severa, observados os critérios do programa.",
+        "fontes": [
+          {
+            "referencia": "https://www.sptrans.com.br/atende",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": true,
+        "tempo_ms": 0.213572
+      },
+      {
+        "pergunta": "telefone atende mais",
+        "status_esperado": "ok",
+        "id_esperado": 13,
+        "resposta_esperada": "Para informações sobre o Atende+, use a Central 156 da Prefeitura de São Paulo ou os postos de atendimento da SPTrans. O Citizen Tech não realiza cadastro no serviço.",
+        "status_obtido": "ok",
+        "id_obtido": 13,
+        "resposta_obtida": "Para informações sobre o Atende+, use a Central 156 da Prefeitura de São Paulo ou os postos de atendimento da SPTrans. O Citizen Tech não realiza cadastro no serviço.",
+        "fontes": [
+          {
+            "referencia": "https://www.sptrans.com.br/atende/sobre-o-atende",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": true,
+        "tempo_ms": 0.21197
+      },
+      {
+        "pergunta": "horario abre fecha estacao",
+        "status_esperado": "ok",
+        "id_esperado": 14,
+        "resposta_esperada": "Consulte a página de horários do Metrô. Cada estação possui horários específicos, que podem variar conforme o dia e a operação.",
+        "status_obtido": "ok",
+        "id_obtido": 14,
+        "resposta_obtida": "Consulte a página de horários do Metrô. Cada estação possui horários específicos, que podem variar conforme o dia e a operação.",
+        "fontes": [
+          {
+            "referencia": "https://www.metro.sp.gov.br/sua-viagem/horarios/",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": true,
+        "tempo_ms": 0.225085
+      },
+      {
+        "pergunta": "perdi documento estacao",
+        "status_esperado": "ok",
+        "id_esperado": 15,
+        "resposta_esperada": "Consulte o serviço de Achados e Perdidos do Metrô. Para documentos, a consulta pode ser feita pelo site ou pela Central de Informações. Verifique qual operador atende a linha onde perdeu o objeto.",
+        "status_obtido": "ok",
+        "id_obtido": 15,
+        "resposta_obtida": "Consulte o serviço de Achados e Perdidos do Metrô. Para documentos, a consulta pode ser feita pelo site ou pela Central de Informações. Verifique qual operador atende a linha onde perdeu o objeto.",
+        "fontes": [
+          {
+            "referencia": "https://www.metro.sp.gov.br/pt_BR/sua-viagem/achados-perdidos/",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": true,
+        "tempo_ms": 0.212473
+      },
+      {
+        "pergunta": "Quando o metrô fecha na estação?",
+        "status_esperado": "ok",
+        "id_esperado": 14,
+        "resposta_esperada": "Consulte a página de horários do Metrô. Cada estação possui horários específicos, que podem variar conforme o dia e a operação.",
+        "status_obtido": "ok",
+        "id_obtido": 14,
+        "resposta_obtida": "Consulte a página de horários do Metrô. Cada estação possui horários específicos, que podem variar conforme o dia e a operação.",
+        "fontes": [
+          {
+            "referencia": "https://www.metro.sp.gov.br/sua-viagem/horarios/",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": true,
+        "tempo_ms": 0.214854
+      },
+      {
+        "pergunta": "Como coloco crédito no cartão comum?",
+        "status_esperado": "ok",
+        "id_esperado": 3,
+        "resposta_esperada": "Consulte as opções de recarga na página do Bilhete Único Comum, incluindo a loja virtual indicada pela SPTrans.",
+        "status_obtido": "ok",
+        "id_obtido": 3,
+        "resposta_obtida": "Consulte as opções de recarga na página do Bilhete Único Comum, incluindo a loja virtual indicada pela SPTrans.",
+        "fontes": [
+          {
+            "referencia": "https://bilheteunico.sptrans.com.br/comum/",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": true,
+        "tempo_ms": 0.216233
+      },
+      {
+        "pergunta": "",
+        "status_esperado": "entrada_invalida",
+        "id_esperado": null,
+        "resposta_esperada": "Solicitar uma pergunta válida.",
+        "status_obtido": "entrada_invalida",
+        "id_obtido": null,
+        "resposta_obtida": "Digite uma pergunta.",
+        "fontes": [],
+        "acerto": true,
+        "tempo_ms": 0.00836
+      },
+      {
+        "pergunta": "cartão comum",
+        "status_esperado": "ambiguo",
+        "id_esperado": null,
+        "resposta_esperada": "Pedir esclarecimento sem escolher uma orientação.",
+        "status_obtido": "ok",
+        "id_obtido": 1,
+        "resposta_obtida": "Para obter o Bilhete Único Comum, preencha o cadastro no site de atendimento da SPTrans. Consulte no portal as instruções de emissão e retirada.",
+        "fontes": [
+          {
+            "referencia": "https://bilheteunico.sptrans.com.br/comum/",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": false,
+        "tempo_ms": 0.216473
+      },
+      {
+        "pergunta": "Qual a receita de bolo de chocolate?",
+        "status_esperado": "sem_resposta",
+        "id_esperado": null,
+        "resposta_esperada": "Informar ausência de orientação verificada e sugerir consulta alternativa.",
+        "status_obtido": "sem_resposta",
+        "id_obtido": null,
+        "resposta_obtida": "Não encontrei orientação verificada. Consulte o órgão responsável ou escolha um assunto.",
+        "fontes": [],
+        "acerto": true,
+        "tempo_ms": 0.217731
+      }
+    ]
+  },
+  {
+    "modelo": "B",
+    "quantidade": 20,
+    "acertos": 19,
+    "taxa_acerto_pct": 95,
+    "tempo_medio_ms": 0.209234,
+    "respostas_com_aviso": 18,
+    "resultados": [
+      {
+        "pergunta": "Como emitir cartão comum?",
+        "status_esperado": "ok",
+        "id_esperado": 1,
+        "resposta_esperada": "Para obter o Bilhete Único Comum, preencha o cadastro no site de atendimento da SPTrans. Consulte no portal as instruções de emissão e retirada.",
+        "status_obtido": "ok",
+        "id_obtido": 1,
+        "resposta_obtida": "Para obter o Bilhete Único Comum, preencha o cadastro no site de atendimento da SPTrans. Consulte no portal as instruções de emissão e retirada. Confirme as regras atuais no canal oficial. Este assistente não é um serviço oficial.",
+        "fontes": [
+          {
+            "referencia": "https://bilheteunico.sptrans.com.br/comum/",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": true,
+        "tempo_ms": 0.218547
+      },
+      {
+        "pergunta": "segunda via cartão comum",
+        "status_esperado": "ok",
+        "id_esperado": 2,
+        "resposta_esperada": "A SPTrans informa que a emissão da segunda via do Bilhete Único comum custa o equivalente a sete tarifas de ônibus vigentes. Confira as condições e procedimentos atuais no portal.",
+        "status_obtido": "ok",
+        "id_obtido": 2,
+        "resposta_obtida": "A SPTrans informa que a emissão da segunda via do Bilhete Único comum custa o equivalente a sete tarifas de ônibus vigentes. Confira as condições e procedimentos atuais no portal. Confirme as regras atuais no canal oficial. Este assistente não é um serviço oficial.",
+        "fontes": [
+          {
+            "referencia": "https://www.sptrans.com.br/perguntas-e-respostas/?sobre=bilhete-unico",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": true,
+        "tempo_ms": 0.217812
+      },
+      {
+        "pergunta": "recarga bilhete unico comum",
+        "status_esperado": "ok",
+        "id_esperado": 3,
+        "resposta_esperada": "Consulte as opções de recarga na página do Bilhete Único Comum, incluindo a loja virtual indicada pela SPTrans.",
+        "status_obtido": "ok",
+        "id_obtido": 3,
+        "resposta_obtida": "Consulte as opções de recarga na página do Bilhete Único Comum, incluindo a loja virtual indicada pela SPTrans. Confirme as regras atuais no canal oficial. Este assistente não é um serviço oficial.",
+        "fontes": [
+          {
+            "referencia": "https://bilheteunico.sptrans.com.br/comum/",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": true,
+        "tempo_ms": 0.21578
+      },
+      {
+        "pergunta": "posto atendimento cartao comum",
+        "status_esperado": "ok",
+        "id_esperado": 4,
+        "resposta_esperada": "Os postos nos terminais municipais atendem usuários de Bilhete Único Comum, Vale-Transporte, Estudante e Professor. Consulte a relação de postos antes de ir.",
+        "status_obtido": "ok",
+        "id_obtido": 4,
+        "resposta_obtida": "Os postos nos terminais municipais atendem usuários de Bilhete Único Comum, Vale-Transporte, Estudante e Professor. Consulte a relação de postos antes de ir. Confirme as regras atuais no canal oficial. Este assistente não é um serviço oficial.",
+        "fontes": [
+          {
+            "referencia": "https://atendimento.sptrans.com.br/lp/postos-atendimento",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": true,
+        "tempo_ms": 0.226427
+      },
+      {
+        "pergunta": "bilhete especial pcd laudo medico",
+        "status_esperado": "ok",
+        "id_esperado": 5,
+        "resposta_esperada": "Consulte o procedimento do Bilhete Único Especial PCD da SPTrans. A emissão de relatório médico e/ou funcional pode ser realizada em estabelecimento de saúde cadastrado conforme os critérios da SPTrans. A concessão depende da análise do órgão.",
+        "status_obtido": "ok",
+        "id_obtido": 5,
+        "resposta_obtida": "Consulte o procedimento do Bilhete Único Especial PCD da SPTrans. A emissão de relatório médico e/ou funcional pode ser realizada em estabelecimento de saúde cadastrado conforme os critérios da SPTrans. A concessão depende da análise do órgão. Confirme as regras atuais no canal oficial. Este assistente não é um serviço oficial.",
+        "fontes": [
+          {
+            "referencia": "https://www.sptrans.com.br/bilheteunicopcd",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": true,
+        "tempo_ms": 0.217215
+      },
+      {
+        "pergunta": "cartao idoso 65",
+        "status_esperado": "ok",
+        "id_esperado": 6,
+        "resposta_esperada": "Pessoas a partir de 65 anos podem solicitar o Bilhete Único Especial Pessoa Idosa pelo atendimento da SPTrans ou nos postos indicados no portal oficial.",
+        "status_obtido": "ok",
+        "id_obtido": 6,
+        "resposta_obtida": "Pessoas a partir de 65 anos podem solicitar o Bilhete Único Especial Pessoa Idosa pelo atendimento da SPTrans ou nos postos indicados no portal oficial. Confirme as regras atuais no canal oficial. Este assistente não é um serviço oficial.",
+        "fontes": [
+          {
+            "referencia": "https://bilheteunico.sptrans.com.br/especial/pessoa-idosa/",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": true,
+        "tempo_ms": 0.212591
+      },
+      {
+        "pergunta": "desconto estudante transporte",
+        "status_esperado": "ok",
+        "id_esperado": 7,
+        "resposta_esperada": "O Bilhete Único de Estudante na modalidade meia-tarifa possibilita adquirir créditos com redução de 50% sobre a tarifa básica comum, para estudantes elegíveis. Consulte a SPTrans sobre cadastro e condições.",
+        "status_obtido": "ok",
+        "id_obtido": 7,
+        "resposta_obtida": "O Bilhete Único de Estudante na modalidade meia-tarifa possibilita adquirir créditos com redução de 50% sobre a tarifa básica comum, para estudantes elegíveis. Consulte a SPTrans sobre cadastro e condições. Confirme as regras atuais no canal oficial. Este assistente não é um serviço oficial.",
+        "fontes": [
+          {
+            "referencia": "https://www.sptrans.com.br/perguntas-e-respostas/?sobre=bilhete-estudante",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": true,
+        "tempo_ms": 0.244076
+      },
+      {
+        "pergunta": "requisitos passe livre antt",
+        "status_esperado": "ok",
+        "id_esperado": 8,
+        "resposta_esperada": "O Passe Livre Interestadual é destinado à pessoa com deficiência que comprove também o requisito de renda familiar por pessoa de até um salário mínimo. Confira os critérios e documentação da ANTT.",
+        "status_obtido": "ok",
+        "id_obtido": 8,
+        "resposta_obtida": "O Passe Livre Interestadual é destinado à pessoa com deficiência que comprove também o requisito de renda familiar por pessoa de até um salário mínimo. Confira os critérios e documentação da ANTT. Confirme as regras atuais no canal oficial. Este assistente não é um serviço oficial.",
+        "fontes": [
+          {
+            "referencia": "https://www.gov.br/pt-br/servicos/obter-passe-livre-interestadual-digital?id=23712&origem=servico",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": true,
+        "tempo_ms": 0.229037
+      },
+      {
+        "pergunta": "pedir passe livre digital",
+        "status_esperado": "ok",
+        "id_esperado": 9,
+        "resposta_esperada": "Acesse o portal do Passe Livre da ANTT, confira os requisitos e siga as etapas de preenchimento, validação e envio do requerimento. O benefício não substitui os cartões de transporte urbano.",
+        "status_obtido": "ok",
+        "id_obtido": 9,
+        "resposta_obtida": "Acesse o portal do Passe Livre da ANTT, confira os requisitos e siga as etapas de preenchimento, validação e envio do requerimento. O benefício não substitui os cartões de transporte urbano. Confirme as regras atuais no canal oficial. Este assistente não é um serviço oficial.",
+        "fontes": [
+          {
+            "referencia": "https://passelivre.antt.gov.br/passo-a-passo",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": true,
+        "tempo_ms": 0.215932
+      },
+      {
+        "pergunta": "assento preferencial metro",
+        "status_esperado": "ok",
+        "id_esperado": 10,
+        "resposta_esperada": "O Metrô prevê atendimento preferencial a pessoas com deficiência, idosos, gestantes, pessoas com crianças de colo, obesos, autistas e pessoas com restrição de mobilidade, conforme suas regras de atendimento.",
+        "status_obtido": "ok",
+        "id_obtido": 10,
+        "resposta_obtida": "O Metrô prevê atendimento preferencial a pessoas com deficiência, idosos, gestantes, pessoas com crianças de colo, obesos, autistas e pessoas com restrição de mobilidade, conforme suas regras de atendimento. Confirme as regras atuais no canal oficial. Este assistente não é um serviço oficial.",
+        "fontes": [
+          {
+            "referencia": "https://www.metro.sp.gov.br/pt_BR/sua-viagem/acessibilidade/atendimento-preferencial/",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": true,
+        "tempo_ms": 0.216067
+      },
+      {
+        "pergunta": "cachorro guia metro",
+        "status_esperado": "ok",
+        "id_esperado": 11,
+        "resposta_esperada": "O Metrô permite que pessoas com deficiência visual sejam acompanhadas por cão-guia nas estações e nos trens. Consulte os procedimentos oficiais de atendimento.",
+        "status_obtido": "ok",
+        "id_obtido": 11,
+        "resposta_obtida": "O Metrô permite que pessoas com deficiência visual sejam acompanhadas por cão-guia nas estações e nos trens. Consulte os procedimentos oficiais de atendimento. Confirme as regras atuais no canal oficial. Este assistente não é um serviço oficial.",
+        "fontes": [
+          {
+            "referencia": "https://www.metro.sp.gov.br/pt_BR/sua-viagem/acessibilidade/atendimento-preferencial/",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": true,
+        "tempo_ms": 0.213823
+      },
+      {
+        "pergunta": "van adaptada atende mais",
+        "status_esperado": "ok",
+        "id_esperado": 12,
+        "resposta_esperada": "O Atende+ é um serviço municipal de transporte especial gratuito, porta a porta, destinado a pessoas com autismo, surdocegueira ou deficiência física severa, observados os critérios do programa.",
+        "status_obtido": "ok",
+        "id_obtido": 12,
+        "resposta_obtida": "O Atende+ é um serviço municipal de transporte especial gratuito, porta a porta, destinado a pessoas com autismo, surdocegueira ou deficiência física severa, observados os critérios do programa. Confirme as regras atuais no canal oficial. Este assistente não é um serviço oficial.",
+        "fontes": [
+          {
+            "referencia": "https://www.sptrans.com.br/atende",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": true,
+        "tempo_ms": 0.221315
+      },
+      {
+        "pergunta": "telefone atende mais",
+        "status_esperado": "ok",
+        "id_esperado": 13,
+        "resposta_esperada": "Para informações sobre o Atende+, use a Central 156 da Prefeitura de São Paulo ou os postos de atendimento da SPTrans. O Citizen Tech não realiza cadastro no serviço.",
+        "status_obtido": "ok",
+        "id_obtido": 13,
+        "resposta_obtida": "Para informações sobre o Atende+, use a Central 156 da Prefeitura de São Paulo ou os postos de atendimento da SPTrans. O Citizen Tech não realiza cadastro no serviço. Confirme as regras atuais no canal oficial. Este assistente não é um serviço oficial.",
+        "fontes": [
+          {
+            "referencia": "https://www.sptrans.com.br/atende/sobre-o-atende",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": true,
+        "tempo_ms": 0.221424
+      },
+      {
+        "pergunta": "horario abre fecha estacao",
+        "status_esperado": "ok",
+        "id_esperado": 14,
+        "resposta_esperada": "Consulte a página de horários do Metrô. Cada estação possui horários específicos, que podem variar conforme o dia e a operação.",
+        "status_obtido": "ok",
+        "id_obtido": 14,
+        "resposta_obtida": "Consulte a página de horários do Metrô. Cada estação possui horários específicos, que podem variar conforme o dia e a operação. Confirme as regras atuais no canal oficial. Este assistente não é um serviço oficial.",
+        "fontes": [
+          {
+            "referencia": "https://www.metro.sp.gov.br/sua-viagem/horarios/",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": true,
+        "tempo_ms": 0.217948
+      },
+      {
+        "pergunta": "perdi documento estacao",
+        "status_esperado": "ok",
+        "id_esperado": 15,
+        "resposta_esperada": "Consulte o serviço de Achados e Perdidos do Metrô. Para documentos, a consulta pode ser feita pelo site ou pela Central de Informações. Verifique qual operador atende a linha onde perdeu o objeto.",
+        "status_obtido": "ok",
+        "id_obtido": 15,
+        "resposta_obtida": "Consulte o serviço de Achados e Perdidos do Metrô. Para documentos, a consulta pode ser feita pelo site ou pela Central de Informações. Verifique qual operador atende a linha onde perdeu o objeto. Confirme as regras atuais no canal oficial. Este assistente não é um serviço oficial.",
+        "fontes": [
+          {
+            "referencia": "https://www.metro.sp.gov.br/pt_BR/sua-viagem/achados-perdidos/",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": true,
+        "tempo_ms": 0.216069
+      },
+      {
+        "pergunta": "Quando o metrô fecha na estação?",
+        "status_esperado": "ok",
+        "id_esperado": 14,
+        "resposta_esperada": "Consulte a página de horários do Metrô. Cada estação possui horários específicos, que podem variar conforme o dia e a operação.",
+        "status_obtido": "ok",
+        "id_obtido": 14,
+        "resposta_obtida": "Consulte a página de horários do Metrô. Cada estação possui horários específicos, que podem variar conforme o dia e a operação. Confirme as regras atuais no canal oficial. Este assistente não é um serviço oficial.",
+        "fontes": [
+          {
+            "referencia": "https://www.metro.sp.gov.br/sua-viagem/horarios/",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": true,
+        "tempo_ms": 0.215002
+      },
+      {
+        "pergunta": "Como coloco crédito no cartão comum?",
+        "status_esperado": "ok",
+        "id_esperado": 3,
+        "resposta_esperada": "Consulte as opções de recarga na página do Bilhete Único Comum, incluindo a loja virtual indicada pela SPTrans.",
+        "status_obtido": "ok",
+        "id_obtido": 3,
+        "resposta_obtida": "Consulte as opções de recarga na página do Bilhete Único Comum, incluindo a loja virtual indicada pela SPTrans. Confirme as regras atuais no canal oficial. Este assistente não é um serviço oficial.",
+        "fontes": [
+          {
+            "referencia": "https://bilheteunico.sptrans.com.br/comum/",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": true,
+        "tempo_ms": 0.225547
+      },
+      {
+        "pergunta": "",
+        "status_esperado": "entrada_invalida",
+        "id_esperado": null,
+        "resposta_esperada": "Solicitar uma pergunta válida.",
+        "status_obtido": "entrada_invalida",
+        "id_obtido": null,
+        "resposta_obtida": "Digite uma pergunta.",
+        "fontes": [],
+        "acerto": true,
+        "tempo_ms": 0.005635
+      },
+      {
+        "pergunta": "cartão comum",
+        "status_esperado": "ambiguo",
+        "id_esperado": null,
+        "resposta_esperada": "Pedir esclarecimento sem escolher uma orientação.",
+        "status_obtido": "ok",
+        "id_obtido": 1,
+        "resposta_obtida": "Para obter o Bilhete Único Comum, preencha o cadastro no site de atendimento da SPTrans. Consulte no portal as instruções de emissão e retirada. Confirme as regras atuais no canal oficial. Este assistente não é um serviço oficial.",
+        "fontes": [
+          {
+            "referencia": "https://bilheteunico.sptrans.com.br/comum/",
+            "data_verificacao": "2026-11-17"
+          }
+        ],
+        "acerto": false,
+        "tempo_ms": 0.215911
+      },
+      {
+        "pergunta": "Qual a receita de bolo de chocolate?",
+        "status_esperado": "sem_resposta",
+        "id_esperado": null,
+        "resposta_esperada": "Informar ausência de orientação verificada e sugerir consulta alternativa.",
+        "status_obtido": "sem_resposta",
+        "id_obtido": null,
+        "resposta_obtida": "Não encontrei orientação verificada. Consulte o órgão responsável ou escolha um assunto.",
+        "fontes": [],
+        "acerto": true,
+        "tempo_ms": 0.218532
+      }
+    ]
+  }
+]
