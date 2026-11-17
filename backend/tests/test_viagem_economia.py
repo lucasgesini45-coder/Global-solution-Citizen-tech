@@ -28,3 +28,12 @@ def test_etapas_sem_geometria_preservadas():
     assert etapas[0]["tempo_min"] is None
     assert etapas[1]["partida"]=="2026-11-17T16:00:00+00:00"
     assert etapas[1]["tempo_min"]==10
+
+
+def test_integracao_condicionada_a_horarios_linhas_e_operadoras():
+    bus = {"modal":"BUS","linha":"875A-10","operadora":"SPTrans","partida":"2026-11-17T16:00:00+00:00"}
+    rail = {"modal":"SUBWAY","linha":"Linha 1 – Azul","operadora":"Metrô","partida":"2026-11-17T17:00:00+00:00"}
+    assert estimar([bus,rail])["integracao_centavos"] == 938
+    assert estimar([bus,{**rail,"partida":"2026-11-17T19:00:00+00:00"}])["integracao_centavos"] is None
+    assert estimar([bus,{**bus,"linha":"123","partida":"2026-11-17T17:00:00+00:00"}])["integracao_centavos"] == 530
+    assert estimar([bus,bus])["integracao_centavos"] is None
