@@ -3,9 +3,15 @@ import re
 
 import pytest
 
+<<<<<<< HEAD
 from src.assistente import base as b
 from src.assistente.config import PALAVRAS_PROIBIDAS, RAIZ_REPOSITORIO, RESPOSTA_MAX_CARACTERES, TEXTO_AVISO_TARIFAS
 from src.assistente.preprocessamento import normalizar_para_comparacao
+=======
+from backend.src.assistente import base as b
+from backend.src.assistente.config import PALAVRAS_PROIBIDAS, RAIZ_REPOSITORIO, RESPOSTA_MAX_CARACTERES, TEXTO_AVISO_TARIFAS
+from backend.src.assistente.preprocessamento import normalizar_para_comparacao
+>>>>>>> 4760994196d36001ba3a482a9ebc09ee7e109b9e
 
 
 def test_t_a01_base_real_valida_e_completa(dados):

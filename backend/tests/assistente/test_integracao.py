@@ -6,11 +6,19 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+<<<<<<< HEAD
 from src.assistente import rotas_api
 from src.assistente.cli import executar_conversa
 from src.assistente.config import (RAIZ_REPOSITORIO, TEXTO_AVISO_TARIFAS, TEXTO_BOAS_VINDAS_TERMINAL,
                                    TEXTO_ENTRADA_INVALIDA_TERMINAL, TEXTO_FALLBACK)
 from src.assistente.modelo import carregar_ou_treinar
+=======
+from backend.src.assistente import rotas_api
+from backend.src.assistente.cli import executar_conversa
+from backend.src.assistente.config import (RAIZ_REPOSITORIO, TEXTO_AVISO_TARIFAS, TEXTO_BOAS_VINDAS_TERMINAL,
+                                   TEXTO_ENTRADA_INVALIDA_TERMINAL, TEXTO_FALLBACK)
+from backend.src.assistente.modelo import carregar_ou_treinar
+>>>>>>> 4760994196d36001ba3a482a9ebc09ee7e109b9e
 
 
 @pytest.fixture

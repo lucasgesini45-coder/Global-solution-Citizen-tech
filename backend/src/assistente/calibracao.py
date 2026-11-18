@@ -4,6 +4,7 @@ Comando (a partir de backend/):  python -m src.assistente.calibracao
 Gera docs/relatorio_calibracao_assistente.md. Este módulo NÃO altera LIMIAR_CONFIANCA:
 a decisão de mudar o limiar é da equipe.
 """
+<<<<<<< HEAD
 if not __package__:
     import sys
     from pathlib import Path
@@ -12,6 +13,8 @@ if not __package__:
         sys.path.insert(0, _src)
     __package__ = "assistente"
 
+=======
+>>>>>>> 4760994196d36001ba3a482a9ebc09ee7e109b9e
 from datetime import datetime
 
 import sklearn

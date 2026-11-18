@@ -4,6 +4,7 @@ Uso no menu do sistema.py: chamar `abrir_assistente()`.
 As funções de leitura e escrita são parâmetros para permitir teste sem teclado.
 Nenhuma pergunta é guardada ou registrada em log.
 """
+<<<<<<< HEAD
 if not __package__:
     import sys
     from pathlib import Path
@@ -12,6 +13,8 @@ if not __package__:
         sys.path.insert(0, _src)
     __package__ = "assistente"
 
+=======
+>>>>>>> 4760994196d36001ba3a482a9ebc09ee7e109b9e
 from .config import (
     PALAVRA_SAIDA_TERMINAL,
     TEXTO_BOAS_VINDAS_TERMINAL,
@@ -55,7 +58,10 @@ def abrir_assistente(entrada=input, saida=print) -> None:
         saida("Assistente indisponível.")
         return
     executar_conversa(modelo, entrada, saida)
+<<<<<<< HEAD
 
 
 if __name__ == "__main__":
     abrir_assistente()
+=======
+>>>>>>> 4760994196d36001ba3a482a9ebc09ee7e109b9e

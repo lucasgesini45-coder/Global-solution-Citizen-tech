@@ -7,6 +7,7 @@ Definições: top-1 = a intenção de maior probabilidade é a esperada; top-3 =
 as 3 de maior probabilidade (ambos independem do limiar). Tempo de resposta = tempo da previsão
 (passos 1 a 4 da seção 8.4), sem incluir o carregamento do modelo, em milissegundos.
 """
+<<<<<<< HEAD
 if not __package__:
     import sys
     from pathlib import Path
@@ -15,6 +16,8 @@ if not __package__:
         sys.path.insert(0, _src)
     __package__ = "assistente"
 
+=======
+>>>>>>> 4760994196d36001ba3a482a9ebc09ee7e109b9e
 import time
 from datetime import datetime
 

@@ -1,6 +1,7 @@
 """Endpoints FastAPI do assistente (seção 12.1), com prefixo /assistente.
 
 Para ligar à API existente, acrescente em src/api.py (ver INTEGRACAO.md):
+<<<<<<< HEAD
     from src.assistente.rotas_api import roteador as roteador_assistente
     app.include_router(roteador_assistente)
 
@@ -8,10 +9,16 @@ Também pode ser executado diretamente via Uvicorn:
     uvicorn backend.src.assistente.rotas_api:app --reload
     (ou a partir de backend/src: uvicorn assistente.rotas_api:app --reload)
 
+=======
+    from backend.src.assistente.rotas_api import roteador as roteador_assistente
+    app.include_router(roteador_assistente)
+
+>>>>>>> 4760994196d36001ba3a482a9ebc09ee7e109b9e
 O modelo é carregado uma única vez e mantido em memória. Se não puder ser carregado nem treinado,
 a API continua de pé: POST /assistente/perguntar responde 503 e GET /assistente/saude informa
 modelo_carregado = falso. Nenhuma pergunta é guardada ou registrada em log.
 """
+<<<<<<< HEAD
 import sys
 import threading
 from pathlib import Path
@@ -28,6 +35,11 @@ for _caminho in (_PASTA_SRC, _PASTA_BACKEND, _PASTA_RAIZ):
 
 from fastapi import APIRouter, FastAPI, HTTPException
 from fastapi.responses import RedirectResponse
+=======
+import threading
+
+from fastapi import APIRouter, HTTPException
+>>>>>>> 4760994196d36001ba3a482a9ebc09ee7e109b9e
 from pydantic import BaseModel, field_validator
 
 from .config import (
@@ -101,6 +113,7 @@ def saude():
         "n_intencoes": N_INTENCOES,
         "versao_base": modelo.versao_base if modelo is not None else None,
     }
+<<<<<<< HEAD
 
 
 # Aplicação ASGI standalone para permitir execução direta com Uvicorn
@@ -116,3 +129,5 @@ app.include_router(roteador)
 def raiz():
     """Redireciona a raiz para a documentação interativa (/docs)."""
     return RedirectResponse(url="/docs")
+=======
+>>>>>>> 4760994196d36001ba3a482a9ebc09ee7e109b9e

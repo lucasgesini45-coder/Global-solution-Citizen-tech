@@ -1,0 +1,25 @@
+[
+  {
+    "versao": "demo-2026-01",
+    "fonte": "DADOS DE TESTE FICTICIOS - nao usar como tarifa real",
+    "confirmada": true,
+    "vigencia_inicio": "2026-01-01",
+    "vigencia_fim": null,
+    "janela_s": 10800,
+    "max_embarques_por_janela": 4,
+    "tarifa_base": {
+      "onibus": 500,
+      "metro": 520,
+      "trem": 520
+    },
+    "integracao_adicional": {
+      "onibus>onibus": 0,
+      "metro>onibus": 0,
+      "onibus>metro": 320
+    },
+    "perfis_percentual": {
+      "padrao": 100,
+      "estudante": 50
+    }
+  }
+]

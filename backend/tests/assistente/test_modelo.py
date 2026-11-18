@@ -5,11 +5,19 @@ import shutil
 import numpy as np
 import sklearn
 
+<<<<<<< HEAD
 from src.assistente import treino
 from src.assistente.base import carregar_base
 from src.assistente.config import CAMINHO_BASE, resolver_caminho
 from src.assistente.modelo import carregar_ou_treinar
 from src.assistente.previsao import ordenar_intencoes
+=======
+from backend.src.assistente import treino
+from backend.src.assistente.base import carregar_base
+from backend.src.assistente.config import CAMINHO_BASE, resolver_caminho
+from backend.src.assistente.modelo import carregar_ou_treinar
+from backend.src.assistente.previsao import ordenar_intencoes
+>>>>>>> 4760994196d36001ba3a482a9ebc09ee7e109b9e
 
 
 def test_t_a07_treino_e_reprodutivel(dados):
