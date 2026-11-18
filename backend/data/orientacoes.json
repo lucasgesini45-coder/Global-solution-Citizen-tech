@@ -1,0 +1,35 @@
+[
+  {
+    "id": 1,
+    "tema": "gratuidade",
+    "perguntas": [
+      "Como solicitar gratuidade?"
+    ],
+    "orientacao": "Pendente de conferência.",
+    "referencia": "",
+    "data_verificacao": "",
+    "status": "rascunho"
+  },
+  {
+    "id": 2,
+    "tema": "cartoes",
+    "perguntas": [
+      "Como emitir cartão?"
+    ],
+    "orientacao": "Pendente de conferência.",
+    "referencia": "",
+    "data_verificacao": "",
+    "status": "rascunho"
+  },
+  {
+    "id": 3,
+    "tema": "acessibilidade",
+    "perguntas": [
+      "Quais os direitos de acessibilidade?"
+    ],
+    "orientacao": "Pendente de conferência.",
+    "referencia": "",
+    "data_verificacao": "",
+    "status": "rascunho"
+  }
+]
