@@ -1,6 +1,7 @@
 import React from "react";
 import {Image,Pressable,ScrollView,StyleSheet,Text,View,useWindowDimensions} from "react-native";
 import {Ionicons} from "@expo/vector-icons";
+import heroImage from "./heroImage";
 
 const recursos=[
  {icone:"navigate-outline",titulo:"Mobilidade inteligente",descricao:"Planeje trajetos combinando ônibus, metrô, trens e caminhadas."},
@@ -18,18 +19,15 @@ export default function TelaInicial({abrir}:{abrir:()=>void}){
      <Text style={s.headerNote}>FIAP · Global Solution 2026</Text>
    </View></View>
    <View style={[s.hero,{minHeight:mobile?0:Math.max(600,height-88)},mobile&&s.heroMobile]}>
+     <Image source={heroImage} style={s.image} resizeMode="cover" accessibilityIgnoresInvertColors accessible={false}/>
+     <View pointerEvents="none" style={[s.imageShade,mobile&&s.shadeMobile]}/>
      <View style={[s.heroInner,mobile&&s.heroInnerMobile]}>
        <View style={[s.copy,mobile&&s.copyMobile]}>
-         <Text style={s.eyebrow}>CITIZEN TECH · GLOBAL SOLUTION 2026</Text>
+         <Text style={[s.eyebrow,s.heroEyebrow]}>CITIZEN TECH · GLOBAL SOLUTION 2026</Text>
          <Text accessibilityRole="header" style={[s.heading,mobile&&s.headingMobile]}>O futuro da{"\n"}mobilidade{"\n"}<Text style={s.accent}>é para todos.</Text></Text>
          <Text style={s.description}>Tecnologia que conecta pessoas à cidade. Transforme o jeito de se deslocar por São Paulo, com mais autonomia, informação e economia.</Text>
          <Pressable accessibilityRole="button" onPress={abrir} style={({pressed})=>[s.primary,pressed&&s.pressed]}><Text style={s.primaryText}>Acessar projeto</Text><Ionicons name="arrow-forward" size={22} color="#fff"/></Pressable>
-         <View style={s.location}><Ionicons name="location-outline" size={17} color="#526f91"/><Text style={s.caption}>São Paulo · Brasil</Text></View>
-       </View>
-       <View style={[s.visual,mobile&&s.visualMobile]}>
-         <Image source={require("../assets/metro_futurista.jpg")} style={s.image} resizeMode="cover" accessibilityLabel="Metrô futurista em uma cidade conectada"/>
-         <View style={s.imageShade}/>
-         <View style={s.visualBottom}><Text style={s.visualTitle}>Conectando pessoas.</Text><Text style={s.visualSubtitle}>Transformando caminhos.</Text><View style={s.transport}><Ionicons name="train-outline" size={23} color="#fff"/><View style={s.connector}/><Ionicons name="bus-outline" size={23} color="#fff"/><View style={s.connector}/><Ionicons name="walk-outline" size={23} color="#fff"/></View></View>
+         <View style={s.location}><Ionicons name="location-outline" size={17} color="#dbeafe"/><Text style={[s.caption,s.heroCaption]}>São Paulo · Brasil</Text></View>
        </View>
      </View>
    </View>
@@ -47,17 +45,15 @@ const s=StyleSheet.create({
  logo:{width:43,height:43,borderRadius:13,backgroundColor:"#0071e3",justifyContent:"center",alignItems:"center"},
  brandText:{fontSize:23,fontWeight:"700",color:"#162c49",letterSpacing:-.7},brandSub:{fontSize:9,letterSpacing:1.3,color:"#55769a",fontWeight:"600"},
  headerNote:{fontSize:12,color:"#60768f",fontWeight:"500"},
- hero:{backgroundColor:"#eef6ff",justifyContent:"center"},heroMobile:{paddingVertical:12},
- heroInner:{flexDirection:"row",width:"100%",maxWidth:1440,alignSelf:"center",padding:48,gap:48,alignItems:"center"},heroInnerMobile:{flexDirection:"column",padding:20,gap:25,alignItems:"stretch"},
- copy:{flex:1,minWidth:0,gap:22},copyMobile:{flex:0,gap:16},
+ hero:{position:"relative",overflow:"hidden",backgroundColor:"#082346",justifyContent:"center"},heroMobile:{minHeight:590,paddingVertical:32},
+ heroInner:{width:"100%",maxWidth:1440,alignSelf:"center",paddingHorizontal:48,paddingVertical:60,alignItems:"flex-start"},heroInnerMobile:{paddingHorizontal:24,paddingVertical:36},
+ copy:{width:"48%",maxWidth:620,minWidth:0,gap:22},copyMobile:{width:"100%",gap:16},
  eyebrow:{color:"#0069d2",fontSize:11,fontWeight:"700",letterSpacing:1.8},
- heading:{fontSize:64,lineHeight:70,fontWeight:"700",letterSpacing:-2.9,color:"#162c49"},headingMobile:{fontSize:43,lineHeight:49,letterSpacing:-1.6},accent:{color:"#0069d2"},
- description:{fontSize:17,lineHeight:26,color:"#52677e",maxWidth:480},
+ heading:{fontSize:64,lineHeight:70,fontWeight:"700",letterSpacing:-2.9,color:"#fff"},headingMobile:{fontSize:43,lineHeight:49,letterSpacing:-1.6},accent:{color:"#9fe5ff"},
+ description:{fontSize:17,lineHeight:26,color:"#f1f7ff",maxWidth:480},heroEyebrow:{color:"#b9eaff"},heroCaption:{color:"#dbeafe"},
  primary:{minHeight:56,backgroundColor:"#0071e3",paddingHorizontal:22,paddingVertical:14,borderRadius:12,flexDirection:"row",alignItems:"center",justifyContent:"center",gap:15,alignSelf:"flex-start"},primaryText:{fontSize:16,fontWeight:"700",color:"#fff"},pressed:{opacity:.8},
  location:{flexDirection:"row",alignItems:"center",gap:6},caption:{fontSize:13,color:"#60768f",lineHeight:20},
- visual:{flex:1.15,height:490,borderRadius:24,overflow:"hidden",backgroundColor:"#173459"},visualMobile:{flex:0,height:285},
- image:{position:"absolute",width:"100%",height:"100%"},imageShade:{position:"absolute",top:0,left:0,right:0,bottom:0,backgroundColor:"rgba(10,34,67,.19)"},
- visualBottom:{position:"absolute",left:0,right:0,bottom:0,padding:24,backgroundColor:"rgba(9,26,52,.85)",gap:7},visualTitle:{fontSize:23,fontWeight:"700",color:"#fff"},visualSubtitle:{color:"#c5e3ff",fontSize:15},transport:{flexDirection:"row",alignItems:"center",gap:10,marginTop:6},connector:{height:2,width:24,backgroundColor:"#64d9fe"},
+ image:{...StyleSheet.absoluteFillObject,width:"100%",height:"100%"},imageShade:{...StyleSheet.absoluteFillObject,backgroundColor:"rgba(3,17,42,.30)"},shadeMobile:{backgroundColor:"rgba(3,17,42,.68)"},
  section:{backgroundColor:"#fff"},sectionInner:{maxWidth:1440,width:"100%",alignSelf:"center",paddingHorizontal:48,paddingVertical:62,gap:17},sectionMobile:{paddingHorizontal:20,paddingVertical:36},
  sectionTitle:{fontSize:37,fontWeight:"700",color:"#162c49",letterSpacing:-.9,maxWidth:800},sectionTitleMobile:{fontSize:29},sectionText:{maxWidth:900,fontSize:16,color:"#52677e",lineHeight:26},
  resources:{backgroundColor:"#f4f8fd"},grid:{flexDirection:"row",gap:14,flexWrap:"wrap",marginTop:12},gridMobile:{flexDirection:"column"},card:{flex:1,minWidth:220,minHeight:174,padding:20,borderRadius:16,backgroundColor:"#fff",borderWidth:1,borderColor:"#d9e7f5",gap:12},cardMobile:{flex:0,minHeight:0},icon:{width:48,height:48,borderRadius:12,backgroundColor:"#e8f3ff",alignItems:"center",justifyContent:"center"},cardTitle:{fontSize:17,fontWeight:"700",color:"#203957"},
