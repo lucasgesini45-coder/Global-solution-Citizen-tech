@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: citizen-tech-mobilidade
+    runtime: docker
+    plan: free
+    branch: feature/requisitos-fiap-citizen-assist
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    autoDeployTrigger: commit
