@@ -13,6 +13,9 @@ ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_
 COPY backend/requirements.txt /app/backend/requirements.txt
 RUN pip install --no-cache-dir -r backend/requirements.txt
 COPY backend/ /app/backend/
+COPY frontend/app/projeto.tsx /app/frontend/app/projeto.tsx
+COPY frontend/components/ /app/frontend/components/
+COPY docs/ /app/docs/
 COPY --from=web /app/frontend/dist /app/frontend/dist
 RUN test -f /app/frontend/dist/index.html
 RUN useradd --create-home citizen && chown -R citizen:citizen /app
