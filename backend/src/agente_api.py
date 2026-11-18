@@ -82,10 +82,10 @@ def conversar(body: ConversaEntrada):
 
     # Recusa explícita fora do escopo antes de executar ferramentas de rota.
     # Consultas sobre o próprio aplicativo continuam disponíveis.
-    if bloqueado(pergunta) or (not escopo(pergunta) and not pede_trajeto(pergunta) and not re.search(r"\b(aplicativo|app|planejador)\b", normalizar(pergunta))):
+    if bloqueado(pergunta) or (not escopo(pergunta) and not pede_trajeto(pergunta) and not re.search(r"\b(aplicativo|app|planejador|gps|historico|privacidade|orcamento|assistente)\b", normalizar(pergunta))):
         return resposta_limite("Meu atendimento é exclusivo para transporte público, mobilidade urbana, tarifas, benefícios e acessibilidade.", "fora_escopo")
 
-    if pede_trajeto(pergunta):
+    if pede_trajeto(pergunta) and not re.search(r"\b(como (usar|funciona)|no app|no aplicativo|no planejador)\b", normalizar(pergunta)):
         if body.origem is None or body.destino is None:
             return {
                 "resposta": "Para calcular a viagem, selecione a origem e o destino nos campos do planejador (ou use Minha localização), escolha o transporte e pergunte novamente.",
@@ -98,7 +98,7 @@ def conversar(body: ConversaEntrada):
         modal_pergunta = (
             "onibus" if re.search(r"\b(onibus|busao)\b", pergunta_normal) else
             "ferroviario" if re.search(r"\b(metro|trem)\b", pergunta_normal) else
-            body.modal
+            "ape" if re.search(r"\b(a pe|caminhando)\b", pergunta_normal) else body.modal
         )
         try:
             rota = rota_real(RotaRealPedido(
@@ -118,6 +118,24 @@ def conversar(body: ConversaEntrada):
             "fontes": [{"referencia": rota.get("fonte", "Serviço de roteamento"), "data_verificacao": ""}],
             "sugestoes": [], "aviso": rota.get("aviso"), "rota": rota,
         }
+
+    # Orientações determinísticas sobre as funcionalidades novas do aplicativo.
+    texto = normalizar(pergunta)
+    if re.search(r"\b(app|aplicativo|planejador|assistente|gps)\b", texto):
+        ajuda = [
+            (r"\b(gps|localizacao)\b.*\b(desativar|desligar|parar)\b|\b(desativar|desligar|parar)\b.*\b(gps|localizacao)\b",
+             "Clique em Desativar GPS. A localização deixa de ser monitorada e o trajeto permanece no mapa."),
+            (r"\b(gps|localizacao)\b.*\b(ativar|ligar|acompanhar)\b|\b(ativar|ligar)\b.*\b(gps|localizacao)\b",
+             "Clique em Ativar GPS em tempo real e permita a localização no navegador. O mapa acompanha sua posição enquanto o aplicativo estiver aberto."),
+            (r"\b(etapas?|desembarque|embarque|acompanhar)\b.*\b(viagem|assistente)\b|\bassistente de viagem\b",
+             "Calcule o trajeto e abra Assistente de viagem. Ative o GPS para que as etapas avancem quando houver localização suficiente; sinal impreciso pode pausar o acompanhamento."),
+            (r"\b(horarios?|partidas?|passagens?)\b.*\b(onibus|app|aplicativo)\b",
+             "Calcule um trajeto com ônibus e abra Horários dos ônibus. Selecione hoje ou amanhã para ver as partidas retornadas pelo provedor e a próxima passagem destacada."),
+        ]
+        for padrao, resposta in ajuda:
+            if re.search(padrao, texto):
+                return {"resposta": resposta, "origem_resposta": "orientacao_do_app", "fontes": [],
+                        "sugestoes": [], "aviso": "Orientação sobre o protótipo acadêmico.", "rota": None}
 
     # O núcleo acadêmico permanece independente para preservar a avaliação A/B.
     # A interface livre pesquisa também a coleção documental complementar.
@@ -140,7 +158,10 @@ def conversar(body: ConversaEntrada):
 
     # O classificador de funcionalidades só recebe perguntas sobre o app;
     # nunca é usado para inventar informações sobre operadores.
-    if not re.search(r"\b(aplicativo|app|planejador)\b", normalizar(pergunta)):
+    if not re.search(r"\b(aplicativo|app|planejador|gps|historico|privacidade|orcamento)\b", normalizar(pergunta)):
+        return resultado
+    # Não usar FAQ do aplicativo para responder direitos ou regras externas.
+    if re.search(r"\b(gratuidade|direitos?|beneficios?|pcd|bilhete|cartao|elevador|isencao)\b", normalizar(pergunta)):
         return resultado
 
     modelo = preparar_modelo()
@@ -158,7 +179,7 @@ def conversar(body: ConversaEntrada):
             "resposta": p.resposta, "origem_resposta": "sem_resposta_verificada",
             "fontes": [], "sugestoes": p.sugestoes, "aviso": None, "rota": None,
         }
-    if p.tema not in {"rota", "tarifas", "historico", "privacidade"}:
+    if p.tema not in {"rota", "tarifas", "historico_privacidade"}:
         return {
             "resposta": "Não encontrei informação cidadã verificada para essa pergunta. Consulte o órgão responsável.",
             "origem_resposta": "sem_resposta_verificada",
