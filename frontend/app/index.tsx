@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import MapaPreview from "../components/MapaPreview";
 import MetroNetwork from "../components/MetroNetwork";
+import TelaInicial from "../components/TelaInicial";
 import HorariosOnibus, {type HorarioOnibus} from "../components/HorariosOnibus";
 import {AssistenteViagem, PlanejamentoEconomico, type EtapaViagem, type CustoViagem, type AlternativaEconomica} from "../components/ViagemEconomia";
 
@@ -100,7 +101,7 @@ function PainelRolavel({children,mobile,id}:{children:React.ReactNode;mobile:boo
 
 export default function Home(){
  const {width,height}=useWindowDimensions();const mobile=width<1180;
- const [aba,setAba]=useState<"planejar"|"metro"|"horarios"|"viagem"|"economia">("planejar");
+ const [aba,setAba]=useState<"inicio"|"planejar"|"metro"|"horarios"|"viagem"|"economia">("inicio");
  const alturaPainel=Math.max(520,Math.min(760,Math.round(height-245)));
  const [alturaMapa,setAlturaMapa]=useState(400);
  const [modal,setModal]=useState<Modal>("todos");
@@ -290,6 +291,7 @@ export default function Home(){
    <View style={[v.nav,mobile&&v.navMobile]}>
      <Text style={[v.navBrand,mobile&&v.navBrandMobile]}>Citizen Tech <Text style={v.navBrandAccent}>Mobilidade Urbana</Text></Text>
      <View style={[v.navTabs,mobile&&v.navTabsMobile]}>
+       <Pressable onPress={()=>setAba("inicio")} style={[v.navTab,aba==="inicio"&&v.navActive]} accessibilityRole="tab" accessibilityState={{selected:aba==="inicio"}}><Icone name="home-outline" size={17} color={aba==="inicio"?"#0069d2":"#64748b"}/><Text style={[v.navTabText,aba==="inicio"&&v.navActiveText]}>Início</Text></Pressable>
        <Pressable onPress={()=>setAba("planejar")} style={[v.navTab,aba==="planejar"&&v.navActive]} accessibilityRole="tab" accessibilityState={{selected:aba==="planejar"}}><Icone name="navigate-outline" size={17} color={aba==="planejar"?"#0069d2":"#64748b"}/><Text style={[v.navTabText,aba==="planejar"&&v.navActiveText]}>Planejar trajeto</Text></Pressable>
        <Pressable onPress={()=>setAba("metro")} style={[v.navTab,aba==="metro"&&v.navActive]} accessibilityRole="tab" accessibilityState={{selected:aba==="metro"}}><Icone name="train-outline" size={17} color={aba==="metro"?"#0069d2":"#64748b"}/><Text style={[v.navTabText,aba==="metro"&&v.navActiveText]}>Mapa do metrô</Text></Pressable>
        <Pressable onPress={()=>setAba("horarios")} style={[v.navTab,aba==="horarios"&&v.navActive]} accessibilityRole="tab" accessibilityState={{selected:aba==="horarios"}}><Icone name="time-outline" size={17} color={aba==="horarios"?"#0069d2":"#64748b"}/><Text style={[v.navTabText,aba==="horarios"&&v.navActiveText]}>Horários dos ônibus</Text></Pressable>
@@ -300,7 +302,7 @@ export default function Home(){
    </View>
 
    <View style={[v.container,mobile&&v.containerMobile]}>
-     {aba==="metro"?<MetroNetwork mobile={mobile}/>:aba==="horarios"?<HorariosOnibus api={API} horarios={resultado?.horarios_onibus||[]} temRota={!!resultado} carregando={carregando} voltar={()=>setAba("planejar")}/>:aba==="viagem"?<AssistenteViagem etapas={etapasAtuais} indice={etapaAtual} voltar={()=>setAba("planejar")} horarios={()=>setAba("horarios")} recalcular={()=>setAba("planejar")} temRota={!!resultado} carregando={carregando} gpsAtivo={gpsAtivo} statusGPS={statusGPS} mapa={<View>{controleGPS}<MapaPreview url={preview} pontos={pontos} trajeto={resultado?.trajeto} trechos={resultado?.trechos} height={mobile?320:420} posicao={gpsConfiavel?posicao:null} seguir={gpsAtivo&&seguirGPS}/></View>}/>:aba==="economia"?<PlanejamentoEconomico opcoes={resultado?.alternativas_economicas??(resultado?.modal==="ape"&&resultado.tarifa_centavos===0?[{id:1,tempo_min:resultado.tempo_min,caminhada_m:resultado.distancia_m,etapas_viagem:etapasAtuais,horarios_onibus:[],trajeto:resultado.trajeto,trechos:resultado.trechos||[],modal:"ape",custo:{centavos:0,status:"estimativa",detalhes:[],pendencias:[],fontes:[],data_referencia:"2026-11-17",aviso:"Caminhada sem tarifa de transporte."}}]:[])} selecionada={resultado?.alternativas_economicas?.find(o=>o.etapas_viagem===resultado.etapas_viagem||o.trajeto===resultado.trajeto)?.id??opcaoEconomica} selecionar={usarAlternativa} voltar={()=>setAba("planejar")} temRota={!!resultado}/>:<>
+     {aba==="inicio"?<TelaInicial abrir={setAba}/>:aba==="metro"?<MetroNetwork mobile={mobile}/>:aba==="horarios"?<HorariosOnibus api={API} horarios={resultado?.horarios_onibus||[]} temRota={!!resultado} carregando={carregando} voltar={()=>setAba("planejar")}/>:aba==="viagem"?<AssistenteViagem etapas={etapasAtuais} indice={etapaAtual} voltar={()=>setAba("planejar")} horarios={()=>setAba("horarios")} recalcular={()=>setAba("planejar")} temRota={!!resultado} carregando={carregando} gpsAtivo={gpsAtivo} statusGPS={statusGPS} mapa={<View>{controleGPS}<MapaPreview url={preview} pontos={pontos} trajeto={resultado?.trajeto} trechos={resultado?.trechos} height={mobile?320:420} posicao={gpsConfiavel?posicao:null} seguir={gpsAtivo&&seguirGPS}/></View>}/>:aba==="economia"?<PlanejamentoEconomico opcoes={resultado?.alternativas_economicas??(resultado?.modal==="ape"&&resultado.tarifa_centavos===0?[{id:1,tempo_min:resultado.tempo_min,caminhada_m:resultado.distancia_m,etapas_viagem:etapasAtuais,horarios_onibus:[],trajeto:resultado.trajeto,trechos:resultado.trechos||[],modal:"ape",custo:{centavos:0,status:"estimativa",detalhes:[],pendencias:[],fontes:[],data_referencia:"2026-11-17",aviso:"Caminhada sem tarifa de transporte."}}]:[])} selecionada={resultado?.alternativas_economicas?.find(o=>o.etapas_viagem===resultado.etapas_viagem||o.trajeto===resultado.trajeto)?.id??opcaoEconomica} selecionar={usarAlternativa} voltar={()=>setAba("planejar")} temRota={!!resultado}/>:<>
      <View style={[v.intro,mobile&&v.introMobile]}>
        <Text style={v.eyebrow}>MENOS COMPLICAÇÃO. MAIS CIDADE.</Text>
        <Text style={[v.heading,mobile&&v.headingMobile]}>Seu próximo destino começa aqui.</Text>
