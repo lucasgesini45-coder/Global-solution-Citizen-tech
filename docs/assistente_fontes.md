@@ -1,0 +1,23 @@
+# Fontes de conhecimento do assistente: fatos confirmados no repositório
+
+Mapeamento da etapa de reconhecimento (E0), conforme a seção 7.3 da especificação. Cada resposta do assistente só afirma o que consta aqui.
+
+**Origem das linhas:** as linhas R01, R02, R03, R05, T01, T02, T03, T04, T05, H01 e H02 foram levantadas pelo Antigravity (lidas por mim na gravação de tela, com os mesmos fatos e status). As linhas **R04, H03, H04 e H05 não aparecem na gravação** e foram definidas ao concluir o trabalho: estão marcadas com ⚠ e precisam ser conferidas pela equipe nos arquivos indicados.
+
+| ID da intenção | Fato confirmado | Arquivo e trecho que confirma | status_funcionalidade |
+|---|---|---|---|
+| R01 | A API recebe origem e destino (lat e lon) e o horário de partida; no aplicativo, o usuário informa o ponto de partida e o destino digitando ou usando a localização. | `backend/src/rotas_api.py` (classe `PedidoRota`) e `frontend/app/index.tsx` | parcial |
+| R02 | O mapa apenas renderiza os marcadores dos endereços pesquisados e o traçado da rota; não há suporte a selecionar origem ou destino clicando no mapa. | `frontend/components/MapaPreview.web.tsx` e `frontend/app/index.tsx` | planejada |
+| R03 | O usuário pode pesquisar endereços digitando rua, número, bairro ou estação, recebendo sugestões automáticas do serviço de busca. | `backend/src/enderecos_api.py` (endpoint `/enderecos/sugestoes`) e `frontend/app/index.tsx` | implementada |
+| R04 ⚠ | O sistema calcula e seleciona até 3 rotas recomendadas (tempo total, espera, caminhada, baldeações e custo). **Conferir se a tela exibe todos esses campos.** | `global solution part2 - tarifas/src/ranking.py` e `.../recomendar.py` | parcial |
+| R05 | Quando nenhuma rota é encontrada (ausência de serviço no horário, paradas fora do limite de caminhada ou locais fora da área piloto), o sistema retorna mensagens explicativas em vez de gerar rotas fictícias. | `global solution part2 - tarifas/src/recomendar.py` (validações de área piloto e código `sem_trajeto`) | implementada |
+| T01 | O custo estimado de cada trajeto é retornado na estrutura da rota calculada pela API, com o valor monetário e se a tarifa foi validada. | `backend/src/rotas_api.py` e `global solution part2 - tarifas/src/contratos.py` (classe `Custo`) | parcial |
+| T02 | A tarifa não confirmada indica que não existe regra tarifária validada para aquela data, modal ou combinação de linhas, sendo tratada com custo indefinido e nunca como zero ou gratuito. | `global solution part2 - tarifas/src/tarifas.py` (`confirmado=False`, `centavos=None`) | implementada |
+| T03 | O sistema calcula integrações entre modais (ônibus, metrô e trem) com regras cadastradas por operador, considerando janela máxima de tempo e sequência de embarques. | `global solution part2 - tarifas/src/tarifas.py` (`janela_s`, `max_embarques_por_janela`, `integracao_adicional`) | implementada |
+| T04 | É possível configurar um teto de gastos nas preferências da busca; rotas confirmadas acima do limite são descartadas, e rotas de tarifa não confirmada continuam em análise. | `global solution part2 - tarifas/src/ranking.py` (motivo `orcamento_excedido`) e `.../contratos.py` (`orcamento_max_centavos`) | parcial |
+| T05 | O aplicativo não realiza cobrança, emissão ou venda de passagens e bilhetes; funciona exclusivamente como orientador e planejador de viagens. | `README.md` (seção inicial) e `frontend/app/index.tsx` | planejada |
+| H01 | As pesquisas são armazenadas temporariamente em banco SQLite local, associadas a um identificador anônimo de sessão, sem dados pessoais, por até 90 dias. | `global solution part2 - tarifas/src/historico.py` e `.../config.py` (`RETENCAO_HISTORICO_DIAS = 90`) | parcial |
+| H02 | O módulo de dados contém rotina interna para exclusão completa dos registros de uma sessão, porém sem botão exposto na interface do usuário. | `global solution part2 - tarifas/src/historico.py` (função `apagar_historico`) | parcial |
+| H03 ⚠ | Origem e destino podem ser informados digitando (R01 e R03), logo o GPS não é obrigatório; o histórico guarda só um identificador anônimo de sessão. **Não foi confirmado se existe conta ou login: a resposta não afirma nada sobre isso.** | `frontend/app/index.tsx` e `.../historico.py` | parcial |
+| H04 ⚠ | Não há evidência de função de envio de relatos no que foi lido. **Conferir no código; se existir, mudar o status e a resposta.** | `README.md` | planejada |
+| H05 | O assistente não guarda perguntas: nenhuma é gravada em banco, arquivo ou log (garantido por teste automatizado). | `backend/src/assistente/previsao.py` e `backend/tests/assistente/test_integracao.py` | implementada |
