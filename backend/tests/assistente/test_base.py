@@ -134,13 +134,17 @@ def test_a03_barra_valor_monetario_em_tarifas(copia_dados):
 
 def test_v09_barra_planejada_sem_prefixo(copia_dados):
     def m(base, t):
-        base["intencoes"][1]["resposta"] = "Esta função está prevista."
+        item = base["intencoes"][1]
+        item["status_funcionalidade"] = "planejada"
+        item["resposta"] = "Esta função está prevista."
     assert "V-09" in _quebrar(copia_dados, m)
 
 
 def test_v09_barra_parcial_sem_expressao(copia_dados):
     def m(base, t):
-        base["intencoes"][0]["resposta"] = "Você informa origem e destino."
+        item = base["intencoes"][0]
+        item["status_funcionalidade"] = "parcial"
+        item["resposta"] = "Você informa origem e destino."
     assert "V-09" in _quebrar(copia_dados, m)
 
 
