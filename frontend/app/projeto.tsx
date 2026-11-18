@@ -118,28 +118,43 @@ export default function Home(){
  const evidencia=useRef(novaEvidencia(0));
  useEffect(()=>{
    if(!gpsAtivo){setPosicao(null);setAvisoGPS("");return;}
-   let ativo=true,subscricao:Location.LocationSubscription|undefined;
+   let ativo=true;
+   let cancelar: (()=>void)|undefined;
+   const encerrar=()=>{const fn=cancelar;cancelar=undefined;try{fn?.();}catch(e){console.warn("Falha ao encerrar GPS",e);}};
    setAvisoGPS("Aguardando localização...");
+   const receber=(latitude:number,longitude:number,accuracy:number|null,timestamp:number)=>{
+     if(!ativo)return;
+     setPosicao({lat:latitude,lon:longitude,accuracy,timestamp});
+     setRelogioGPS(Date.now());setAvisoGPS("");
+   };
    async function iniciar(){
      try{
+       if(Platform.OS==="web"){
+         if(typeof navigator==="undefined"||!navigator.geolocation){setAvisoGPS("GPS indisponível neste navegador.");return;}
+         const geo=navigator.geolocation;
+         const id=geo.watchPosition(l=>receber(l.coords.latitude,l.coords.longitude,l.coords.accuracy,l.timestamp),e=>{
+           if(ativo)setAvisoGPS(e.code===1?"Permissão negada. Habilite a localização no navegador.":"GPS indisponível. Aguardando sinal.");
+         },{enableHighAccuracy:true,maximumAge:0,timeout:15000});
+         cancelar=()=>geo.clearWatch(id);
+         return;
+       }
        const permissao=await Location.requestForegroundPermissionsAsync();
        if(!ativo)return;
        if(permissao.status!=="granted"){setAvisoGPS("Permissão negada. Habilite o GPS nas configurações para acompanhar as etapas.");return;}
-       const s=await Location.watchPositionAsync({accuracy:Location.Accuracy.High,timeInterval:3000,distanceInterval:5},l=>{
-         if(!ativo)return;
-         setPosicao({lat:l.coords.latitude,lon:l.coords.longitude,accuracy:l.coords.accuracy,timestamp:l.timestamp});
-         setRelogioGPS(Date.now());setAvisoGPS("");
+       const s=await Location.watchPositionAsync({accuracy:Location.Accuracy.High,timeInterval:3000,distanceInterval:5},l=>receber(l.coords.latitude,l.coords.longitude,l.coords.accuracy,l.timestamp),()=>{
+         if(ativo)setAvisoGPS("GPS indisponível. Aguardando sinal.");
        });
-       if(ativo)subscricao=s;else s.remove();
+       cancelar=()=>s.remove();
+       if(!ativo)encerrar();
      }catch{if(ativo)setAvisoGPS("GPS indisponível. Confira as permissões e a conexão.");}
    }
    void iniciar();
    const timer=setInterval(()=>setRelogioGPS(Date.now()),3000);
-   return ()=>{ativo=false;subscricao?.remove();clearInterval(timer);};
+   return ()=>{ativo=false;clearInterval(timer);encerrar();};
  },[gpsAtivo]);
- const gpsConfiavel=gpsValido(posicao,relogioGPS);
+ const gpsConfiavel=gpsAtivo&&gpsValido(posicao,relogioGPS);
  const statusGPS=!gpsAtivo?"GPS desativado":avisoGPS||(gpsConfiavel?"GPS ativo · acompanhando sua posição":"Aguardando sinal GPS com precisão suficiente");
- function alternarGPS(){if(gpsAtivo){setGpsAtivo(false);}else{setSeguirGPS(true);setGpsAtivo(true);}}
+ function alternarGPS(){if(gpsAtivo){setGpsAtivo(false);setSeguirGPS(false);setPosicao(null);setAvisoGPS("");evidencia.current=novaEvidencia(etapaAtual);}else{setSeguirGPS(true);setGpsAtivo(true);}}
  const [opcaoEconomica,setOpcaoEconomica]=useState<number|null>(null);
  const etapasAtuais:EtapaViagem[]=resultado?.etapas_viagem??(resultado?.trechos||[]).map((t,i)=>({...t,etapa:i+1,paradas:t.paradas?.map(p=>p.nome)}));
  useEffect(()=>{setEtapaAtual(0);setOpcaoEconomica(null);evidencia.current=novaEvidencia(0);},[resultado]);
