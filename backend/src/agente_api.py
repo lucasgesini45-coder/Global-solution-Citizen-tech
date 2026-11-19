@@ -12,6 +12,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from .core import carregar, responder
+from .conversa_local import conversa_local, resposta
 from .enderecos_api import Coordenadas, RotaRealPedido, rota_real
 from .assistente.rotas_api import preparar_modelo
 from .assistente.previsao import prever
@@ -19,7 +20,8 @@ from .assistente.previsao import prever
 router = APIRouter(prefix="/agente", tags=["Agente Cidadão"])
 
 class ConversaEntrada(BaseModel):
-    pergunta: str = Field(min_length=3, max_length=300)
+    pergunta: str = Field(min_length=2, max_length=300)
+    tema_contexto: str | None = Field(default=None, max_length=40)
     origem: Coordenadas | None = None
     destino: Coordenadas | None = None
     modal: str = Field(default="todos", pattern=r"^(todos|onibus|ferroviario|ape)$")
@@ -65,14 +67,14 @@ def resumo_rota(rota: dict) -> str:
 @router.post("/conversar")
 def conversar(body: ConversaEntrada):
     pergunta = body.pergunta.strip()
-    if len(pergunta) < 3:
-        raise HTTPException(status_code=422, detail="Digite uma pergunta com pelo menos 3 caracteres.")
+    if len(pergunta) < 2:
+        raise HTTPException(status_code=422, detail="Digite uma pergunta com pelo menos 2 caracteres.")
 
-    if pede_trajeto(pergunta):
+    if pede_trajeto(pergunta) or (body.tema_contexto == "rota" and re.search(r"^(e |mas |prefiro |quero ir )?(de onibus|de metro|de trem|a pe|sem escadas|com menos caminhada|menos caminhada)\b", normalizar(pergunta))):
         if body.origem is None or body.destino is None:
             return {
                 "resposta": "Para calcular a viagem, selecione a origem e o destino nos campos do planejador (ou use Minha localização), escolha o transporte e pergunte novamente.",
-                "origem_resposta": "orientacao_do_app", "fontes": [],
+                "origem_resposta": "orientacao_do_app", "tema_contexto": "rota", "fontes": [],
                 "sugestoes": ["Como escolher meu ponto de partida?", "Como marcar o destino no mapa?"],
                 "aviso": "Ainda não foi calculada uma rota.",
                 "rota": None,
@@ -81,26 +83,34 @@ def conversar(body: ConversaEntrada):
         modal_pergunta = (
             "onibus" if re.search(r"\b(onibus|busao)\b", pergunta_normal) else
             "ferroviario" if re.search(r"\b(metro|trem)\b", pergunta_normal) else
-            body.modal
+            "ape" if re.search(r"\ba pe\b", pergunta_normal) else body.modal
         )
         try:
             rota = rota_real(RotaRealPedido(
                 origem=body.origem, destino=body.destino, modal=modal_pergunta,
-                priorizar_menos_caminhada=body.priorizar_menos_caminhada,
-                evitar_escadas=body.evitar_escadas,
+                priorizar_menos_caminhada=body.priorizar_menos_caminhada or "menos caminhada" in pergunta_normal,
+                evitar_escadas=body.evitar_escadas or "sem escadas" in pergunta_normal,
             ))
         except HTTPException as exc:
             return {
                 "resposta": "Não encontrei um itinerário real para esses pontos e esse transporte. Experimente outro modal ou revise os endereços selecionados.",
-                "origem_resposta": "rota_indisponivel", "fontes": [],
+                "origem_resposta": "rota_indisponivel", "tema_contexto": "rota", "fontes": [],
                 "sugestoes": ["Como escolher outro transporte?"],
                 "aviso": str(exc.detail), "rota": None,
             }
         return {
-            "resposta": resumo_rota(rota), "origem_resposta": "motor_rotas",
+            "resposta": resumo_rota(rota), "origem_resposta": "motor_rotas", "tema_contexto": "rota",
             "fontes": [{"referencia": rota.get("fonte", "Serviço de roteamento"), "data_verificacao": ""}],
             "sugestoes": [], "aviso": rota.get("aviso"), "rota": rota,
         }
+
+    try:
+        registros = carregar()
+    except ValueError:
+        registros = []
+    local = conversa_local(pergunta, body.tema_contexto, registros)
+    if local is not None:
+        return local
 
     # Orientações cidadãs precisam de fonte revisada. A base antiga só libera
     # registros cujo status é verificado.
@@ -131,12 +141,15 @@ def conversar(body: ConversaEntrada):
             "origem_resposta": "indisponivel", "fontes": [], "sugestoes": [],
             "aviso": "O modelo local não pôde ser carregado.", "rota": None,
         }
-    p = prever(pergunta, modelo)
+    try:
+        p = prever(pergunta, modelo)
+    except ValueError:
+        return resposta("Pode me contar um pouco mais sobre sua dúvida de mobilidade?")
     # A base do classificador explica funcionalidades do app, não regras
     # oficiais. Nunca apresentar classificação como fonte de direitos/tarifas.
     if p.intencao_id is None:
         return {
-            "resposta": p.resposta, "origem_resposta": "sem_resposta_verificada",
+            "resposta": "Não consegui identificar sua dúvida com segurança. Conte um pouco mais sobre o que você precisa saber de transporte ou acessibilidade em São Paulo.", "origem_resposta": "sem_resposta_verificada",
             "fontes": [], "sugestoes": p.sugestoes, "aviso": None, "rota": None,
         }
     if p.tema not in {"rota", "tarifas", "historico", "privacidade"}:
