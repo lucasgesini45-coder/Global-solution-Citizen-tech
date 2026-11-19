@@ -3,33 +3,86 @@
     "id": 1,
     "tema": "gratuidade",
     "perguntas": [
-      "Como solicitar gratuidade?"
+      "Como solicitar gratuidade?",
+      "Quem tem direito a gratuidade?",
+      "Sou cadeirante posso viajar de graça?",
+      "Pessoa com deficiência tem passe livre?"
     ],
-    "orientacao": "Pendente de conferência.",
-    "referencia": "",
-    "data_verificacao": "",
-    "status": "rascunho"
+    "orientacao": "O Bilhete Único Especial da Pessoa com Deficiência pode ser solicitado por moradores de São Paulo, da região metropolitana e de alguns municípios adicionais, conforme os critérios da SPTrans. A concessão depende da avaliação dos requisitos; não é automática.",
+    "referencia": "https://bilheteunico.sptrans.com.br/especial/pessoa-com-deficiencia/",
+    "data_verificacao": "2026-11-19",
+    "status": "verificado"
   },
   {
     "id": 2,
     "tema": "cartoes",
     "perguntas": [
-      "Como emitir cartão?"
+      "Como emitir cartão?",
+      "Como fazer bilhete único?",
+      "Como tirar cartão PCD?",
+      "Quais documentos preciso para pedir o bilhete especial?",
+      "Como solicitar cartão de transporte?"
     ],
-    "orientacao": "Pendente de conferência.",
-    "referencia": "",
-    "data_verificacao": "",
-    "status": "rascunho"
+    "orientacao": "Para o Bilhete Único comum, faça o cadastro no portal da SPTrans. Para a modalidade especial PCD, consulte os requisitos, obtenha o formulário e encaminhe a documentação ao atendimento oficial. Não envie documentos pessoais neste chat.",
+    "referencia": "https://bilheteunico.sptrans.com.br/especial/pessoa-com-deficiencia/",
+    "data_verificacao": "2026-11-19",
+    "status": "verificado"
   },
   {
     "id": 3,
     "tema": "acessibilidade",
     "perguntas": [
-      "Quais os direitos de acessibilidade?"
+      "Quais os direitos de acessibilidade?",
+      "Como usar o metrô sendo cadeirante?",
+      "Preciso de ajuda para embarcar",
+      "Tem elevador no metrô?",
+      "Como pedir ajuda na estação?"
     ],
-    "orientacao": "Pendente de conferência.",
-    "referencia": "",
-    "data_verificacao": "",
-    "status": "rascunho"
+    "orientacao": "O Metrô de São Paulo oferece atendimento preferencial e acesso aos elevadores para pessoas com deficiência ou mobilidade reduzida. Solicite apoio à equipe da estação e confirme a disponibilidade do equipamento antes da viagem; o Citizen Tech não verifica elevadores em tempo real.",
+    "referencia": "https://www.metro.sp.gov.br/pt_BR/sua-viagem/acessibilidade/atendimento-preferencial/",
+    "data_verificacao": "2026-11-19",
+    "status": "verificado"
+  },
+  {
+    "id": 4,
+    "tema": "integracao",
+    "perguntas": [
+      "Como funciona a integração?",
+      "Posso pegar ônibus e metrô com o mesmo cartão?",
+      "Como funciona baldeação?",
+      "Quanto custa a integração?"
+    ],
+    "orientacao": "O Bilhete Único permite integração entre ônibus municipais e o sistema metroferroviário em condições e valores que dependem da modalidade do cartão e das regras vigentes. Confira a tabela oficial de tarifas antes de viajar.",
+    "referencia": "https://www.sptrans.com.br/tarifas?numero=bilhete+unico",
+    "data_verificacao": "2026-11-19",
+    "status": "verificado"
+  },
+  {
+    "id": 5,
+    "tema": "direitos",
+    "perguntas": [
+      "Quais são meus direitos?",
+      "Tenho direito a atendimento preferencial?",
+      "Posso usar assento preferencial?",
+      "Tenho mobilidade reduzida quais meus direitos?"
+    ],
+    "orientacao": "No Metrô, pessoas com deficiência ou restrição de mobilidade têm atendimento preferencial nas filas, acesso aos elevadores e assentos preferenciais. Solicite auxílio aos funcionários quando necessário.",
+    "referencia": "https://www.metro.sp.gov.br/pt_BR/sua-viagem/acessibilidade/atendimento-preferencial/",
+    "data_verificacao": "2026-11-19",
+    "status": "verificado"
+  },
+  {
+    "id": 6,
+    "tema": "tarifas",
+    "perguntas": [
+      "Quanto custa a passagem?",
+      "Qual o preço do ônibus?",
+      "Qual o valor do metrô?",
+      "Quanto vou gastar com transporte?"
+    ],
+    "orientacao": "Os valores variam por modalidade e integração. Consulte a tabela oficial da SPTrans para valores atualizados. O laboratório acadêmico não representa tarifas reais.",
+    "referencia": "https://www.sptrans.com.br/tarifas?numero=bilhete+unico",
+    "data_verificacao": "2026-11-19",
+    "status": "verificado"
   }
 ]
