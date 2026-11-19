@@ -59,3 +59,15 @@ A avaliação considera somente a necessidade de passagem sem degraus.
 Não certifica a acessibilidade completa de uma rota.
 Ainda não há integração com dados reais de segurança pública.
 Nenhum modelo de IA externo é executado pelo módulo.
+
+## Adequação aos requisitos FIAP — 17/11/2026
+
+- Ferramenta: ChatGPT. Finalidade: análise do enunciado, comparação com código existente, apoio à curadoria de 15 orientações, implementação de busca e terminal, criação de cenários e documentação de dois modelos.
+- Instruções A/B: recuperar somente orientação verificada e referência; B acrescenta avisos de limitação e confirmação oficial.
+- Fontes: páginas institucionais de SPTrans, Metrô e ANTT registradas individualmente no JSON da base.
+- Validação: testes automatizados e script de avaliação comparativa adicionados. A revisão humana da base, a interpretação dos resultados e o teste manual de usabilidade ainda devem ser realizados pela equipe. Não registrar aprovação ou métricas antes de executar os testes.
+- Limites: consulta às fontes na data registrada não garante vigência futura; não houve validação de acessibilidade física. Os modelos A/B são regras locais, não execução de um LLM.
+
+### Evidências da avaliação — 17/11/2026
+
+Execução GitHub Actions 44088026008: 177 testes aprovados, 1 advertência e typecheck aprovado. Avaliação cidadã A/B: 19 de 20 acertos por modelo (95%); tempos médios de 0,2171 ms e 0,2092 ms. O erro de ambiguidade foi preservado no relatório. Roteiro automatizado aprovado, sem participante humano. A IA auxiliou na organização e interpretação das medições reais; revisão humana das fontes e resultados permanece pendente. Ver [relatório](relatorio_testes_indicadores_fiap.md).

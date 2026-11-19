@@ -9,7 +9,8 @@ class TestCore(unittest.TestCase):
     def test_vazia(self):
         self.assertEqual(responder("", self.dados)["status"], "entrada_invalida")
     def test_sem_verificacao(self):
-        self.assertEqual(responder("Como solicitar gratuidade?", self.dados)["status"], "sem_resposta")
+        rascunho = {"id": 1, "tema": "gratuidade", "perguntas": ["Como solicitar gratuidade?"], "orientacao": "Não usar", "referencia": "", "data_verificacao": "", "status": "rascunho"}
+        self.assertEqual(responder("Como solicitar gratuidade?", [rascunho])["status"], "sem_resposta")
     def test_grafo(self):
         self.assertGreaterEqual(len(GRAFO["gratuidade"]), 3)
     def test_registro_verificado(self):

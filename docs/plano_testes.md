@@ -1,7 +1,3 @@
-# Plano de testes
+# Plano de testes — entrega FIAP
 
-Necessário antes da entrega: 15 registros verificados (3+ temas), 12 perguntas documentadas (incluindo 3 limitações: vazia, ambígua, sem fonte), expectativa vs resultado obtido, taxa de acerto, tempo médio e usabilidade por usuário ou roteiro. Comparar modelos A e B e propor duas melhorias.
-
-Testes iniciais: `python -m unittest discover -s backend/tests -v` na raiz.
-
-Este scaffold não foi executado no ambiente do aluno; a equipe deve instalar, rodar e registrar os resultados.
+Ver [método e modelos](adequacao_fiap.md), [relatório histórico](relatorio_testes_indicadores_fiap.md) e [20 cenários](../data/perguntas_cidadas_teste.json). Cobrir validação de JSON, entradas inválidas, correspondência correta, ausência de fonte, ambiguidade, navegação e modelos A/B. Reexecutar `python -m backend.src.avaliacao_cidada` e `python -m pytest backend/tests/test_core.py backend/tests/test_citizen_fiap.py -v`. Registrar resultados reais e falhas; fazer revisão humana de fontes e roteiro manual com participante antes da entrega.

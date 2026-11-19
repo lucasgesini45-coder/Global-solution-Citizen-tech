@@ -1,0 +1,197 @@
+[
+  {
+    "id": 1,
+    "tema": "cartoes",
+    "perguntas": [
+      "Como solicitar o Bilhete Único Comum?",
+      "Como emitir cartão comum?",
+      "primeira via bilhete unico comum"
+    ],
+    "orientacao": "Para obter o Bilhete Único Comum, preencha o cadastro no site de atendimento da SPTrans. Consulte no portal as instruções de emissão e retirada.",
+    "referencia": "https://bilheteunico.sptrans.com.br/comum/",
+    "data_verificacao": "2026-11-17",
+    "status": "verificado"
+  },
+  {
+    "id": 2,
+    "tema": "cartoes",
+    "perguntas": [
+      "Quanto custa a segunda via do Bilhete Único?",
+      "segunda via cartão comum",
+      "perdi bilhete unico segunda via"
+    ],
+    "orientacao": "A SPTrans informa que a emissão da segunda via do Bilhete Único comum custa o equivalente a sete tarifas de ônibus vigentes. Confira as condições e procedimentos atuais no portal.",
+    "referencia": "https://www.sptrans.com.br/perguntas-e-respostas/?sobre=bilhete-unico",
+    "data_verificacao": "2026-11-17",
+    "status": "verificado"
+  },
+  {
+    "id": 3,
+    "tema": "cartoes",
+    "perguntas": [
+      "Onde recarregar o Bilhete Único Comum?",
+      "como colocar credito no cartao comum",
+      "recarga bilhete unico comum"
+    ],
+    "orientacao": "Consulte as opções de recarga na página do Bilhete Único Comum, incluindo a loja virtual indicada pela SPTrans.",
+    "referencia": "https://bilheteunico.sptrans.com.br/comum/",
+    "data_verificacao": "2026-11-17",
+    "status": "verificado"
+  },
+  {
+    "id": 4,
+    "tema": "cartoes",
+    "perguntas": [
+      "Onde solicitar atendimento presencial do Bilhete Único Comum?",
+      "posto atendimento cartao comum",
+      "atendimento presencial vale transporte"
+    ],
+    "orientacao": "Os postos nos terminais municipais atendem usuários de Bilhete Único Comum, Vale-Transporte, Estudante e Professor. Consulte a relação de postos antes de ir.",
+    "referencia": "https://atendimento.sptrans.com.br/lp/postos-atendimento",
+    "data_verificacao": "2026-11-17",
+    "status": "verificado"
+  },
+  {
+    "id": 5,
+    "tema": "gratuidade",
+    "perguntas": [
+      "Como solicitar o Bilhete Único Especial para pessoa com deficiência?",
+      "Como pedir gratuidade PCD?",
+      "bilhete especial pcd laudo medico"
+    ],
+    "orientacao": "Consulte o procedimento do Bilhete Único Especial PCD da SPTrans. A emissão de relatório médico e/ou funcional pode ser realizada em estabelecimento de saúde cadastrado conforme os critérios da SPTrans. A concessão depende da análise do órgão.",
+    "referencia": "https://www.sptrans.com.br/bilheteunicopcd",
+    "data_verificacao": "2026-11-17",
+    "status": "verificado"
+  },
+  {
+    "id": 6,
+    "tema": "gratuidade",
+    "perguntas": [
+      "Como pedir o Bilhete Único da Pessoa Idosa?",
+      "gratuidade idoso 65 anos",
+      "cartao idoso 65"
+    ],
+    "orientacao": "Pessoas a partir de 65 anos podem solicitar o Bilhete Único Especial Pessoa Idosa pelo atendimento da SPTrans ou nos postos indicados no portal oficial.",
+    "referencia": "https://bilheteunico.sptrans.com.br/especial/pessoa-idosa/",
+    "data_verificacao": "2026-11-17",
+    "status": "verificado"
+  },
+  {
+    "id": 7,
+    "tema": "gratuidade",
+    "perguntas": [
+      "Como funciona a meia tarifa estudantil?",
+      "bilhete estudante meia passagem",
+      "desconto estudante transporte"
+    ],
+    "orientacao": "O Bilhete Único de Estudante na modalidade meia-tarifa possibilita adquirir créditos com redução de 50% sobre a tarifa básica comum, para estudantes elegíveis. Consulte a SPTrans sobre cadastro e condições.",
+    "referencia": "https://www.sptrans.com.br/perguntas-e-respostas/?sobre=bilhete-estudante",
+    "data_verificacao": "2026-11-17",
+    "status": "verificado"
+  },
+  {
+    "id": 8,
+    "tema": "gratuidade",
+    "perguntas": [
+      "Quem pode solicitar o Passe Livre Interestadual?",
+      "passe livre interestadual renda",
+      "requisitos passe livre antt"
+    ],
+    "orientacao": "O Passe Livre Interestadual é destinado à pessoa com deficiência que comprove também o requisito de renda familiar por pessoa de até um salário mínimo. Confira os critérios e documentação da ANTT.",
+    "referencia": "https://www.gov.br/pt-br/servicos/obter-passe-livre-interestadual-digital?id=23712&origem=servico",
+    "data_verificacao": "2026-11-17",
+    "status": "verificado"
+  },
+  {
+    "id": 9,
+    "tema": "gratuidade",
+    "perguntas": [
+      "Como solicitar o Passe Livre Interestadual Digital?",
+      "pedir passe livre digital",
+      "cadastro passe livre interestadual online"
+    ],
+    "orientacao": "Acesse o portal do Passe Livre da ANTT, confira os requisitos e siga as etapas de preenchimento, validação e envio do requerimento. O benefício não substitui os cartões de transporte urbano.",
+    "referencia": "https://passelivre.antt.gov.br/passo-a-passo",
+    "data_verificacao": "2026-11-17",
+    "status": "verificado"
+  },
+  {
+    "id": 10,
+    "tema": "acessibilidade",
+    "perguntas": [
+      "Quem tem atendimento preferencial no metrô?",
+      "preferencial filas gestante idoso",
+      "assento preferencial metro"
+    ],
+    "orientacao": "O Metrô prevê atendimento preferencial a pessoas com deficiência, idosos, gestantes, pessoas com crianças de colo, obesos, autistas e pessoas com restrição de mobilidade, conforme suas regras de atendimento.",
+    "referencia": "https://www.metro.sp.gov.br/pt_BR/sua-viagem/acessibilidade/atendimento-preferencial/",
+    "data_verificacao": "2026-11-17",
+    "status": "verificado"
+  },
+  {
+    "id": 11,
+    "tema": "acessibilidade",
+    "perguntas": [
+      "Posso levar cão-guia no metrô?",
+      "cachorro guia metro",
+      "deficiente visual cao guia"
+    ],
+    "orientacao": "O Metrô permite que pessoas com deficiência visual sejam acompanhadas por cão-guia nas estações e nos trens. Consulte os procedimentos oficiais de atendimento.",
+    "referencia": "https://www.metro.sp.gov.br/pt_BR/sua-viagem/acessibilidade/atendimento-preferencial/",
+    "data_verificacao": "2026-11-17",
+    "status": "verificado"
+  },
+  {
+    "id": 12,
+    "tema": "acessibilidade",
+    "perguntas": [
+      "O que é o serviço Atende+?",
+      "transporte porta a porta atende",
+      "van adaptada atende mais"
+    ],
+    "orientacao": "O Atende+ é um serviço municipal de transporte especial gratuito, porta a porta, destinado a pessoas com autismo, surdocegueira ou deficiência física severa, observados os critérios do programa.",
+    "referencia": "https://www.sptrans.com.br/atende",
+    "data_verificacao": "2026-11-17",
+    "status": "verificado"
+  },
+  {
+    "id": 13,
+    "tema": "acessibilidade",
+    "perguntas": [
+      "Como obter informações sobre o Atende+?",
+      "telefone atende mais",
+      "contato atende 156"
+    ],
+    "orientacao": "Para informações sobre o Atende+, use a Central 156 da Prefeitura de São Paulo ou os postos de atendimento da SPTrans. O Citizen Tech não realiza cadastro no serviço.",
+    "referencia": "https://www.sptrans.com.br/atende/sobre-o-atende",
+    "data_verificacao": "2026-11-17",
+    "status": "verificado"
+  },
+  {
+    "id": 14,
+    "tema": "servicos",
+    "perguntas": [
+      "Onde consultar o horário das estações do metrô?",
+      "horario funcionamento metro",
+      "horario abre fecha estacao"
+    ],
+    "orientacao": "Consulte a página de horários do Metrô. Cada estação possui horários específicos, que podem variar conforme o dia e a operação.",
+    "referencia": "https://www.metro.sp.gov.br/sua-viagem/horarios/",
+    "data_verificacao": "2026-11-17",
+    "status": "verificado"
+  },
+  {
+    "id": 15,
+    "tema": "servicos",
+    "perguntas": [
+      "Como encontrar documentos perdidos no metrô?",
+      "achados e perdidos metro",
+      "perdi documento estacao"
+    ],
+    "orientacao": "Consulte o serviço de Achados e Perdidos do Metrô. Para documentos, a consulta pode ser feita pelo site ou pela Central de Informações. Verifique qual operador atende a linha onde perdeu o objeto.",
+    "referencia": "https://www.metro.sp.gov.br/pt_BR/sua-viagem/achados-perdidos/",
+    "data_verificacao": "2026-11-17",
+    "status": "verificado"
+  }
+]

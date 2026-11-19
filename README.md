@@ -31,6 +31,100 @@ A proposta reúne planejamento de trajetos, mapas interativos e um assistente in
 | Barreiras de mobilidade | Preferências de caminhada e indicação transparente de dados de acessibilidade não verificados |
 | Dúvidas sobre serviços e direitos | Assistente cidadão com referências e limites explícitos |
 
+## Entrega acadêmica — Citizen Assist AI
+
+**Equipe:** Citizen Tech (nome acadêmico a confirmar).  
+**Global Solution 2026.2 | Ciência da Computação — FIAP**
+
+O problema é a dificuldade de localizar informações confiáveis sobre direitos, cartões, benefícios e serviços de transporte. O público beneficiado inclui cidadãos que utilizam transporte coletivo, especialmente pessoas com deficiência ou mobilidade reduzida, idosos e estudantes.
+
+### Execução obrigatória para correção
+
+Na raiz do repositório, com Python 3.10 ou superior:
+
+```powershell
+git clone https://github.com/lucasgesini45-coder/Global-solution-Citizen-tech.git
+cd Global-solution-Citizen-tech
+python src/sistema.py
+```
+
+O menu acadêmico funciona localmente, sem instalar pacotes, sem cadastro, sem chave de API e sem internet. A opção 4 (assistente adicional do aplicativo) é opcional e pode exigir as dependências do backend. O site é um complemento.
+
+### Base de conhecimento e algoritmo
+
+- [Base JSON](data/orientacoes.json): 15 registros, quatro temas (cartões, gratuidade, acessibilidade e serviços). Cada dicionário contém ID, tema, perguntas alternativas, orientação, referência, data de verificação e status.
+- Python lê o JSON, valida campos obrigatórios, IDs únicos e datas. Rascunhos não podem gerar orientações.
+- A busca normaliza acentos e caixa, remove palavras genéricas e calcula similaridade Dice: duas vezes a interseção dos conjuntos de termos dividida pela soma dos tamanhos. Limiar 0,55; exige dois termos coincidentes ou igualdade. Diferença de até 0,05 entre os melhores candidatos sinaliza ambiguidade.
+- Um grafo em dicionário relaciona temas; o menu oferece consulta por tema e ID.
+
+### Regras de resposta e modelos de instrução
+
+| Modelo | Instrução |
+|---|---|
+| A | Recuperar apenas orientação cadastrada como verificada, com referência e data, ou declarar insuficiência. |
+| B (padrão) | Aplicar as mesmas regras e avisar que o assistente não é oficial e que regras atuais devem ser confirmadas. |
+
+São regras locais em Python, não prompts enviados a um LLM. As respostas não inventam fontes. Entrada vazia solicita nova pergunta; opções inexistentes são rejeitadas; consultas sem correspondência orientam a procurar o órgão responsável.
+
+### Exemplos registrados na avaliação
+
+| Entrada | Comportamento |
+|---|---|
+| Como emitir cartão comum? | Orienta a cadastrar-se no atendimento da SPTrans e consultar emissão e retirada. [Fonte](https://bilheteunico.sptrans.com.br/comum/), data registrada: 17/11/2026. |
+| Pergunta vazia | Digite uma pergunta. |
+| Qual a receita de bolo de chocolate? | Não encontrei orientação verificada. Consulte o órgão responsável ou escolha um assunto. |
+| cartão comum | Caso ambíguo conhecido: a avaliação histórica retornou a emissão (ID 1), quando deveria pedir esclarecimento. |
+
+### Plano de testes, resultados e interpretação
+
+```powershell
+python -m backend.src.avaliacao_cidada
+python -m pip install pytest
+python -m pytest backend/tests/test_core.py backend/tests/test_citizen_fiap.py -v
+```
+
+A avaliação mede 20 cenários por modelo: status e ID esperados versus obtidos, presença de fonte, tempo de busca e avisos. Os resultados abaixo são históricos, medidos em 17/11/2026 na implementação de origem, e devem ser reproduzidos após a integração.
+
+| Indicador | A | B |
+|---|---:|---:|
+| Acertos | 19/20 (95%) | 19/20 (95%) |
+| Tempo médio | 0,2171 ms | 0,2092 ms |
+| Respostas OK com fonte | 18/18 | 18/18 |
+| Respostas OK com aviso de não oficialidade | 0/18 | 18/18 |
+| Casos de limitação corretos | 2/3 | 2/3 |
+
+A busca é a mesma nos dois modelos; B é preferido pela transparência. A amostra é pequena e a diferença temporal não permite concluir superioridade. O roteiro automatizado de uso passou na execução histórica; não houve participante humano. O erro de ambiguidade foi mantido como limitação.
+
+[Plano e método](docs/adequacao_fiap.md) · [Relatório completo](docs/relatorio_testes_indicadores_fiap.md) · [Resultados JSON](docs/resultados_avaliacao_cidada.json) · [Cenários](data/perguntas_cidadas_teste.json) · [Evidência CI histórica](https://github.com/lucasgesini45-coder/Global-solution-Citizen-tech/actions/runs/44088026008)
+
+### Clareza, acessibilidade e privacidade
+
+Menu textual numerado e mensagens claras facilitam o uso sem interface gráfica. Não solicita CPF, nome, laudo ou localização para consultas acadêmicas; não persiste as perguntas do terminal. No mapa opcional, GPS depende de autorização. Não há vínculo oficial com órgãos públicos nem garantia sobre elevadores, tarifas ou rotas acessíveis. A revisão humana das fontes e a avaliação de usabilidade ainda precisam ser registradas.
+
+### Conclusões e melhorias
+
+A abordagem local demonstra leitura de arquivos, listas, dicionários, conjuntos, grafos, validação, busca e testes. Para evoluir: melhorar desambiguação de termos genéricos, ampliar paráfrases e perguntas inéditas, revisar fontes e realizar testes manuais de acessibilidade e usabilidade.
+
+### Vídeo e identificação da equipe
+
+- Vídeo YouTube não listado: **pendente de URL real**.
+- RMs e lista acadêmica completa: **pendentes de confirmação** (ver equipe ao final).
+- Tutor(a) e decisão de participação na competição: **a confirmar pela equipe**.
+- Modelo de organização: [FIAP — GLOBAL-SOLUTION-2](https://github.com/equipe1ccon/FIAP-PORTFOLIO-1CCON/tree/master).
+
+### Organização para correção
+
+| Pasta | Conteúdo |
+|---|---|
+| `src/` | Entrada obrigatória do terminal |
+| `data/` | Base cidadã e perguntas de avaliação |
+| `docs/` | Documentação, registro de IA, relatórios e resultados |
+| `notebooks/` | Notebook opcional de reprodução de indicadores |
+| `backend/` | Núcleo Python, API e testes |
+| `frontend/` | Interface web e mobile opcional |
+
+---
+
 ## Funcionalidades
 
 <div align="center">
@@ -96,7 +190,7 @@ flowchart TD
 | `backend/src/transporte/` | Importador GTFS |
 | `docs/` | PRD, documentação e roteiro de implantação |
 
-## Como executar localmente
+## Como executar localmente (site opcional)
 
 ### Pré-requisitos
 
