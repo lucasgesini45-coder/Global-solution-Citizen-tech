@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet,
  Text as RNText, TextInput, View, Platform, useWindowDimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -22,7 +22,7 @@ type Modal = "todos"|"ferroviario"|"onibus"|"ape";
 type Endereco = {nome:string;lat:number;lon:number;fonte:string};
 type Trecho = {modal:string;linha?:string|null;cor_linha?:string|null;paradas?:{nome:string;lat:number;lon:number}[];destino_linha?:string|null;de:string;para:string;tempo_min:number;trajeto:number[][]};
 type Resultado = {tipo:string;fonte:string;tempo_min:number;distancia_m:number|null;tarifa_centavos:number|null;seguranca:{status:string};trajeto:number[][];trechos?:Trecho[];aviso:string;modal?:string;caminhada_m?:number|null;caminhada_longa?:boolean;acessibilidade?:{status:string;aviso:string;solicitou_sem_degraus?:boolean}};
-type Consulta = {resposta:string;origem_resposta:string;fontes:{referencia:string;data_verificacao:string}[];sugestoes:string[];aviso:string|null;rota:Resultado|null};
+type Consulta = {tema_contexto?:string|null;resposta:string;origem_resposta:string;fontes:{referencia:string;data_verificacao:string}[];sugestoes:string[];aviso:string|null;rota:Resultado|null};
 type RotaDemo = {ordem:number;tempo_total_min:number;espera_min:number;caminhada_m:number;baldeacoes:number;saida:string;chegada:string;custo:{centavos:number|null;confirmado:boolean};seguranca:{status:string};acessibilidade:string;trechos:{tipo:string;modal:string|null;linha:string|null}[]};
 type RespostaDemo = {modo:string;origem_dados:string;cenario:string;partida_exemplo:string;aviso:string;resultado:{rotas:RotaDemo[];erro?:{mensagem:string}|null}};
 
@@ -104,6 +104,9 @@ export default function Home(){
  const [erro,setErro]=useState("");const [resultado,setResultado]=useState<Resultado|null>(null);
  const [chatTexto,setChatTexto]=useState("");const [chat,setChat]=useState<{autor:"pessoa"|"agente";texto:string;fonte?:string;aviso?:string;sugestoes?:string[]}[]>([]);
  const [chatCarregando,setChatCarregando]=useState(false);
+ const [temaChat,setTemaChat]=useState<string|null>(null);
+ const chatScroll=useRef<ScrollView>(null);
+ const enviandoChat=useRef(false);
  const [demo,setDemo]=useState<RespostaDemo|null>(null);
  const [demoCarregando,setDemoCarregando]=useState(false);
  const [demoErro,setDemoErro]=useState("");
@@ -175,7 +178,8 @@ export default function Home(){
  }
  async function perguntar(pergunta=chatTexto){
    const texto=pergunta.trim();
-   if(!texto || chatCarregando)return;
+   if(texto.length<2 || enviandoChat.current)return;
+   enviandoChat.current=true;
    setChatTexto("");
    setChat(c=>[...c,{autor:"pessoa",texto}]);
    setChatCarregando(true);
@@ -185,6 +189,7 @@ export default function Home(){
        headers:{"Content-Type":"application/json"},
        body:JSON.stringify({
          pergunta:texto,
+         tema_contexto:temaChat,
          origem:origemGeo?{lat:origemGeo.lat,lon:origemGeo.lon}:null,
          destino:destinoGeo?{lat:destinoGeo.lat,lon:destinoGeo.lon}:null,
          modal,
@@ -197,6 +202,7 @@ export default function Home(){
        const detail=typeof data.detail==="string"?data.detail:"Não foi possível acessar o agente.";
        throw new Error(detail);
      }
+     setTemaChat(data.tema_contexto ?? null);
      if(data.rota && Array.isArray(data.rota.trajeto) && Array.isArray(data.rota.trechos)){
        setResultado(data.rota);
        setErro("");
@@ -212,7 +218,7 @@ export default function Home(){
      }]);
    }catch(e){
      setChat(c=>[...c,{autor:"agente",texto:e instanceof Error?e.message:"Não foi possível consultar o agente."}]);
-   }finally{setChatCarregando(false);}
+   }finally{enviandoChat.current=false;setChatCarregando(false);}
  }
 
  return <ScrollView style={v.bg} contentContainerStyle={v.page}>
@@ -385,12 +391,12 @@ export default function Home(){
 
      <View style={v.assistant}>
        <View style={v.assistantHeader}>
-         <View style={v.assistantHeaderLeft}><Icone name="chatbubble-ellipses-outline" color="#0069d2" size={23}/><View style={{flex:1}}><Text style={v.assistantTitle}>Pergunte ao agente de IA</Text><Text style={v.assistantSubtitle}>Tire dúvidas e consulte trajetos reais com origem e destino selecionados</Text></View></View>
+         <View style={v.assistantHeaderLeft}><Icone name="chatbubble-ellipses-outline" color="#0069d2" size={23}/><View style={{flex:1}}><Text style={v.assistantTitle}>Pergunte ao agente de IA</Text><Text style={v.assistantSubtitle}>Converse livremente sobre mobilidade, acessibilidade e transporte em São Paulo</Text></View></View>
          <Text style={v.assistantTag}>ASSISTENTE CIDADÃO</Text>
        </View>
        <View style={v.suggestions}>{sugestoesChat.map(t=><Pressable key={t} style={v.suggestion} onPress={()=>perguntar(t)}><Text style={v.suggestionText}>{t}</Text></Pressable>)}</View>
-       <ScrollView style={v.chatHistory} nestedScrollEnabled><View style={{gap:10}}>{chat.length===0?<Text style={v.chatEmpty}>Pergunte sobre mobilidade ou peça um trajeto. Para calcular uma viagem, selecione origem e destino no planejador.</Text>:chat.map((m,i)=><View key={i} style={[v.chatBubble,m.autor==="pessoa"?v.chatBubbleUser:v.chatBubbleAi]}><Text style={[v.chatBubbleText,m.autor==="pessoa"&&{color:"#fff"}]}>{m.texto}</Text>{!!m.fonte&&<Text style={v.chatSource}>{m.fonte}</Text>}{!!m.aviso&&<Text style={v.chatSource}>{m.aviso}</Text>}{!!m.sugestoes?.length&&<View style={{flexDirection:"row",gap:6,flexWrap:"wrap",marginTop:8}}>{m.sugestoes.map((s,j)=><Pressable key={j} onPress={()=>perguntar(s)} style={v.suggestion}><Text style={v.suggestionText}>{s}</Text></Pressable>)}</View>}</View>)}</View></ScrollView>
-       <View style={v.chatInput}><TextInput accessibilityLabel="Pergunta para o agente de IA" value={chatTexto} onChangeText={setChatTexto} placeholder="Escreva sua pergunta..." placeholderTextColor="#9baec2" onSubmitEditing={()=>perguntar()} returnKeyType="send" style={v.chatField}/><Pressable style={v.chatSend} onPress={()=>perguntar()} accessibilityLabel="Enviar pergunta">{chatCarregando?<ActivityIndicator color="#fff"/>:<Icone name="send" size={18} color="#fff"/>}</Pressable></View>
+       <ScrollView ref={chatScroll} onContentSizeChange={()=>chatScroll.current?.scrollToEnd({animated:true})} style={v.chatHistory} nestedScrollEnabled keyboardShouldPersistTaps="handled"><View style={{gap:10}}>{chat.length===0?<Text style={v.chatEmpty}>Olá! Sou seu assistente de mobilidade. Digite sua própria pergunta ou use uma sugestão acima. Podemos conversar sobre transporte, acessibilidade, cartões e rotas.</Text>:chat.map((m,i)=><View key={i} style={[v.chatBubble,m.autor==="pessoa"?v.chatBubbleUser:v.chatBubbleAi]}><Text style={[v.chatBubbleText,m.autor==="pessoa"&&{color:"#fff"}]}>{m.texto}</Text>{!!m.fonte&&<Text style={v.chatSource}>{m.fonte}</Text>}{!!m.aviso&&<Text style={v.chatSource}>{m.aviso}</Text>}{!!m.sugestoes?.length&&<View style={{flexDirection:"row",gap:6,flexWrap:"wrap",marginTop:8}}>{m.sugestoes.map((s,j)=><Pressable key={j} onPress={()=>perguntar(s)} style={v.suggestion}><Text style={v.suggestionText}>{s}</Text></Pressable>)}</View>}</View>)}</View></ScrollView>
+       <View style={v.chatInput}><TextInput accessibilityLabel="Pergunta para o agente de IA" value={chatTexto} onChangeText={setChatTexto} maxLength={300} placeholder="Digite sua pergunta sobre mobilidade..." placeholderTextColor="#9baec2" onSubmitEditing={()=>perguntar()} returnKeyType="send" style={v.chatField}/><Pressable disabled={chatCarregando||chatTexto.trim().length<2} style={[v.chatSend,(chatCarregando||chatTexto.trim().length<2)&&{opacity:0.5}]} onPress={()=>perguntar()} accessibilityRole="button" accessibilityLabel="Enviar pergunta">{chatCarregando?<ActivityIndicator color="#fff"/>:<Icone name="send" size={18} color="#fff"/>}</Pressable></View>
        <Text style={v.assistantFootnote}>As rotas são consultadas em dados externos; respostas sobre o aplicativo podem vir de uma base acadêmica. Confirme tarifas, acessibilidade e direitos em fontes oficiais.</Text>
      </View>
 
@@ -488,7 +494,7 @@ const v=StyleSheet.create({
  chatBubble:{borderRadius:18,padding:12,maxWidth:"90%"},chatBubbleUser:{backgroundColor:"#0071e3",alignSelf:"flex-end"},chatBubbleAi:{backgroundColor:"#eaf3fc",alignSelf:"flex-start"},
  chatBubbleText:{color:"#1d2633",fontSize:13,lineHeight:20},chatSource:{color:"#586c80",fontSize:10,marginTop:8},
  chatInput:{flexDirection:"row",alignItems:"center",minHeight:49,backgroundColor:"#f0f5fa",borderRadius:25,paddingLeft:15,paddingRight:5},
- chatField:{flex:1,color:"#1d2633",fontSize:14,paddingVertical:11},chatSend:{height:39,width:39,borderRadius:20,backgroundColor:"#0071e3",alignItems:"center",justifyContent:"center"},
+ chatField:{flex:1,minWidth:0,color:"#1d2633",fontSize:14,paddingVertical:11},chatSend:{height:39,width:39,borderRadius:20,backgroundColor:"#0071e3",alignItems:"center",justifyContent:"center"},
  assistantFootnote:{fontSize:10,color:"#71859b",marginTop:9},
  footer:{marginVertical:22,textAlign:"center",fontSize:11,color:"#667c92"}
 });
