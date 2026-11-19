@@ -1,6 +1,6 @@
 <div align="center">
 
-<img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=0:172554,50:2563eb,100:7c3aed&height=230&section=header&text=CITIZEN%20TECH&fontColor=ffffff&fontSize=48&desc=Mobilidade%20Urbana%20Inteligente&descSize=18&descAlignY=72" alt="Citizen Tech — Mobilidade Urbana">
+<img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=0:172554,50:2563eb,100:7c3aed&height=230&section=header&text=LOCALIZA%20FACIL&fontColor=ffffff&fontSize=48&desc=Mobilidade%20Urbana%20Inteligente&descSize=18&descAlignY=72" alt="Localiza Facil — Mobilidade Urbana">
 
 **Tecnologia a serviço de cidades mais conectadas, inclusivas e humanas.**
 
@@ -10,7 +10,7 @@
 ![Expo](https://img.shields.io/badge/Expo-20232A?style=for-the-badge&logo=expo&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
 
-[Sobre](#sobre-o-projeto) · [Funcionalidades](#funcionalidades) · [Execução](#como-executar-localmente) · [API](#endpoints) · [Equipe](#equipe)
+[Sobre](#sobre-o-projeto) · [Funcionalidades](#funcionalidades) · [Execução](#execução-obrigatória-para-correção) · [API](#endpoints) · [Equipe](#equipe) · [Vídeo](https://youtu.be/xAq7-K4gA7I)
 
 </div>
 
@@ -18,7 +18,7 @@
 
 ## Sobre o projeto
 
-O **Citizen Tech — Mobilidade Urbana** é um protótipo acadêmico da Global Solution 2026.2 da FIAP, desenvolvido para facilitar o planejamento de deslocamentos em São Paulo e ampliar o acesso a informações cidadãs.
+O **Localiza Facil — Mobilidade Urbana** é um protótipo acadêmico da Global Solution 2026.2 da FIAP, desenvolvido para facilitar o planejamento de deslocamentos em São Paulo e ampliar o acesso a informações cidadãs.
 
 A proposta reúne planejamento de trajetos, mapas interativos e um assistente inteligente em uma única plataforma web e mobile, com atenção especial às necessidades de pessoas com deficiência física e mobilidade reduzida.
 
@@ -33,7 +33,7 @@ A proposta reúne planejamento de trajetos, mapas interativos e um assistente in
 
 ## Entrega acadêmica — Citizen Assist AI
 
-**Equipe:** Citizen Tech (nome acadêmico a confirmar).  
+**Equipe:** Localiza Facil.  
 **Global Solution 2026.2 | Ciência da Computação — FIAP**
 
 O problema é a dificuldade de localizar informações confiáveis sobre direitos, cartões, benefícios e serviços de transporte. O público beneficiado inclui cidadãos que utilizam transporte coletivo, especialmente pessoas com deficiência ou mobilidade reduzida, idosos e estudantes.
@@ -107,8 +107,8 @@ A abordagem local demonstra leitura de arquivos, listas, dicionários, conjuntos
 
 ### Vídeo e identificação da equipe
 
-- Vídeo YouTube não listado: **pendente de URL real**.
-- RMs e lista acadêmica completa: **pendentes de confirmação** (ver equipe ao final).
+- [Vídeo de apresentação no YouTube](https://youtu.be/xAq7-K4gA7I).
+- [Integrantes e RMs](#equipe).
 - Tutor(a) e decisão de participação na competição: **a confirmar pela equipe**.
 - Modelo de organização: [FIAP — GLOBAL-SOLUTION-2](https://github.com/equipe1ccon/FIAP-PORTFOLIO-1CCON/tree/master).
 
@@ -289,17 +289,17 @@ Consulte [o plano de integração e evolução](docs/PLANO_EXECUCAO_PRD.md). Pri
 
 ## Equipe
 
-<div align="center">
-<table>
-<tr>
-<td align="center"><a href="https://github.com/lucasgesini45-coder"><img src="https://github.com/lucasgesini45-coder.png?size=100" width="100" alt="Lucas"><br><b>Lucas Ribeiro Gesini</b></a></td>
-<td align="center"><a href="https://github.com/raphafreitass1982"><img src="https://github.com/raphafreitass1982.png?size=100" width="100" alt="Raphael"><br><b>Raphael de Freitas Silva</b></a></td>
-<td align="center"><a href="https://github.com/xsindgy"><img src="https://github.com/xsindgy.png?size=100" width="100" alt="xsindgy"><br><b>@xsindgy</b></a></td>
-</tr>
-</table>
-</div>
+**Localiza Facil — FIAP Global Solution 2026.2**
 
-*Integrantes e colaboradores identificados nos registros do repositório. Lista acadêmica completa e RMs a confirmar.*
+| Integrante | RM |
+|---|---|
+| [Lucas Ribeiro Gesini](https://github.com/lucasgesini45-coder) | RM569383 |
+| [Raphael de Freitas Silva](https://github.com/raphafreitass1982) | RM570089 |
+| Paulo Henrique Gonçalves Bueno | RM570456 |
+| Filipe Souza Nascimento | RM573758 |
+| Calebe Gonçalves Garcia de Souza | RM568743 |
+
+[Assista ao vídeo de apresentação](https://youtu.be/xAq7-K4gA7I)
 
 ## Aviso de responsabilidade
 
