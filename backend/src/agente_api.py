@@ -82,14 +82,17 @@ def conversar(body: ConversaEntrada):
         raise HTTPException(status_code=422, detail="Digite uma pergunta com pelo menos 2 caracteres.")
 
     texto_livre = normalizar(pergunta)
+    contexto_pcd = None
     if re.fullmatch(r"(oi|ola|bom dia|boa tarde|boa noite|tudo bem)[!?. ]*", texto_livre):
         return resposta_limite("Olá! Posso ajudar com transporte público, rotas, tarifas e acessibilidade em São Paulo. O que você gostaria de saber?", "orientacao_do_app")
     if re.fullmatch(r"(obrigad[oa]|valeu|entendi|ok|beleza)[!?. ]*", texto_livre):
         return {**resposta_limite("Por nada! Podemos continuar falando sobre sua viagem.", "orientacao_do_app"), "tema_contexto": body.tema_contexto}
     if not bloqueado(pergunta):
         if re.search(r"\b(de graca|sem pagar|passe livre|gratuidade)\b", texto_livre) and re.search(r"\b(cadeirante|pcd|deficiencia)\b", texto_livre):
-            pergunta = "Como solicitar gratuidade para pessoa com deficiência?"
-        elif body.tema_contexto == "gratuidade" and re.search(r"\b(documentos?|laudo|formulario)\b", texto_livre):
+            contexto_pcd = "gratuidade"
+            pergunta = "Como solicitar o Bilhete Único Especial para pessoa com deficiência?"
+        elif body.tema_contexto == "gratuidade_pcd" and re.search(r"\b(documentos?|laudo|formulario)\b", texto_livre):
+            contexto_pcd = "documentos"
             pergunta = "Como solicitar o Bilhete Único Especial para pessoa com deficiência?"
         elif body.tema_contexto == "rota" and re.match(r"^(e |mas |prefiro )?(de onibus|de metro|de trem|a pe|sem escadas|com menos caminhada)", texto_livre):
             pergunta = "Como ir " + pergunta
@@ -157,6 +160,12 @@ def conversar(body: ConversaEntrada):
     # A interface livre pesquisa também a coleção documental complementar.
     try:
         registros = carregar()
+        if contexto_pcd:
+            registro = next((r for r in registros if r["tema"] == "gratuidade" and r["status"] == "verificado" and r["referencia"] == "https://www.sptrans.com.br/bilheteunicopcd"), None)
+            if registro:
+                return {"resposta": registro["orientacao"], "origem_resposta": "base_verificada",
+                        "tema_contexto": "gratuidade_pcd", "fontes": [{"referencia": registro["referencia"], "data_verificacao": registro["data_verificacao"]}],
+                        "sugestoes": [], "aviso": "Confirme a documentação atual com a SPTrans.", "rota": None}
         resultado = consultar_documentos(pergunta, registros)
         tema = ("gratuidade" if re.search(r"\b(gratuidade|passe livre)\b", normalizar(pergunta)) else
                 "cartoes" if re.search(r"\b(cartao|bilhete)\b", normalizar(pergunta)) else
