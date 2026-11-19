@@ -22,7 +22,8 @@ import json
 router = APIRouter(prefix="/agente", tags=["Agente Cidadão"])
 
 class ConversaEntrada(BaseModel):
-    pergunta: str = Field(min_length=3, max_length=300)
+    pergunta: str = Field(min_length=2, max_length=300)
+    tema_contexto: str | None = Field(default=None, max_length=40)
     origem: Coordenadas | None = None
     destino: Coordenadas | None = None
     modal: str = Field(default="todos", pattern=r"^(todos|onibus|ferroviario|ape)$")
@@ -77,8 +78,23 @@ def perguntas_academicas():
 @router.post("/conversar")
 def conversar(body: ConversaEntrada):
     pergunta = body.pergunta.strip()
-    if len(pergunta) < 3:
-        raise HTTPException(status_code=422, detail="Digite uma pergunta com pelo menos 3 caracteres.")
+    if len(pergunta) < 2:
+        raise HTTPException(status_code=422, detail="Digite uma pergunta com pelo menos 2 caracteres.")
+
+    texto_livre = normalizar(pergunta)
+    if re.fullmatch(r"(oi|ola|bom dia|boa tarde|boa noite|tudo bem)[!?. ]*", texto_livre):
+        return resposta_limite("Olá! Posso ajudar com transporte público, rotas, tarifas e acessibilidade em São Paulo. O que você gostaria de saber?", "orientacao_do_app")
+    if re.fullmatch(r"(obrigad[oa]|valeu|entendi|ok|beleza)[!?. ]*", texto_livre):
+        return {**resposta_limite("Por nada! Podemos continuar falando sobre sua viagem.", "orientacao_do_app"), "tema_contexto": body.tema_contexto}
+    if not bloqueado(pergunta):
+        if re.search(r"\b(de graca|sem pagar|passe livre|gratuidade)\b", texto_livre) and re.search(r"\b(cadeirante|pcd|deficiencia)\b", texto_livre):
+            pergunta = "Como solicitar gratuidade para pessoa com deficiência?"
+        elif body.tema_contexto == "gratuidade" and re.search(r"\b(documentos?|laudo|formulario)\b", texto_livre):
+            pergunta = "Como solicitar o Bilhete Único Especial para pessoa com deficiência?"
+        elif body.tema_contexto == "rota" and re.match(r"^(e |mas |prefiro )?(de onibus|de metro|de trem|a pe|sem escadas|com menos caminhada)", texto_livre):
+            pergunta = "Como ir " + pergunta
+        if re.search(r"\belevador\w*\b", texto_livre) and re.search(r"\b(funcionando|quebrado|hoje|agora|operacional)\b", texto_livre):
+            return {**resposta_limite("Não tenho acesso ao funcionamento dos elevadores em tempo real. Confirme com a operadora ou a equipe da estação antes de viajar."), "tema_contexto": "acessibilidade"}
 
     # Recusa explícita fora do escopo antes de executar ferramentas de rota.
     # Consultas sobre o próprio aplicativo continuam disponíveis.
@@ -89,7 +105,7 @@ def conversar(body: ConversaEntrada):
         if body.origem is None or body.destino is None:
             return {
                 "resposta": "Para calcular a viagem, selecione a origem e o destino nos campos do planejador (ou use Minha localização), escolha o transporte e pergunte novamente.",
-                "origem_resposta": "orientacao_do_app", "fontes": [],
+                "origem_resposta": "orientacao_do_app", "tema_contexto": "rota", "fontes": [],
                 "sugestoes": ["Como escolher meu ponto de partida?", "Como marcar o destino no mapa?"],
                 "aviso": "Ainda não foi calculada uma rota.",
                 "rota": None,
@@ -103,8 +119,8 @@ def conversar(body: ConversaEntrada):
         try:
             rota = rota_real(RotaRealPedido(
                 origem=body.origem, destino=body.destino, modal=modal_pergunta,
-                priorizar_menos_caminhada=body.priorizar_menos_caminhada,
-                evitar_escadas=body.evitar_escadas,
+                priorizar_menos_caminhada=body.priorizar_menos_caminhada or "menos caminhada" in pergunta_normal,
+                evitar_escadas=body.evitar_escadas or "sem escadas" in pergunta_normal,
             ))
         except HTTPException as exc:
             return {
@@ -114,7 +130,7 @@ def conversar(body: ConversaEntrada):
                 "aviso": str(exc.detail), "rota": None,
             }
         return {
-            "resposta": resumo_rota(rota), "origem_resposta": "motor_rotas",
+            "resposta": resumo_rota(rota), "origem_resposta": "motor_rotas", "tema_contexto": "rota",
             "fontes": [{"referencia": rota.get("fonte", "Serviço de roteamento"), "data_verificacao": ""}],
             "sugestoes": [], "aviso": rota.get("aviso"), "rota": rota,
         }
@@ -142,15 +158,18 @@ def conversar(body: ConversaEntrada):
     try:
         registros = carregar()
         resultado = consultar_documentos(pergunta, registros)
+        tema = ("gratuidade" if re.search(r"\b(gratuidade|passe livre)\b", normalizar(pergunta)) else
+                "cartoes" if re.search(r"\b(cartao|bilhete)\b", normalizar(pergunta)) else
+                "acessibilidade" if re.search(r"\b(acessibilidade|elevador|cadeirante)\b", normalizar(pergunta)) else None)
         if resultado["origem_resposta"] in {"documento_oficial", "ambiguo"}:
-            return resultado
+            return {**resultado, "tema_contexto": tema}
         # Preservar o contrato de resposta verificada do núcleo para consultas
         # sem desambiguação documental suficiente.
         verificada = responder(pergunta, registros, "B")
         if verificada["status"] == "ok" and escopo(pergunta):
             return {
                 "resposta": verificada["resposta"], "origem_resposta": "base_verificada",
-                "fontes": verificada["fontes"], "sugestoes": [],
+                "fontes": verificada["fontes"], "tema_contexto": tema, "sugestoes": [],
                 "aviso": None, "rota": None,
             }
     except ValueError:
