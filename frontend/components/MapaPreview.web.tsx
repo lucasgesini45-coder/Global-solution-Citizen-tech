@@ -189,7 +189,7 @@ export default function MapaPreview({pontos=[],height=365,trajeto=[],trechos=[],
        if(!map.getLayer(id+"-walk"))map.addLayer({id:id+"-walk",type:"line",source:id,filter:["==",["get","ape"],true],layout:{"line-join":"round","line-cap":"round"},paint:{"line-color":"#5F6D7E","line-width":5,"line-dasharray":[1.2,1.2]}});
        // Labels never block rendering the line: styles can lack a font family.
        try{
-         if(!map.getLayer(id+"-modal-labels"))map.addLayer({id:id+"-modal-labels",type:"symbol",source:id,
+         if(!map.getLayer(id+"-modal-labels"))map.addLayer({id:id+"-modal-labels",type:"symbol",source:id,minzoom:14,
            layout:{"symbol-placement":"line","text-field":["get","rotulo"],"text-size":12,"text-font":["Noto Sans Regular"],"symbol-spacing":200,"text-optional":true},
            paint:{"text-color":"#183e67","text-halo-color":"#fff","text-halo-width":2}});
        }catch(labelError){console.warn("Rótulos indisponíveis:",labelError);}
@@ -197,7 +197,7 @@ export default function MapaPreview({pontos=[],height=365,trajeto=[],trechos=[],
        else map.addSource(id+"-stations",{type:"geojson",data:stationData});
        if(!map.getLayer(id+"-stations"))map.addLayer({id:id+"-stations",type:"circle",source:id+"-stations",paint:{"circle-radius":5,"circle-color":["get","cor"],"circle-stroke-width":2,"circle-stroke-color":"#fff"}});
        try{
-         if(!map.getLayer(id+"-stations-labels"))map.addLayer({id:id+"-stations-labels",type:"symbol",source:id+"-stations",layout:{"text-field":["get","nome"],"text-size":11,"text-font":["Noto Sans Regular"],"text-offset":[0,1.1],"text-anchor":"top","text-optional":true},paint:{"text-color":"#244263","text-halo-color":"#fff","text-halo-width":1.5}});
+         if(!map.getLayer(id+"-stations-labels"))map.addLayer({id:id+"-stations-labels",type:"symbol",source:id+"-stations",minzoom:15,layout:{"text-field":["get","nome"],"text-size":11,"text-font":["Noto Sans Regular"],"text-offset":[0,1.1],"text-anchor":"top","text-optional":true},paint:{"text-color":"#244263","text-halo-color":"#fff","text-halo-width":1.5}});
        }catch(stationError){console.warn("Nomes das paradas indisponíveis:",stationError);}
        if(featureList.length&&!seguindo.current){
          const bounds=new (getMapLibre()!).LngLatBounds();
@@ -233,10 +233,7 @@ export default function MapaPreview({pontos=[],height=365,trajeto=[],trechos=[],
      "aria-label":"Mapa OpenFreeMap Positron",
      style:{width:"100%",height:"100%",cursor:pickMode?"crosshair":"grab"}
    })}
-   <View pointerEvents="none" style={{position:"absolute",top:15,left:15,backgroundColor:"rgba(255,255,255,.95)",paddingHorizontal:12,paddingVertical:9,borderRadius:12}}>
-     <Text style={{color:"#37516b",fontWeight:"700",fontSize:12}}>OpenFreeMap · Positron</Text>
-   </View>
-   {trechos.length>0&&<View pointerEvents="none" style={{position:"absolute",top:54,left:14,backgroundColor:"rgba(255,255,255,.96)",borderRadius:10,padding:9,gap:5}}>
+   {trechos.length>0&&<View pointerEvents="none" style={{position:"absolute",top:10,left:10,right:52,alignSelf:"flex-start",flexDirection:"row",flexWrap:"wrap",backgroundColor:"rgba(255,255,255,.9)",borderRadius:7,padding:7,gap:10}}>
      {Array.from(new Set(trechos.map(t=>t.modal==="WALK"?"A pé":t.modal==="BUS"?"Ônibus":"Metrô / trem"))).map(tipo=><View key={tipo} style={{flexDirection:"row",alignItems:"center",gap:6}}>
        <View style={{height:4,width:20,backgroundColor:tipo==="A pé"?"#5F6D7E":tipo==="Ônibus"?"#0071e3":"#7155c8",borderRadius:3}}/>
        <Text style={{fontSize:11,fontWeight:"700",color:"#244263"}}>{tipo}</Text>
