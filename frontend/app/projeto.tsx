@@ -266,8 +266,9 @@ export default function Home(){
  }
  async function perguntar(pergunta=chatTexto){
    const texto=pergunta.trim();
-   if(chatCarregando)return;
-   if(!texto){setChat(c=>[...c,{autor:"agente",texto:"Digite uma pergunta válida sobre mobilidade urbana."}]);return;}
+   if(enviandoChat.current)return;
+   if(texto.length<2){setChat(c=>[...c,{autor:"agente",texto:"Digite uma pergunta válida sobre mobilidade urbana."}]);return;}
+   enviandoChat.current=true;
    setChatTexto("");
    setChat(c=>[...c,{autor:"pessoa",texto}]);
    setChatCarregando(true);
