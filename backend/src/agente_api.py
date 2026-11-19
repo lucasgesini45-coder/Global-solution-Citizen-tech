@@ -1,12 +1,14 @@
 """Orquestrador do chat: rotas reais, orientações verificadas e classificador local.
 
 Não inventa linhas, tarifas, acessibilidade ou referências oficiais.
-Não guarda mensagens, GPS ou histórico do usuário no servidor.
+Histórico opcional mediante consentimento explícito; GPS nunca é persistido.
 """
 from __future__ import annotations
 
 import re
 import unicodedata
+from uuid import UUID
+from . import historico_ia
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
@@ -24,6 +26,8 @@ router = APIRouter(prefix="/agente", tags=["Agente Cidadão"])
 class ConversaEntrada(BaseModel):
     pergunta: str = Field(min_length=2, max_length=300)
     tema_contexto: str | None = Field(default=None, max_length=40)
+    consentimento_historico: bool = False
+    sessao_historico: UUID | None = None
     origem: Coordenadas | None = None
     destino: Coordenadas | None = None
     modal: str = Field(default="todos", pattern=r"^(todos|onibus|ferroviario|ape)$")
@@ -75,8 +79,7 @@ def perguntas_academicas():
             for i, caso in enumerate(casos, 1)]
 
 
-@router.post("/conversar")
-def conversar(body: ConversaEntrada):
+def _responder(body: ConversaEntrada):
     pergunta = body.pergunta.strip()
     if len(pergunta) < 2:
         raise HTTPException(status_code=422, detail="Digite uma pergunta com pelo menos 2 caracteres.")
@@ -221,3 +224,13 @@ def conversar(body: ConversaEntrada):
         "aviso": "Informação sobre o protótipo acadêmico; não é orientação oficial nem tarifa confirmada.",
         "rota": None,
     }
+
+@router.post("/conversar")
+def conversar(body: ConversaEntrada):
+    resultado = _responder(body)
+    texto = normalizar(body.pergunta)
+    if re.search(r"\b(historico|privacidade|guarda|salva|armazena|registra|gravadas?)\b", texto) and re.search(r"\b(app|aplicativo|perguntas?|mensagens?|conversas?|chat|historico|privacidade)\b", texto):
+        if resultado.get("origem_resposta") != "fora_escopo":
+            resultado = {**resultado, "resposta": "O histórico de avaliação é opcional. Somente com sua autorização, o aplicativo pode registrar interações por até 30 dias. Você pode desativar a coleta e excluir o histórico da sessão. Não enviamos coordenadas ao banco de histórico."}
+    registro = historico_ia.registrar(body.pergunta.strip(), resultado, body.consentimento_historico, body.sessao_historico)
+    return {**resultado, "historico": registro}

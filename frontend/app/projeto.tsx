@@ -29,7 +29,7 @@ type Trecho = {modal:string;linha?:string|null;cor_linha?:string|null;paradas?:{
 type Resultado = {etapas_viagem?:EtapaViagem[];economia?:CustoViagem;alternativas_economicas?:AlternativaEconomica[];horarios_onibus?:HorarioOnibus[];tipo:string;fonte:string;tempo_min:number;distancia_m:number|null;tarifa_centavos:number|null;seguranca:{status:string};trajeto:number[][];trechos?:Trecho[];aviso:string;modal?:string;caminhada_m?:number|null;caminhada_longa?:boolean;acessibilidade?:{status:string;aviso:string;solicitou_sem_degraus?:boolean}};
 type PerguntaAcademica = {numero:number;pergunta:string;categoria:string};
 type FonteAgente = {referencia:string;data_verificacao:string;titulo?:string};
-type Consulta = {tema_contexto?:string|null;resposta:string;origem_resposta:string;fontes:FonteAgente[];sugestoes:string[];aviso:string|null;rota:Resultado|null};
+type Consulta = {historico?:{status:string;sessao?:string;texto_omitido?:boolean};tema_contexto?:string|null;resposta:string;origem_resposta:string;fontes:FonteAgente[];sugestoes:string[];aviso:string|null;rota:Resultado|null};
 type RotaDemo = {ordem:number;tempo_total_min:number;espera_min:number;caminhada_m:number;baldeacoes:number;saida:string;chegada:string;custo:{centavos:number|null;confirmado:boolean};seguranca:{status:string};acessibilidade:string;trechos:{tipo:string;modal:string|null;linha:string|null}[]};
 type RespostaDemo = {modo:string;origem_dados:string;cenario:string;partida_exemplo:string;aviso:string;resultado:{rotas:RotaDemo[];erro?:{mensagem:string}|null}};
 
@@ -176,6 +176,33 @@ export default function Home(){
  const [chatTexto,setChatTexto]=useState("");const [chat,setChat]=useState<{autor:"pessoa"|"agente";texto:string;fonte?:string;fontes?:FonteAgente[];aviso?:string;sugestoes?:string[]}[]>([]);
  const [chatCarregando,setChatCarregando]=useState(false);
  const [temaChat,setTemaChat]=useState<string|null>(null);
+ const [consentimentoHistorico,setConsentimentoHistorico]=useState(false);
+ const [sessaoHistorico,setSessaoHistorico]=useState<string|null>(null);
+ const [statusHistorico,setStatusHistorico]=useState("");
+ const [apagandoHistorico,setApagandoHistorico]=useState(false);
+ useEffect(()=>{
+   if(Platform.OS==="web"){
+     try{setSessaoHistorico(sessionStorage.getItem("citizen-historico-sessao"));}catch{}
+   }
+ },[]);
+ function guardarSessaoHistorico(sessao:string|null){
+   setSessaoHistorico(sessao);
+   if(Platform.OS==="web"){
+     try{if(sessao)sessionStorage.setItem("citizen-historico-sessao",sessao);else sessionStorage.removeItem("citizen-historico-sessao");}catch{}
+   }
+ }
+ async function apagarHistorico(){
+   if(!sessaoHistorico||enviandoChat.current||apagandoHistorico)return;
+   setApagandoHistorico(true);
+   setConsentimentoHistorico(false);
+   try{
+     const r=await fetch(API+"/agente/historico/apagar",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessao:sessaoHistorico})});
+     if(!r.ok)throw new Error();
+     guardarSessaoHistorico(null);
+     setStatusHistorico("Histórico da sessão excluído.");
+   }catch{setStatusHistorico("Não foi possível excluir. Tente novamente.");}
+   finally{setApagandoHistorico(false);}
+ }
  const chatScroll=useRef<ScrollView>(null);
  const enviandoChat=useRef(false);
  const [perguntasAcademicas,setPerguntasAcademicas]=useState<PerguntaAcademica[]>([]);
@@ -266,7 +293,7 @@ export default function Home(){
  }
  async function perguntar(pergunta=chatTexto){
    const texto=pergunta.trim();
-   if(enviandoChat.current)return;
+   if(enviandoChat.current||apagandoHistorico)return;
    if(texto.length<2){setChat(c=>[...c,{autor:"agente",texto:"Digite uma pergunta válida sobre mobilidade urbana."}]);return;}
    enviandoChat.current=true;
    setChatTexto("");
@@ -279,6 +306,8 @@ export default function Home(){
        body:JSON.stringify({
          pergunta:texto,
          tema_contexto:temaChat,
+         consentimento_historico:consentimentoHistorico,
+         sessao_historico:consentimentoHistorico?sessaoHistorico:null,
          origem:origemGeo?{lat:origemGeo.lat,lon:origemGeo.lon}:null,
          destino:destinoGeo?{lat:destinoGeo.lat,lon:destinoGeo.lon}:null,
          modal,
@@ -292,6 +321,12 @@ export default function Home(){
        throw new Error(detail);
      }
      setTemaChat(data.tema_contexto ?? null);
+     if(consentimentoHistorico){
+       if(data.historico?.status==="salvo"&&data.historico.sessao){
+         guardarSessaoHistorico(data.historico.sessao);
+         setStatusHistorico(data.historico.texto_omitido?"Somente estatísticas registradas por privacidade.":"Interação registrada para avaliação.");
+       }else setStatusHistorico("Histórico indisponível; a conversa continua normalmente.");
+     }
      if(data.rota && Array.isArray(data.rota.trajeto) && Array.isArray(data.rota.trechos)){
        setResultado(data.rota);
        setErro("");
@@ -491,7 +526,16 @@ export default function Home(){
        </View>
        <View style={v.suggestions}>{sugestoesChat.map(t=><Pressable key={t} style={v.suggestion} onPress={()=>perguntar(t)}><Text style={v.suggestionText}>{t}</Text></Pressable>)}</View>
        <ScrollView ref={chatScroll} onContentSizeChange={()=>chatScroll.current?.scrollToEnd({animated:true})} style={v.chatHistory} nestedScrollEnabled keyboardShouldPersistTaps="handled"><View style={{gap:10}}>{chat.length===0?<Text style={v.chatEmpty}>Pergunte sobre mobilidade ou peça um trajeto. Para calcular uma viagem, selecione origem e destino no planejador.</Text>:chat.map((m,i)=><View key={i} style={[v.chatBubble,m.autor==="pessoa"?v.chatBubbleUser:v.chatBubbleAi]}><Text style={[v.chatBubbleText,m.autor==="pessoa"&&{color:"#fff"}]}>{m.texto}</Text>{!!m.fonte&&<Text style={v.chatSource}>{m.fonte}</Text>}{m.fontes?.map((f,j)=><Pressable key={j} disabled={!f.referencia.startsWith("https://")} onPress={()=>{void Linking.openURL(f.referencia).catch(()=>{});}} accessibilityRole="link" style={[v.sourceButton,!f.referencia.startsWith("https://")&&{opacity:.65}]}><Text style={v.sourceButtonText}>{f.titulo||f.referencia}{f.data_verificacao?" · "+f.data_verificacao:""}</Text></Pressable>)}{!!m.aviso&&<Text style={v.chatSource}>{m.aviso}</Text>}{!!m.sugestoes?.length&&<View style={{flexDirection:"row",gap:6,flexWrap:"wrap",marginTop:8}}>{m.sugestoes.map((s,j)=><Pressable key={j} onPress={()=>perguntar(s)} style={v.suggestion}><Text style={v.suggestionText}>{s}</Text></Pressable>)}</View>}</View>)}</View></ScrollView>
-       <View style={v.chatInput}><TextInput accessibilityLabel="Pergunta para o agente de IA" value={chatTexto} onChangeText={setChatTexto} maxLength={300} placeholder="Digite sua própria pergunta..." placeholderTextColor="#9baec2" onSubmitEditing={()=>perguntar()} returnKeyType="send" style={v.chatField}/><Pressable disabled={chatCarregando||chatTexto.trim().length<2} style={[v.chatSend,(chatCarregando||chatTexto.trim().length<2)&&{opacity:.5}]} onPress={()=>perguntar()} accessibilityRole="button" accessibilityLabel="Enviar pergunta">{chatCarregando?<ActivityIndicator color="#fff"/>:<Icone name="send" size={18} color="#fff"/>}</Pressable></View>
+       <View style={v.chatInput}><TextInput accessibilityLabel="Pergunta para o agente de IA" value={chatTexto} onChangeText={setChatTexto} maxLength={300} placeholder="Digite sua própria pergunta..." placeholderTextColor="#9baec2" onSubmitEditing={()=>perguntar()} returnKeyType="send" style={v.chatField}/><Pressable disabled={chatCarregando||apagandoHistorico||chatTexto.trim().length<2} style={[v.chatSend,(chatCarregando||chatTexto.trim().length<2)&&{opacity:.5}]} onPress={()=>perguntar()} accessibilityRole="button" accessibilityLabel="Enviar pergunta">{chatCarregando?<ActivityIndicator color="#fff"/>:<Icone name="send" size={18} color="#fff"/>}</Pressable></View>
+       <View style={{marginTop:12,padding:12,borderRadius:12,backgroundColor:"#f3f7fb",gap:8}}>
+         <Pressable disabled={chatCarregando||apagandoHistorico} onPress={()=>{setConsentimentoHistorico(x=>!x);setStatusHistorico("");}} accessibilityRole="checkbox" accessibilityState={{checked:consentimentoHistorico,disabled:chatCarregando||apagandoHistorico}} style={{flexDirection:"row",alignItems:"center",gap:8}}>
+           <Icone name={consentimentoHistorico?"checkbox":"square-outline"} color="#0069d2" size={22}/>
+           <Text style={{flex:1,fontSize:13,fontWeight:"600",color:"#244263"}}>Autorizar histórico para avaliação da IA (opcional)</Text>
+         </Pressable>
+         <Text style={{fontSize:11,lineHeight:16,color:"#526984"}}>Com autorização, perguntas e respostas podem ser registradas por 30 dias para avaliação acadêmica da equipe. Não informe dados pessoais, de saúde ou endereços. O chat funciona sem autorização. Você pode desativar a coleta ou apagar o histórico desta sessão.</Text>
+         {sessaoHistorico&&<Pressable disabled={chatCarregando||apagandoHistorico} onPress={apagarHistorico} accessibilityRole="button" style={{alignSelf:"flex-start",paddingVertical:6}}><Text style={{color:"#0069d2",fontSize:12,fontWeight:"600"}}>{apagandoHistorico?"Excluindo...":"Apagar histórico desta sessão"}</Text></Pressable>}
+         {!!statusHistorico&&<Text accessibilityLiveRegion="polite" style={{fontSize:11,color:"#526984"}}>{statusHistorico}</Text>}
+       </View>
        <Text style={v.assistantFootnote}>Consulta a resumos locais de fontes institucionais. Não responde assuntos externos ao projeto. Confirme informações atualizadas nos links oficiais.</Text>
      </View>
      <View style={[v.academicPanel,mobile&&v.academicMobile]}>
