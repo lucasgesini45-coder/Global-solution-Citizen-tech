@@ -102,7 +102,7 @@ function PainelRolavel({children,mobile,id}:{children:React.ReactNode;mobile:boo
 export default function Home(){
  const {width,height}=useWindowDimensions();const mobile=width<1180;
  const [aba,setAba]=useState<"planejar"|"metro"|"horarios"|"viagem"|"economia">("planejar");
- const alturaPainel=Math.max(520,Math.min(760,Math.round(height-245)));
+ const alturaPainel=Math.max(530,Math.min(840,Math.round(height-165)));
  const [alturaMapa,setAlturaMapa]=useState(400);
  const [modal,setModal]=useState<Modal>("todos");
  const [origem,setOrigem]=useState("");const [destino,setDestino]=useState("");
@@ -198,6 +198,9 @@ export default function Home(){
  const [menosCaminhada,setMenosCaminhada]=useState(false);
  const [mostrarLaboratorio,setMostrarLaboratorio]=useState(false);
  const [mostrarDetalhes,setMostrarDetalhes]=useState(false);
+ const [preferenciasAbertas,setPreferenciasAbertas]=useState(false);
+ const [painelRotaAberto,setPainelRotaAberto]=useState(false);
+ useEffect(()=>{if(!resultado)setPainelRotaAberto(false);},[resultado]);
 
  const pontos=[origemGeo?{...origemGeo,tipo:"origem"}:null,destinoGeo?{...destinoGeo,tipo:"destino"}:null].filter((p):p is Endereco & {tipo:string}=>p!==null);
  const lat=origemGeo?.lat||destinoGeo?.lat||-23.55,lon=origemGeo?.lon||destinoGeo?.lon||-46.63;
@@ -319,9 +322,8 @@ export default function Home(){
    <View style={[v.container,mobile&&v.containerMobile]}>
      {aba==="metro"?<MetroNetwork mobile={mobile}/>:aba==="horarios"?<HorariosOnibus api={API} horarios={resultado?.horarios_onibus||[]} temRota={!!resultado} carregando={carregando} voltar={()=>setAba("planejar")}/>:aba==="viagem"?<AssistenteViagem etapas={etapasAtuais} indice={etapaAtual} voltar={()=>setAba("planejar")} horarios={()=>setAba("horarios")} recalcular={()=>setAba("planejar")} temRota={!!resultado} carregando={carregando} gpsAtivo={gpsAtivo} statusGPS={statusGPS} mapa={<View>{controleGPS}<MapaPreview url={preview} pontos={pontos} trajeto={resultado?.trajeto} trechos={resultado?.trechos} height={mobile?320:420} posicao={gpsConfiavel?posicao:null} seguir={gpsAtivo&&seguirGPS}/></View>}/>:aba==="economia"?<PlanejamentoEconomico opcoes={resultado?.alternativas_economicas??(resultado?.modal==="ape"&&resultado.tarifa_centavos===0?[{id:1,tempo_min:resultado.tempo_min,caminhada_m:resultado.distancia_m,etapas_viagem:etapasAtuais,horarios_onibus:[],trajeto:resultado.trajeto,trechos:resultado.trechos||[],modal:"ape",custo:{centavos:0,status:"estimativa",detalhes:[],pendencias:[],fontes:[],data_referencia:"2026-11-17",aviso:"Caminhada sem tarifa de transporte."}}]:[])} selecionada={resultado?.alternativas_economicas?.find(o=>o.etapas_viagem===resultado.etapas_viagem||o.trajeto===resultado.trajeto)?.id??opcaoEconomica} selecionar={usarAlternativa} voltar={()=>setAba("planejar")} temRota={!!resultado}/>:<>
      <View style={[v.intro,mobile&&v.introMobile]}>
-       <Text style={v.eyebrow}>MENOS COMPLICAÇÃO. MAIS CIDADE.</Text>
-       <Text style={[v.heading,mobile&&v.headingMobile]}>Seu próximo destino começa aqui.</Text>
-       <Text style={v.subtitle}>Combine metrô, ônibus e caminhada. Encontre o melhor caminho para você.</Text>
+       <Text style={[v.heading,mobile&&v.headingMobile]}>Planejar trajeto</Text>
+       <Text style={v.subtitle}>Escolha a origem e o destino.</Text>
        {!mobile&&<View style={v.cityBadge}><Icone name="location-outline" size={17} color="#0069d2"/><Text style={v.cityText}>São Paulo, SP</Text></View>}
      </View>
 
@@ -354,8 +356,8 @@ export default function Home(){
                </Pressable>
              </View>
            </View>
-           <View style={{marginTop:15,gap:9}}>
-             <Text style={{fontSize:12,fontWeight:"600",color:"#445b74"}}>Preferências de mobilidade</Text>
+           <Pressable onPress={()=>setPreferenciasAbertas(x=>!x)} accessibilityRole="button" accessibilityState={{expanded:preferenciasAbertas}} style={v.preferenceSummary}><Icone name="options-outline" size={17} color="#64748b"/><Text style={v.preferenceLabel}>Preferências{menosCaminhada||evitarEscadas?" · "+(Number(menosCaminhada)+Number(evitarEscadas)):""}</Text><Icone name={preferenciasAbertas?"chevron-up":"chevron-down"} size={16} color="#64748b"/></Pressable>
+           {preferenciasAbertas&&<View style={{marginTop:8,gap:8}}>
              <Pressable onPress={()=>setMenosCaminhada(x=>!x)} accessibilityRole="checkbox" accessibilityState={{checked:menosCaminhada}} style={[v.preferenceButton,menosCaminhada&&v.preferenceActive]}>
                <Icone name={menosCaminhada?"checkbox":"square-outline"} size={20} color="#0069d2"/>
                <Text style={[v.preferenceLabel,menosCaminhada&&v.activeLabel]}>Priorizar menos caminhada</Text>
@@ -365,7 +367,7 @@ export default function Home(){
                <Text style={[v.preferenceLabel,evitarEscadas&&v.activeLabel]}>Preciso de percurso sem escadas</Text>
              </Pressable>
              {evitarEscadas&&<Text style={{color:"#855f2f",fontSize:11,lineHeight:16}}>Ainda não há confirmação de rampas ou elevadores nesta rota. A preferência não garante acessibilidade.</Text>}
-           </View>
+           </View>}
            {!!erro&&<View style={v.warning}><Icone name="information-circle-outline" size={17} color="#94602c"/><Text style={v.warningText}>{erro}</Text></View>}
          </PainelRolavel>
          <View style={v.searchFooter}>
@@ -378,7 +380,7 @@ export default function Home(){
        </View>
 
        <View style={[v.mapCard,mobile&&v.mapCardMobile]}>
-         <View style={[v.panelHeader,v.mapHeader]}><Text style={v.mapTitle}>Mapa do trajeto</Text><View style={v.mapBadge}><Icone name="map-outline" size={15} color="#0069d2"/><Text style={v.mapBadgeText}>Mapa interativo</Text></View></View>
+         <View style={v.mapToolbar}><Text style={v.mapTitle}>Mapa</Text><View style={v.mapTools}><Pressable onPress={alternarGPS} accessibilityRole="button" accessibilityState={{selected:gpsAtivo}} accessibilityLabel={gpsAtivo?"Desativar GPS":"Ativar GPS em tempo real"} style={[v.mapTool,gpsAtivo&&v.preferenceActive]}><Icone name="locate-outline" size={18} color={gpsAtivo?"#005bb5":"#64748b"}/><Text style={v.mapToolText}>{gpsAtivo?"GPS ativo":"GPS"}</Text></Pressable>{gpsAtivo&&<Pressable onPress={()=>setSeguirGPS(x=>!x)} accessibilityRole="button" accessibilityLabel={seguirGPS?"Pausar centralização":"Seguir localização"} style={[v.mapTool,seguirGPS&&v.preferenceActive]}><Icone name={seguirGPS?"navigate":"navigate-outline"} size={17} color="#0069d2"/></Pressable>}</View></View>
          <View style={mobile?v.mapViewportMobile:v.mapViewport} onLayout={e=>{
            if(!mobile){
              const h=Math.max(1,Math.floor(e.nativeEvent.layout.height));
@@ -387,15 +389,12 @@ export default function Home(){
          }}>
            <MapaPreview url={preview} pontos={pontos} trajeto={resultado?.trajeto} trechos={resultado?.trechos} height={mobile?390:alturaMapa} pickMode={selecionarNoMapa} onMapPick={marcarNoMapa} posicao={gpsConfiavel?posicao:null} seguir={gpsAtivo&&seguirGPS&&!selecionarNoMapa}/>
          </View>
-         {controleGPS}
-         <View style={v.mapBottom}>
-           <Icone name="information-circle-outline" color="#63778c" size={17}/>
-           <Text style={v.mapBottomText}>{resultado?"Trajeto calculado a partir dos dados de "+resultado.fonte+". Consulte as etapas e confira horários antes de sair.":"Selecione origem e destino e clique em Encontrar trajeto. O percurso só aparece quando o provedor retornar a geometria real."}</Text>
-         </View>
+         {gpsAtivo&&<Text style={[v.gpsStatus,{color:gpsConfiavel?"#008e5a":"#64748b"}]}>{statusGPS}{posicao?.accuracy!=null?" · ±"+Math.round(posicao.accuracy)+" m":""}</Text>}
+         {resultado&&<View style={v.routeSummary}><View style={{flex:1,gap:3}}><Text style={v.summaryMinutes}>{resultado.tempo_min} min <Text style={v.summaryLabel}>estimados</Text></Text><Text style={v.summaryLabel}>Confira horários e tarifas antes de viajar.</Text></View><Pressable onPress={()=>setPainelRotaAberto(x=>!x)} accessibilityRole="button" accessibilityState={{expanded:painelRotaAberto}} style={v.summaryButton}><Text style={v.summaryButtonText}>{painelRotaAberto?"Ocultar detalhes":"Ver trajeto"}</Text><Icone name={painelRotaAberto?"chevron-back":"chevron-forward"} size={16} color="#0069d2"/></Pressable></View>}
        </View>
 
-       <View style={[v.routesPanel,mobile&&v.routesPanelMobile]}>
-         <View style={[v.panelHeader,v.resultsHeader]}><Text style={v.resultsTitle}>Trajetos sugeridos</Text><Icone name="options-outline" size={20} color="#667c92"/></View>
+       {resultado&&painelRotaAberto&&<View style={[v.routesPanel,mobile&&v.routesPanelMobile]}>
+         <View style={[v.panelHeader,v.resultsHeader]}><Text style={v.resultsTitle}>Trajetos sugeridos</Text><Pressable onPress={()=>setPainelRotaAberto(false)} accessibilityRole="button" accessibilityLabel="Fechar detalhes do trajeto" style={v.closePanel}><Icone name="close-outline" size={20} color="#667c92"/></Pressable></View>
          <PainelRolavel mobile={mobile} id="citizen-routes-scroll">
          <View style={v.departure}><Icone name="time-outline" size={15} color="#667c92"/><Text style={v.departureText}>Rota calculada</Text><Text style={v.departureCount}>{resultado?"1 itinerário":"Aguardando busca"}</Text></View>
          {resultado?<View style={v.recommended}>
@@ -448,7 +447,7 @@ export default function Home(){
             <Text style={v.routeDisclaimer}>{resultado.caminhada_longa?"Atenção: avalie uma alternativa com menos caminhada. ":""}Os horários e tarifas podem mudar. Consulte o operador antes de viajar.</Text>
           </View>:<View style={v.emptyResults}><Icone name="git-compare-outline" size={27} color="#8ba2bd"/><Text style={v.emptyResultsTitle}>Seu trajeto aparecerá aqui</Text><Text style={v.emptyResultsCopy}>Selecione endereços sugeridos e um modo de transporte para consultar as opções disponíveis. As rotas são consultadas em serviços externos e podem não estar disponíveis em alguns horários e locais.</Text></View>}
          </PainelRolavel>
-       </View>
+       </View>}
      </View>
 
      <View style={v.labSection}>
@@ -521,19 +520,19 @@ const s=StyleSheet.create({
 });
 
 const v=StyleSheet.create({
- bg:{flex:1,backgroundColor:"#dfefff"},
+ bg:{flex:1,backgroundColor:"#f4f7fb"},
  page:{minHeight:"100%"},
  nav:{backgroundColor:"rgba(247,251,255,0.90)",minHeight:88,paddingHorizontal:48,paddingVertical:20,borderBottomWidth:1,borderBottomColor:"#bfd6ec",flexDirection:"row",alignItems:"center",gap:30,flexWrap:"wrap"},
  navMobile:{minHeight:68,paddingHorizontal:16,paddingVertical:15,gap:10},navBrand:{fontSize:24,fontWeight:"600",letterSpacing:-1.1,color:"#1d2633"},navBrandMobile:{fontSize:19},navBrandAccent:{fontWeight:"500",color:"#0069d2"},
  navTabs:{flexDirection:"row",alignItems:"center",gap:8,flexWrap:"wrap"},navTabsMobile:{width:"100%"},navTab:{flexDirection:"row",alignItems:"center",gap:7,paddingHorizontal:14,paddingVertical:11,minHeight:44,borderRadius:12,borderWidth:1,borderColor:"#c8d9ea",backgroundColor:"#fff"},navTabText:{color:"#64748b",fontSize:13,fontWeight:"500"},navActive:{backgroundColor:"#dcecff",borderColor:"#0071e3"},navActiveText:{color:"#0069d2",fontSize:14,fontWeight:"600"},navMeta:{fontSize:11,color:"#62758a",marginLeft:"auto"},
- container:{maxWidth:1440,width:"100%",alignSelf:"center",paddingHorizontal:48,paddingBottom:28},
- containerMobile:{paddingHorizontal:16},intro:{minHeight:140,paddingTop:22,justifyContent:"center",position:"relative",paddingBottom:18},introMobile:{paddingTop:24,minHeight:0},
+ container:{maxWidth:1720,width:"100%",alignSelf:"center",paddingHorizontal:24,paddingBottom:28},
+ containerMobile:{paddingHorizontal:16},intro:{minHeight:76,paddingTop:12,justifyContent:"center",position:"relative",paddingBottom:16},introMobile:{paddingTop:24,minHeight:0},
  eyebrow:{color:"#0069d2",fontSize:11,fontWeight:"700",letterSpacing:1.7,marginBottom:12},
- heading:{color:"#1d2633",fontWeight:"700",fontSize:32,letterSpacing:-0.8,lineHeight:43},headingMobile:{fontSize:29,lineHeight:38},
+ heading:{color:"#1d2633",fontWeight:"700",fontSize:25,letterSpacing:-0.6,lineHeight:32},headingMobile:{fontSize:29,lineHeight:38},
  subtitle:{color:"#586c80",fontSize:15,marginTop:7,lineHeight:22},
- cityBadge:{position:"absolute",right:0,top:70,flexDirection:"row",alignItems:"center",gap:8,backgroundColor:"rgba(255,255,255,.7)",borderRadius:24,paddingHorizontal:16,paddingVertical:13},cityText:{color:"#1d2633",fontSize:13,fontWeight:"500"},
+ cityBadge:{position:"absolute",right:0,top:20,flexDirection:"row",alignItems:"center",gap:8,backgroundColor:"rgba(255,255,255,.7)",borderRadius:24,paddingHorizontal:16,paddingVertical:13},cityText:{color:"#1d2633",fontSize:13,fontWeight:"500"},
  main:{flexDirection:"row",alignItems:"stretch",gap:14},mainMobile:{flexDirection:"column",alignItems:"stretch"},
- sidebar:{width:272,maxWidth:"100%",flexShrink:0,minHeight:0,backgroundColor:"#fff",borderRadius:20,borderWidth:1,borderColor:"#d9e6f5",padding:12},sidebarMobile:{width:"100%"},
+ sidebar:{width:290,maxWidth:"100%",flexShrink:0,minHeight:0,backgroundColor:"#fff",borderRadius:20,borderWidth:1,borderColor:"#d9e6f5",padding:12},sidebarMobile:{width:"100%"},
  routesPanel:{width:324,maxWidth:"100%",flexShrink:0,minHeight:0,backgroundColor:"#fff",borderRadius:20,padding:12,borderWidth:1,borderColor:"#d9e6f5"},routesPanelMobile:{width:"100%"},
  panelHeader:{minHeight:44,flexShrink:0,marginBottom:12,paddingHorizontal:3,flexDirection:"row",alignItems:"center",justifyContent:"space-between",borderBottomWidth:1,borderBottomColor:"#e4edf5"},
  searchHeader:{},
@@ -563,8 +562,9 @@ const v=StyleSheet.create({
  routeDisclaimer:{color:"#667c92",fontSize:11,marginTop:8},
  emptyResults:{backgroundColor:"rgba(255,255,255,.86)",borderRadius:24,minHeight:200,padding:23,justifyContent:"center",alignItems:"center",gap:10},
  emptyResultsTitle:{fontWeight:"600",color:"#1d2633",fontSize:14},emptyResultsCopy:{color:"#667c92",fontSize:12,textAlign:"center",lineHeight:19},
- mapCard:{backgroundColor:"#fff",borderRadius:20,padding:12,flex:1,minWidth:0,minHeight:0,borderWidth:1,borderColor:"#d9e6f5"},
+ mapCard:{backgroundColor:"#fff",borderRadius:16,padding:8,flex:1,minWidth:0,minHeight:0,borderWidth:1,borderColor:"#d9e6f5"},
  mapCardMobile:{flex:0,width:"100%"},
+ mapToolbar:{flexDirection:"row",justifyContent:"space-between",alignItems:"center",minHeight:48,paddingHorizontal:8,paddingBottom:6,gap:8},mapTools:{flexDirection:"row",gap:6,alignItems:"center"},mapTool:{minHeight:40,minWidth:40,paddingHorizontal:10,borderRadius:9,borderWidth:1,borderColor:"#e0e7f0",flexDirection:"row",gap:5,alignItems:"center",justifyContent:"center",backgroundColor:"#fff"},mapToolText:{fontSize:12,fontWeight:"600",color:"#334155"},gpsStatus:{fontSize:11,paddingHorizontal:8,paddingTop:7},routeSummary:{flexDirection:"row",alignItems:"center",gap:8,paddingHorizontal:8,paddingVertical:10},summaryMinutes:{fontSize:19,fontWeight:"700",color:"#1d2633"},summaryLabel:{fontSize:11,fontWeight:"400",color:"#64748b"},summaryButton:{minHeight:44,paddingHorizontal:12,borderRadius:10,backgroundColor:"#edf5ff",flexDirection:"row",gap:5,alignItems:"center"},summaryButtonText:{fontSize:12,fontWeight:"600",color:"#0069d2"},closePanel:{minHeight:40,minWidth:40,justifyContent:"center",alignItems:"center"},preferenceSummary:{marginTop:12,flexDirection:"row",gap:8,alignItems:"center",minHeight:44,paddingHorizontal:8,borderTopWidth:1,borderTopColor:"#e4edf5"},
  mapHeader:{},
  mapTitle:{color:"#1d2633",fontSize:18,fontWeight:"600"},mapBadge:{backgroundColor:"#fff",paddingHorizontal:11,paddingVertical:8,borderRadius:16,flexDirection:"row",alignItems:"center",gap:6},mapBadgeText:{color:"#0069d2",fontSize:12,fontWeight:"500"},
  mapBottom:{backgroundColor:"#f2f7fc",flexShrink:0,borderRadius:12,padding:10,marginTop:10,flexDirection:"row",alignItems:"center",gap:9},
