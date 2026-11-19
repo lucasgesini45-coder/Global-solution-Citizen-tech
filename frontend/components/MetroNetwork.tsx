@@ -313,11 +313,14 @@ export default function MetroNetwork({mobile}:{mobile:boolean}){
  const [erro,setErro]=useState("");
  const [mapaErro,setMapaErro]=useState(false);
  const [tentativa,setTentativa]=useState(0);
- const [zoom,setZoom]=useState(1);
- const [larguraMapa,setLarguraMapa]=useState(600);
- const {height}=useWindowDimensions();
- const alturaPainel=Math.max(600,Math.min(900,Math.round(height-220)));
- const mapaLargura=Math.max(1,larguraMapa)*zoom;
+ const {width}=useWindowDimensions();
+ const [larguraMapa,setLarguraMapa]=useState(0);
+ // A imagem original (2:3) contém mapa, legenda e contatos.
+ // Exibe apenas a região do desenho: de 9% a 57,5% da altura.
+ const mapaLargura=larguraMapa||Math.max(240,Math.min(1440,width)-(mobile?62:500));
+ const alturaImagem=mapaLargura*1.5;
+ const alturaRecorte=alturaImagem*0.485;
+ const alturaPainel=Math.ceil(alturaRecorte+96);
  const abrir=async(url:string)=>{
    setErro("");
    try{await Linking.openURL(url);}catch{setErro("Não foi possível abrir o site oficial. Tente novamente.");}
@@ -332,29 +335,20 @@ export default function MetroNetwork({mobile}:{mobile:boolean}){
    <View style={[s.layout,mobile?s.layoutMobile:{height:alturaPainel}]}>
      <View style={[s.mapCard,mobile&&s.mapMobile]}>
        <View style={s.header}><View style={{flex:1}}><Text style={s.title}>Mapa da rede</Text><Text style={s.small}>Documento oficial · julho de 2026</Text></View><Pressable onPress={()=>abrir(PDF_MAPA)} style={s.primary} accessibilityRole="button"><Ionicons name="expand-outline" size={16} color="#fff"/><Text style={s.primaryText}>Abrir PDF</Text></Pressable></View>
-       <View style={s.mapTools}>
-         <Text style={s.small}>Amplie para ler as estações</Text>
-         <View style={s.zoomGroup}>
-           <Pressable onPress={()=>setZoom(x=>Math.max(1,x-.5))} accessibilityLabel="Diminuir zoom" style={s.zoomButton}><Ionicons name="remove" size={18} color="#0069d2"/></Pressable>
-           <Pressable onPress={()=>setZoom(1)} style={s.zoomButton} accessibilityLabel="Restaurar zoom"><Text style={s.link}>{Math.round(zoom*100)}%</Text></Pressable>
-           <Pressable onPress={()=>setZoom(x=>Math.min(3,x+.5))} accessibilityLabel="Aumentar zoom" style={s.zoomButton}><Ionicons name="add" size={18} color="#0069d2"/></Pressable>
+       <View style={s.mapViewport} onLayout={e=>setLarguraMapa(Math.floor(e.nativeEvent.layout.width))}>
+         <View style={{height:alturaRecorte,width:"100%",overflow:"hidden",backgroundColor:"#fff"}}>
+           {mapaErro?<View style={s.nativePreview}>
+             <Ionicons name="map-outline" color="#0071e3" size={36}/>
+             <Text style={s.title}>Imagem indisponível</Text>
+             <Text style={s.small}>Recarregue a imagem ou abra o documento oficial.</Text>
+             <Pressable onPress={()=>{setMapaErro(false);setTentativa(x=>x+1);}} style={s.primary}><Text style={s.primaryText}>Tentar novamente</Text></Pressable>
+             <Pressable onPress={()=>abrir(PDF_MAPA)} style={s.linkButton} accessibilityRole="button"><Text style={s.link}>Abrir PDF oficial</Text></Pressable>
+           </View>:<Image key={tentativa} source={{uri:tentativa?MAPA_IMAGEM+"?v="+tentativa:MAPA_IMAGEM}}
+             style={{position:"absolute",left:0,top:-alturaImagem*.09,width:mapaLargura,height:alturaImagem}}
+             resizeMode="stretch" accessibilityLabel="Rede de linhas e estações do transporte metropolitano de São Paulo, julho de 2026"
+             onError={()=>setMapaErro(true)}/>}
          </View>
        </View>
-       <View style={[s.mapViewport,mobile&&s.mapViewportMobile]} onLayout={e=>setLarguraMapa(Math.floor(e.nativeEvent.layout.width))}>
-         {mapaErro?<View style={s.nativePreview}>
-           <Ionicons name="map-outline" color="#0071e3" size={36}/>
-           <Text style={s.title}>Imagem indisponível</Text>
-           <Text style={s.small}>Recarregue a imagem ou abra o documento oficial em outra aba.</Text>
-           <Pressable onPress={()=>{setMapaErro(false);setTentativa(x=>x+1);}} style={s.primary}><Text style={s.primaryText}>Tentar novamente</Text></Pressable>
-           <Pressable onPress={()=>abrir(PDF_MAPA)}><Text style={s.link}>Abrir PDF oficial</Text></Pressable>
-         </View>:<ScrollView style={{flex:1}} nestedScrollEnabled showsVerticalScrollIndicator persistentScrollbar>
-           <ScrollView horizontal nestedScrollEnabled showsHorizontalScrollIndicator persistentScrollbar>
-             <Image key={tentativa} source={{uri:tentativa?MAPA_IMAGEM+"?v="+tentativa:MAPA_IMAGEM}} style={{width:mapaLargura,height:mapaLargura*1.5,backgroundColor:"#fff"}} resizeMode="contain" accessibilityLabel="Mapa oficial do transporte metropolitano de São Paulo, julho de 2026" onError={()=>setMapaErro(true)}/>
-           </ScrollView>
-         </ScrollView>}
-       </View>
-       <Text style={s.note}>Fonte: mapa oficial STM/Metrô, julho de 2026. Imagem via Trilhos Agora. Mapa esquemático, sem escala. Use o PDF oficial para versão vetorial.</Text>
-       <Pressable onPress={()=>abrir(PAGINA_MAPA)} accessibilityRole="link"><Text style={s.link}>Consultar a versão mais recente no site oficial ↗</Text></Pressable>
      </View>
      <View style={[s.details,mobile&&s.detailsMobile]}>
        <View style={s.header}><Text style={s.title}>Rede metropolitana</Text><Text style={s.small}>{painel==="linhas"?linhas.length+" linhas":"Valores 2026"}</Text></View>
@@ -368,7 +362,7 @@ export default function MetroNetwork({mobile}:{mobile:boolean}){
        <ScrollView key={painel} style={mobile?undefined:s.lineScroll} contentContainerStyle={s.lineScrollContent} nestedScrollEnabled persistentScrollbar showsVerticalScrollIndicator keyboardShouldPersistTaps="handled">
        {painel==="linhas"&&<>
        {linhas.map(l=><View key={l.numero} style={s.lineGroup}>
-         <Pressable onPress={()=>setSelecionada(x=>x===l.numero?null:l.numero)} style={s.line} accessibilityRole="button" accessibilityState={{expanded:selecionada===l.numero}}>
+         <Pressable onPress={()=>setSelecionada(x=>x===l.numero?null:l.numero)} style={[s.line,selecionada===l.numero&&s.active]} accessibilityRole="button" accessibilityState={{expanded:selecionada===l.numero}}>
            <View style={[s.number,{backgroundColor:l.cor}]}><Text style={[s.numberText,["4","8","15","17"].includes(l.numero)&&{color:"#172333"}]}>{l.numero}</Text></View>
            <View style={s.lineLabel}><Text style={s.lineName}>Linha {l.numero} – {l.nome}</Text><Text style={s.small}>{l.operador}{gratuita(l.numero)?" · Operação especial":""}</Text></View>
            <Text style={s.fare}>{tarifa(l.numero)}</Text>
@@ -385,7 +379,7 @@ export default function MetroNetwork({mobile}:{mobile:boolean}){
              <Text style={s.fare}>{tarifa(l.numero)}</Text>
            </View>)}
            {gratuita(l.numero)&&<Text style={s.note}>* Gratuidade provisória na operação assistida/transitória; consulte o operador. Não inclui outros transportes.</Text>}
-           <Pressable onPress={()=>abrir(OPERADORES[l.operador])} accessibilityRole="link"><Text style={s.link}>Informações no operador ↗</Text></Pressable>
+           <Pressable onPress={()=>abrir(OPERADORES[l.operador])} accessibilityRole="link" style={s.linkButton}><Text style={s.link}>Informações no operador ↗</Text></Pressable>
          </View>}
        </View>)}
        {!linhas.length&&<Text style={s.note}>Nenhuma linha encontrada. Tente outro termo.</Text>}
@@ -395,8 +389,8 @@ export default function MetroNetwork({mobile}:{mobile:boolean}){
          <Text style={s.note}>Vigência de referência: 06/01/2026. Consulta das fontes: 17/11/2026. Tarifa comum não depende da distância nem da estação. Transferências podem exigir pagamento fora das áreas ou horários gratuitos.</Text>
          {TABELA_TARIFAS.map(([nome,valor])=><View key={nome} style={s.station}><Text style={[s.stationName,{flex:1}]}>{nome}</Text><Text style={s.fare}>{valor}</Text></View>)}
          <Text style={s.note}>Linhas 6 e 17: operação especial gratuita enquanto vigente. Tatuapé e Corinthians-Itaquera: segunda a sexta, 10h–17h e 20h–24h; sábados, domingos e feriados durante operação comercial.</Text>
-         <Pressable onPress={()=>abrir(TARIFAS)} accessibilityRole="link"><Text style={s.link}>Tarifas oficiais do Metrô ↗</Text></Pressable>
-         <Pressable onPress={()=>abrir(TARIFAS_SPTRANS)} accessibilityRole="link"><Text style={s.link}>Tarifas de integração SPTrans ↗</Text></Pressable>
+         <Pressable onPress={()=>abrir(TARIFAS)} accessibilityRole="link" style={s.linkButton}><Text style={s.link}>Tarifas oficiais do Metrô ↗</Text></Pressable>
+         <Pressable onPress={()=>abrir(TARIFAS_SPTRANS)} accessibilityRole="link" style={s.linkButton}><Text style={s.link}>Tarifas de integração SPTrans ↗</Text></Pressable>
        </View>}
        <View style={s.info}>
          <Text style={s.title}>Informações úteis</Text>
@@ -407,6 +401,51 @@ export default function MetroNetwork({mobile}:{mobile:boolean}){
        {!!erro&&<Text style={s.note} accessibilityRole="alert">{erro}</Text>}
        </ScrollView>
      </View>
+   </View>
+   <View style={s.belowMap}>
+     <View style={s.header}><View style={{flex:1}}><Text style={s.title}>Legenda e informações da rede</Text><Text style={s.small}>Referência do mapa oficial · julho de 2026</Text></View></View>
+     <View style={[s.infoColumns,mobile&&s.layoutMobile]}>
+       <View style={s.infoColumn}>
+         <Text style={s.title}>Linhas e operadores</Text>
+         <View style={s.legendGrid}>{LINHAS.map(l=><View key={l.numero} style={s.legendItem}>
+           <View style={[s.legendLine,{backgroundColor:l.cor}]}/><Text style={s.stationName}>Linha {l.numero} – {l.nome}</Text><Text style={s.note}>{l.operador}</Text>
+         </View>)}</View>
+         <Text style={s.title}>Outros serviços no mapa</Text>
+         <Text style={s.small}>Expresso Aeroporto · Trivia</Text>
+         <Text style={s.small}>Corredores São Mateus–Jabaquara, Guarulhos–SP e Itapevi–SP · ARTESP</Text>
+         <Text style={s.small}>Serviço complementar gratuito · Motiva; Expresso Tiradentes · SPTrans; Expresso Turístico · CPTM; Ponte Orca ao Zoológico · ARTESP.</Text>
+       </View>
+       <View style={s.infoColumn}>
+         <Text style={s.title}>Como interpretar o mapa</Text>
+         {[
+           ["radio-button-off-outline","Estação","Ponto de embarque ou desembarque."],
+           ["swap-horizontal-outline","Integração gratuita","Transferência sem nova cobrança nas áreas indicadas."],
+           ["time-outline","Integração horária","Gratuidade apenas nos horários definidos pelos operadores."],
+           ["card-outline","Integração tarifada","Pode exigir pagamento; consulte descontos e cartões."],
+           ["walk-outline","Distância a pé","Conexão com caminhada indicada em metros."],
+           ["bus-outline","Terminal de ônibus","Terminal integrado ou rodoviário, conforme o símbolo no mapa."],
+           ["airplane-outline","Aeroporto","Conexão com terminal aeroportuário."],
+         ].map(([icone,titulo,descricao])=><View key={titulo} style={s.infoRow}>
+           <Ionicons name={icone as React.ComponentProps<typeof Ionicons>["name"]} size={19} color="#0069d2"/>
+           <View style={{flex:1}}><Text style={s.lineName}>{titulo}</Text><Text style={s.small}>{descricao}</Text></View>
+         </View>)}
+       </View>
+     </View>
+     <Text style={s.title}>Canais de atendimento</Text>
+     <View style={s.contactGrid}>{[
+       ["ARTESP","0800 727 8377","https://www.artesp.sp.gov.br"],
+       ["CPTM","0800 055 0121",OPERADORES.CPTM],
+       ["Metrô","0800 770 7722",OPERADORES["Metrô"]],
+       ["Motiva","0800 770 7100",OPERADORES.Motiva],
+       ["Linha Uni","0800 580 3172",OPERADORES["Linha Uni"]],
+       ["SPTrans","156","https://www.sptrans.com.br"],
+       ["TIC Trens","0800 007 0670",OPERADORES["TIC Trens"]],
+       ["Trivia","0800 074 6733",OPERADORES.Trivia],
+     ].map(([nome,telefone,url])=><Pressable key={nome} style={s.contact} onPress={()=>abrir(url)} accessibilityRole="link">
+       <Text style={s.lineName}>{nome}</Text><Text style={s.small}>{telefone}</Text><Text style={s.link}>Site oficial ↗</Text>
+     </Pressable>)}</View>
+     <Text style={s.note}>Fonte: mapa oficial STM/Metrô de julho de 2026, imagem disponibilizada pelo Trilhos Agora. Mapa esquemático, sem escala. Os símbolos acima são explicações em texto, não uma reprodução dos símbolos gráficos. Confira a vigência dos contatos, horários e conexões nos canais oficiais.</Text>
+     <Pressable onPress={()=>abrir(PAGINA_MAPA)} accessibilityRole="link" style={s.linkButton}><Text style={s.link}>Consultar a versão mais recente no site oficial ↗</Text></Pressable>
    </View>
  </View>;
 }
@@ -426,7 +465,7 @@ const s=StyleSheet.create({
  header:{flexShrink:0,minHeight:52,flexDirection:"row",justifyContent:"space-between",alignItems:"center",gap:10,borderBottomWidth:1,borderBottomColor:"#e4edf5",paddingBottom:12},
  title:{fontSize:17,fontWeight:"600",color:"#1d2633"},
  small:{fontSize:12,color:"#64748b",lineHeight:18},
- primary:{flexDirection:"row",alignItems:"center",gap:6,paddingHorizontal:12,paddingVertical:10,borderRadius:10,backgroundColor:"#0071e3"},
+ primary:{minHeight:44,flexDirection:"row",alignItems:"center",gap:6,paddingHorizontal:12,paddingVertical:10,borderRadius:10,backgroundColor:"#0071e3"},
  primaryText:{fontSize:12,color:"#fff",fontWeight:"600"},
  nativePreview:{minHeight:240,backgroundColor:"#f2f7fc",borderRadius:14,alignItems:"center",justifyContent:"center",padding:20,gap:12},
  note:{fontSize:11,color:"#64748b",lineHeight:17},
@@ -434,22 +473,27 @@ const s=StyleSheet.create({
  search:{flexDirection:"row",alignItems:"center",backgroundColor:"#f0f5fa",borderRadius:10,paddingHorizontal:10,gap:7},
  input:{flex:1,minWidth:0,paddingVertical:12,fontSize:12,color:"#1d2633"},
  filters:{flexDirection:"row",flexWrap:"wrap",gap:5,paddingVertical:4},
- filter:{paddingHorizontal:9,paddingVertical:7,borderRadius:9,backgroundColor:"#f0f5fa"},
- active:{backgroundColor:"#dcebfa"},
+ filter:{paddingHorizontal:9,paddingVertical:10,minHeight:44,justifyContent:"center",borderRadius:10,borderWidth:1,borderColor:"#c1d6eb",backgroundColor:"#fff"},
+ active:{backgroundColor:"#dcecff",borderColor:"#0071e3"},
  filterText:{fontSize:11,color:"#64748b"},
  activeText:{color:"#0069d2",fontWeight:"600"},
- mapTools:{flexDirection:"row",alignItems:"center",justifyContent:"space-between",gap:6,flexWrap:"wrap"},
- zoomGroup:{flexDirection:"row",gap:5,alignItems:"center"},
- zoomButton:{minWidth:34,minHeight:34,paddingHorizontal:8,backgroundColor:"#edf3f9",borderRadius:8,alignItems:"center",justifyContent:"center"},
- mapViewport:{flex:1,minHeight:0,borderRadius:12,overflow:"hidden",backgroundColor:"#f3f7fb",borderWidth:1,borderColor:"#e4edf5"},
- mapViewportMobile:{flex:0,height:520},
+ mapViewport:{width:"100%",borderRadius:12,overflow:"hidden",backgroundColor:"#fff"},
+ belowMap:{backgroundColor:"#fff",borderRadius:20,borderWidth:1,borderColor:"#d9e6f5",padding:18,gap:14},
+ infoColumns:{flexDirection:"row",gap:22,alignItems:"flex-start"},
+ infoColumn:{flex:1,minWidth:0,gap:9},
+ legendGrid:{gap:4},
+ legendItem:{flexDirection:"row",alignItems:"center",gap:8,flexWrap:"wrap",paddingVertical:5,borderBottomWidth:1,borderBottomColor:"#eaf0f6"},
+ legendLine:{width:20,height:5,borderRadius:3},
+ infoRow:{flexDirection:"row",alignItems:"flex-start",gap:9,paddingVertical:5},
+ contactGrid:{flexDirection:"row",flexWrap:"wrap",gap:10},
+ contact:{minWidth:140,flexGrow:1,flexBasis:160,padding:12,borderRadius:10,backgroundColor:"#edf5ff",borderWidth:1,borderColor:"#afccec",gap:4},
  sectionTabs:{flexDirection:"row",backgroundColor:"#edf3f9",borderRadius:11,padding:3,gap:3},
- sectionTab:{flex:1,alignItems:"center",justifyContent:"center",minHeight:34,borderRadius:9},
- sectionTabActive:{backgroundColor:"#fff"},
+ sectionTab:{flex:1,alignItems:"center",justifyContent:"center",minHeight:44,borderRadius:9,borderWidth:1,borderColor:"#c1d6eb",backgroundColor:"#fff"},
+ sectionTabActive:{backgroundColor:"#dcecff",borderColor:"#0071e3"},
  lineScroll:{flex:1,minHeight:0},
  lineScrollContent:{paddingRight:5,paddingBottom:12},
  lineGroup:{borderBottomWidth:1,borderBottomColor:"#eaf0f6"},
- line:{flexDirection:"row",alignItems:"center",gap:8,minHeight:63,paddingVertical:9},
+ line:{flexDirection:"row",alignItems:"center",gap:8,minHeight:63,padding:9,borderWidth:1,borderColor:"#c1d6eb",borderRadius:10,backgroundColor:"#fff",marginVertical:4},
  lineLabel:{flex:1,minWidth:0},
  fare:{fontSize:12,fontWeight:"600",color:"#1d2633",flexShrink:0},
  expanded:{marginLeft:8,padding:10,backgroundColor:"#f5f8fc",borderRadius:10,gap:7,marginBottom:8},
@@ -460,5 +504,5 @@ const s=StyleSheet.create({
  lineName:{fontSize:13,fontWeight:"600",color:"#1d2633",lineHeight:18},
  extremos:{fontSize:12,lineHeight:18,color:"#41566c"},
  info:{gap:10,marginTop:8,padding:12,borderRadius:12,backgroundColor:"#f3f7fb"},
- infoLink:{flexDirection:"row",alignItems:"center",gap:8},
+ infoLink:{minHeight:44,flexDirection:"row",alignItems:"center",gap:8,padding:10,borderRadius:10,borderWidth:1,borderColor:"#afccec",backgroundColor:"#edf5ff"},linkButton:{minHeight:44,justifyContent:"center",padding:10,borderRadius:10,borderWidth:1,borderColor:"#afccec",backgroundColor:"#edf5ff"},
 });

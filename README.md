@@ -4,6 +4,47 @@ Protótipo acadêmico **web e mobile** para planejar deslocamentos na região de
 
 > **Aviso:** não é um canal oficial de Metrô, CPTM, SPTrans ou demais operadores. Horários, acessibilidade, tarifas, segurança e disponibilidade podem não estar confirmados. O projeto **não garante** rotas sem barreiras ou elevadores operacionais.
 
+## Entrega acadêmica — Citizen Assist AI
+
+- **Equipe e RMs:** preencher com os dados reais dos integrantes antes da entrega.
+- **Vídeo:** inserir URL do vídeo não listado no YouTube após publicação.
+
+O módulo obrigatório é executável na raiz do repositório, sem APIs externas e sem instalar bibliotecas adicionais:
+
+```powershell
+python src/sistema.py
+```
+
+O assistente de orientação cidadã consulta 15 registros em quatro temas (cartões, gratuidade, acessibilidade e serviços), com fontes oficiais e datas de consulta. Permite pesquisar por pergunta ou selecionar tema e identificador. Não exige cadastro nem dados pessoais. O mapa e o site são complementos.
+
+**Exemplos:** "Como emitir cartão comum?", "Posso levar cão-guia no metrô?" e "O que é o serviço Atende+?". Consulte a fonte exibida. Entradas vazias, opções inválidas, ambiguidades e consultas fora do escopo recebem mensagens de limitação.
+
+A busca usa listas, dicionários, normalização de palavras, comparação Dice e um grafo de temas relacionados. O modelo A apresenta orientação e fonte; o B também explicita os limites e a necessidade de conferir atualizações. A escolha padrão é B. Consulte [a documentação acadêmica](docs/adequacao_fiap.md).
+
+Para executar os 20 cenários em ambos os modelos e gerar indicadores e respostas obtidas:
+
+```powershell
+python -m backend.src.avaliacao_cidada
+```
+
+### Indicadores acadêmicos — execução de 17/11/2026
+
+| Indicador | Modelo A | Modelo B |
+|---|---:|---:|
+| Consultas | 20 | 20 |
+| Acertos | 19 (95%) | 19 (95%) |
+| Tempo médio | 0,2171 ms | 0,2092 ms |
+| Saídas com estado ok e fonte | 18/18 | 18/18 |
+| Aviso de não oficialidade nas saídas ok | 0/18 | 18/18 |
+| Tratamento dos três casos de limitação | 2/3 | 2/3 |
+
+Evidência: [GitHub Actions](https://github.com/lucasgesini45-coder/Global-solution-Citizen-tech/actions/runs/44088026008), 177 testes aprovados e typecheck aprovado. O modelo B é preferido por explicitar os limites. O termo ambíguo "cartão comum" retornou ID 1 em vez de solicitar esclarecimento. Melhorias: desambiguação, novas paráfrases, revisão de fontes e usabilidade com participante. Os tempos medem somente a busca local. O roteiro automatizado de facilidade de uso passou, mas não houve avaliação humana.
+
+- [Relatório acadêmico de testes e indicadores](docs/relatorio_testes_indicadores_fiap.md)
+- [Resultados completos por consulta e modelo](docs/resultados_avaliacao_cidada.json)
+
+A equipe deve revisar a base de fontes e a apresentação dos resultados antes da entrega.
+
 ## Funcionalidades integradas
 
 - Busca de endereços pelo Photon / OpenStreetMap, GPS autorizado ou seleção no mapa;
@@ -32,6 +73,14 @@ Protótipo acadêmico **web e mobile** para planejar deslocamentos na região de
 | `backend/src/db/` | SQLite e migrações |
 | `backend/src/transporte/` | Importador GTFS |
 | `docs/` | PRD, documentação e roteiro de implantação |
+
+## Assistente de viagem e planejamento econômico
+
+Após calcular a rota real, abra **Assistente de viagem** para seguir etapas, consultar embarque, desembarque, horários e paradas intermediárias. A conclusão é manual; o progresso não usa localização contínua. Para uma conexão perdida, retorne ao planejador, confirme a origem atual e recalcule.
+
+**Planejamento econômico** compara até cinco itinerários retornados na mesma consulta e modal. A estimativa soma tarifas comuns avulsas de serviços identificados (SPTrans R$ 5,30, rede ferroviária convencional R$ 5,40; ônibus municipais gratuitos aos domingos quando identificados). Não presume descontos, gratuidades pessoais ou integração. O custo fica indefinido se alguma etapa não tiver tarifa identificada. A tarifa integrada comum de R$ 9,38 é apresentada como referência, sujeita às regras do Bilhete Único. Não representa garantia de cobrança. Fontes: [SPTrans](https://www.sptrans.com.br/tarifas), [Metrô](https://www.metro.sp.gov.br/sua-viagem/bilhetes-cartoes/), [Tarifa Zero](https://www.sptrans.com.br/perguntas-e-respostas/?sobre=tarifa-zero), consultadas em 17/11/2026. Selecionar uma alternativa atualiza o mapa, as etapas e horários.
+
+Testes específicos: `python -m pytest backend/tests/test_viagem_economia.py -v`. A disponibilidade de opções, identificação de operadoras e horários depende do Transitous. A comparação não busca exaustivamente todas as modalidades nem certifica acessibilidade.
 
 ## Instalação no Windows
 

@@ -19,11 +19,11 @@
         "Como fazer uma consulta de trajeto",
         "Preciso colocar a hora de partida para calcular a rota?"
       ],
-      "resposta": "Nesta versão, você informa o ponto de partida e o destino, digitando ou usando a localização, e o horário de partida; a rota é calculada a partir desses dados.",
-      "status_funcionalidade": "parcial",
+      "resposta": "Informe a origem e o destino, por endereço, mapa ou localização atual. Escolha o modal e calcule o trajeto.",
+      "status_funcionalidade": "implementada",
       "fontes_no_repositorio": [
-        "backend/src/rotas_api.py",
-        "frontend/app/index.tsx"
+        "frontend/app/projeto.tsx",
+        "backend/src/enderecos_api.py"
       ],
       "revisada_pela_equipe": false
     },
@@ -45,11 +45,11 @@
         "O que o mapa do aplicativo faz?",
         "Clicar no mapa define o destino?"
       ],
-      "resposta": "Ainda não está disponível nesta versão: escolher origem ou destino clicando no mapa. Por enquanto, o mapa mostra os endereços pesquisados e o traçado da rota; use a busca por endereço.",
-      "status_funcionalidade": "planejada",
+      "resposta": "Use os botões de seleção de origem ou destino no mapa e clique no ponto desejado.",
+      "status_funcionalidade": "implementada",
       "fontes_no_repositorio": [
-        "frontend/components/MapaPreview.web.tsx",
-        "frontend/app/index.tsx"
+        "frontend/app/projeto.tsx",
+        "frontend/components/MapaPreview.web.tsx"
       ],
       "revisada_pela_equipe": false
     },
@@ -97,11 +97,11 @@
         "O que vem em cada cartão de rota?",
         "Onde vejo o tempo total da viagem?"
       ],
-      "resposta": "Nesta versão, o app mostra até 3 rotas recomendadas, cada uma com tempo total, espera, caminhada, baldeações e custo estimado.",
-      "status_funcionalidade": "parcial",
+      "resposta": "O planejador mostra as etapas, o tempo estimado e a caminhada. Na aba Planejamento econômico, compare as alternativas disponibilizadas pelo provedor.",
+      "status_funcionalidade": "implementada",
       "fontes_no_repositorio": [
-        "backend/src/rotas/ranking.py",
-        "backend/src/rotas/recomendar.py"
+        "frontend/app/projeto.tsx",
+        "frontend/components/ViagemEconomia.tsx"
       ],
       "revisada_pela_equipe": false
     },
@@ -123,10 +123,10 @@
         "A parada fica longe demais e não gerou rota, por quê?",
         "O app inventa rota quando não existe linha?"
       ],
-      "resposta": "Quando nenhuma rota é encontrada, o app explica o motivo em vez de inventar um trajeto, por exemplo: sem serviço no horário, local fora da área piloto ou parada além do limite de caminhada.",
+      "resposta": "Revise a origem, o destino e o modal selecionado. Se o provedor não disponibilizar um trajeto, tente outra opção de transporte.",
       "status_funcionalidade": "implementada",
       "fontes_no_repositorio": [
-        "backend/src/rotas/recomendar.py"
+        "backend/src/enderecos_api.py"
       ],
       "revisada_pela_equipe": false
     },
@@ -148,11 +148,10 @@
         "O app calcula o valor da passagem?",
         "Como ver o gasto total de uma rota"
       ],
-      "resposta": "Nesta versão, cada rota calculada traz o custo estimado da viagem e indica se a tarifa foi validada.",
-      "status_funcionalidade": "parcial",
+      "resposta": "Após calcular a rota, abra Planejamento econômico para comparar estimativas de custo. Valores desconhecidos ficam indefinidos.",
+      "status_funcionalidade": "implementada",
       "fontes_no_repositorio": [
-        "backend/src/rotas_api.py",
-        "backend/src/rotas/contratos.py"
+        "frontend/components/ViagemEconomia.tsx"
       ],
       "revisada_pela_equipe": false
     },
@@ -199,10 +198,10 @@
         "A integração vale para ônibus, metrô e trem?",
         "Como as regras de integração influenciam o custo"
       ],
-      "resposta": "O app calcula integrações entre ônibus, metrô e trem usando regras cadastradas por operador, considerando a janela de tempo e a sequência de embarques; sem regra validada, a tarifa fica não confirmada.",
-      "status_funcionalidade": "implementada",
+      "resposta": "Nesta versão, o planejador estima integrações do Bilhete Único Comum quando linha, operadora e horários permitem. Confirme as condições no canal oficial.",
+      "status_funcionalidade": "parcial",
       "fontes_no_repositorio": [
-        "backend/src/rotas/tarifas.py"
+        "backend/src/economia.py"
       ],
       "revisada_pela_equipe": false
     },
@@ -224,11 +223,10 @@
         "Quero ver só rotas que cabem no meu bolso, como faço?",
         "O teto de custo remove alguma rota da lista?"
       ],
-      "resposta": "Nesta versão, você pode definir um teto de gastos nas preferências da busca; rotas com custo confirmado acima do limite são descartadas, e rotas com tarifa não confirmada continuam na análise.",
-      "status_funcionalidade": "parcial",
+      "resposta": "Abra Planejamento econômico após calcular o trajeto e informe seu orçamento. As opções mostram se o custo estimado cabe no limite, ou se é desconhecido.",
+      "status_funcionalidade": "implementada",
       "fontes_no_repositorio": [
-        "backend/src/rotas/ranking.py",
-        "backend/src/rotas/contratos.py"
+        "frontend/components/ViagemEconomia.tsx"
       ],
       "revisada_pela_equipe": false
     },
@@ -276,11 +274,11 @@
         "Como o app trata o histórico de pesquisas?",
         "Quanto tempo as rotas pesquisadas ficam registradas?"
       ],
-      "resposta": "Nesta versão, as buscas ficam salvas em um banco de dados local, ligadas a um identificador anônimo de sessão, sem dados pessoais, por até 90 dias.",
-      "status_funcionalidade": "parcial",
+      "resposta": "O planejador mantém o resultado atual na interface. O chat não possui histórico persistente de perguntas no servidor.",
+      "status_funcionalidade": "implementada",
       "fontes_no_repositorio": [
-        "backend/src/rotas/historico.py",
-        "backend/src/rotas/config.py"
+        "frontend/app/projeto.tsx",
+        "backend/src/agente_api.py"
       ],
       "revisada_pela_equipe": false
     },
@@ -302,10 +300,10 @@
         "Como zerar o histórico do aplicativo?",
         "Existe opção de apagar os registros salvos?"
       ],
-      "resposta": "Nesta versão, o sistema tem uma rotina interna que apaga todos os registros de uma sessão, mas ainda não existe um botão para isso na interface do app.",
+      "resposta": "Nesta versão, não existe um botão de exclusão de histórico de buscas no planejador. O resultado atual pode ser substituído ao calcular uma nova rota.",
       "status_funcionalidade": "parcial",
       "fontes_no_repositorio": [
-        "backend/src/rotas/historico.py"
+        "frontend/app/projeto.tsx"
       ],
       "revisada_pela_equipe": false
     },
@@ -327,11 +325,10 @@
         "Tenho que me cadastrar antes de consultar?",
         "O app rastreia onde eu estou?"
       ],
-      "resposta": "Nesta versão, você pode informar origem e destino digitando, sem precisar usar o GPS; o histórico guarda apenas um identificador anônimo de sessão, sem dados pessoais.",
-      "status_funcionalidade": "parcial",
+      "resposta": "Você pode informar origem e destino digitando os endereços sem GPS. A localização é opcional e necessária para acompanhar automaticamente a viagem.",
+      "status_funcionalidade": "implementada",
       "fontes_no_repositorio": [
-        "frontend/app/index.tsx",
-        "backend/src/rotas/historico.py"
+        "frontend/app/projeto.tsx"
       ],
       "revisada_pela_equipe": false
     },
@@ -378,10 +375,11 @@
         "A conversa com o assistente é armazenada?",
         "Existe registro do que eu pergunto aqui?"
       ],
-      "resposta": "Não. O assistente não guarda as perguntas que você faz: elas são respondidas na hora e não são gravadas em banco, arquivo ou log.",
+      "resposta": "O assistente não guarda as perguntas em um histórico persistente no servidor. A conversa fica visível na interface durante o uso.",
       "status_funcionalidade": "implementada",
       "fontes_no_repositorio": [
-        "backend/src/assistente/previsao.py"
+        "frontend/app/projeto.tsx",
+        "backend/src/agente_api.py"
       ],
       "revisada_pela_equipe": false
     }

@@ -1,0 +1,157 @@
+[
+  {
+    "id": "D01",
+    "titulo": "Metrô — Bilhetes e cartões",
+    "url": "https://www.metro.sp.gov.br/sua-viagem/bilhetes-cartoes/",
+    "tema": "tarifas",
+    "perguntas": [
+      "quanto custa metro",
+      "preco passagem metro",
+      "valor tarifa metro",
+      "quanto pago metro"
+    ],
+    "resumo": "O Metrô informa tarifa unitária de R$ 5,40 para uma viagem. Consulte a tabela oficial para modalidades especiais e eventuais alterações.",
+    "data_consulta": "2026-11-17"
+  },
+  {
+    "id": "D02",
+    "titulo": "SPTrans — Tarifas",
+    "url": "https://www.sptrans.com.br/tarifas",
+    "tema": "tarifas",
+    "perguntas": [
+      "integracao estudante onibus metro",
+      "meia tarifa integrada estudante trem"
+    ],
+    "resumo": "A SPTrans informa tarifa integrada estudantil ônibus e trilhos de R$ 5,35, para beneficiários elegíveis. Confira as condições vigentes.",
+    "data_consulta": "2026-11-17"
+  },
+  {
+    "id": "D03",
+    "titulo": "SPTrans — Termo de adesão",
+    "url": "https://bilheteunico.sptrans.com.br/termo-de-adesao/",
+    "tema": "cartoes",
+    "perguntas": [
+      "perdi meu bilhete unico",
+      "roubaram meu cartao transporte",
+      "bloquear bilhete unico perdido",
+      "cancelar cartao extraviado"
+    ],
+    "resumo": "Em caso de extravio, furto ou roubo do Bilhete Único, solicite o cancelamento no portal de atendimento da SPTrans.",
+    "data_consulta": "2026-11-17"
+  },
+  {
+    "id": "D04",
+    "titulo": "SPTrans — Pessoa idosa",
+    "url": "https://bilheteunico.sptrans.com.br/especial/pessoa-idosa/",
+    "tema": "gratuidade",
+    "perguntas": [
+      "tenho 60 anos posso viajar gratis",
+      "gratuidade 60 a 64 anos",
+      "idoso 62 anos bilhete unico"
+    ],
+    "resumo": "A SPTrans informa que pessoas de 60 a 64 anos podem receber o benefício no Bilhete Único Comum. Consulte o procedimento mensal de carregamento das cotas na página oficial.",
+    "data_consulta": "2026-11-17"
+  },
+  {
+    "id": "D05",
+    "titulo": "Metrô — Atendimento preferencial",
+    "url": "https://www.metro.sp.gov.br/sua-viagem/acessibilidade/atendimento-preferencial/",
+    "tema": "acessibilidade",
+    "perguntas": [
+      "cadeirante elevador metro",
+      "mobilidade reduzida fila metro",
+      "cadeira de rodas atendimento metro"
+    ],
+    "resumo": "O atendimento preferencial inclui passagem pelos bloqueios sem fila e utilização de elevadores nas estações, conforme as condições divulgadas pelo Metrô. Isso não confirma que um equipamento específico esteja operando agora.",
+    "data_consulta": "2026-11-17"
+  },
+  {
+    "id": "D06",
+    "titulo": "Metrô — Transporte de animais",
+    "url": "https://www.metro.sp.gov.br/sua-viagem/transporte-animais/",
+    "tema": "servicos",
+    "perguntas": [
+      "posso levar gato metro",
+      "cachorro estimacao metro",
+      "horario animais domesticos metro",
+      "pet metro"
+    ],
+    "resumo": "O Metrô restringe o transporte de animais domésticos nos dias úteis entre 6h e 10h e entre 16h e 19h. Consulte as condições de acondicionamento e exceções no regulamento oficial.",
+    "data_consulta": "2026-11-17"
+  },
+  {
+    "id": "D07",
+    "titulo": "Metrô — Bicicleta no Metrô",
+    "url": "https://www.metro.sp.gov.br/pt_BR/sua-viagem/bicicletas/bicicleta-metro/",
+    "tema": "servicos",
+    "perguntas": [
+      "bicicleta dobravel metro",
+      "bike dobravel trem metro",
+      "levar bicicleta dobrada metro"
+    ],
+    "resumo": "O Metrô permite bicicleta dobrável em qualquer horário quando protegida por capa ou bolsa e dentro das dimensões máximas de 150 × 60 × 30 cm. Confira as demais regras na página oficial.",
+    "data_consulta": "2026-11-17"
+  },
+  {
+    "id": "D08",
+    "titulo": "Metrô — Paraciclos",
+    "url": "https://www.metro.sp.gov.br/sua-viagem/bicicletas/bicicletarios/",
+    "tema": "servicos",
+    "perguntas": [
+      "guardar bicicleta estacao metro",
+      "bicicletario linha amarela",
+      "bicicletario pinheiros"
+    ],
+    "resumo": "O site do Metrô indica bicicletários de guarda em estações da Linha 4-Amarela, incluindo Pinheiros, Butantã e Vila Sônia. Consulte as condições do operador.",
+    "data_consulta": "2026-11-17"
+  },
+  {
+    "id": "D09",
+    "titulo": "CPTM — Fale conosco",
+    "url": "https://www.cptm.sp.gov.br/cptm/contato/fale-conosco",
+    "tema": "servicos",
+    "perguntas": [
+      "perdi objeto trem cptm",
+      "documento perdido cptm",
+      "achados perdidos trem"
+    ],
+    "resumo": "Consulte a Central de Achados e Perdidos da CPTM pelo canal oficial para verificar se o item foi registrado.",
+    "data_consulta": "2026-11-17"
+  },
+  {
+    "id": "D10",
+    "titulo": "SPTrans — Postos de atendimento",
+    "url": "https://atendimento.sptrans.com.br/lp/postos-atendimento",
+    "tema": "servicos",
+    "perguntas": [
+      "onde atendimento bilhete especial pcd",
+      "posto atendimento idoso 65 descomplica"
+    ],
+    "resumo": "A SPTrans direciona usuários de bilhetes especiais, incluindo pessoas com deficiência e idosos a partir de 65 anos, ao atendimento nos Descomplica SP. Confira agendamento e local.",
+    "data_consulta": "2026-11-17"
+  },
+  {
+    "id": "D11",
+    "titulo": "Metrô — Horários",
+    "url": "https://www.metro.sp.gov.br/sua-viagem/horarios/",
+    "tema": "servicos",
+    "perguntas": [
+      "transferencia vila prudente meia noite",
+      "horario baldeacao linha 2 15 vila prudente"
+    ],
+    "resumo": "Para transferir entre as linhas 2-Verde e 15-Prata em Vila Prudente, o Metrô orienta passar pela área de transferência até meia-noite. Confira a tabela e alterações operacionais.",
+    "data_consulta": "2026-11-17"
+  },
+  {
+    "id": "D12",
+    "titulo": "ANTT — Passe Livre Digital",
+    "url": "https://passelivre.antt.gov.br/passo-a-passo",
+    "tema": "gratuidade",
+    "perguntas": [
+      "como acessar credencial passe livre digital",
+      "baixar carteirinha passe livre antt"
+    ],
+    "resumo": "No portal Passe Livre Digital, consulte a área Meu Passe Livre e a opção de acesso à credencial após a concessão do benefício.",
+    "data_consulta": "2026-11-17"
+  }
+]
