@@ -59,3 +59,24 @@ A avaliação considera somente a necessidade de passagem sem degraus.
 Não certifica a acessibilidade completa de uma rota.
 Ainda não há integração com dados reais de segurança pública.
 Nenhum modelo de IA externo é executado pelo módulo.
+
+## Segurança das rotas - validação inicial
+A IA apoiou o planejamento, a elaboração e a revisão do código de inspeção da planilha e de avaliação temporal das ocorrencias
+
+Validação realizada pelo integrante responsável:
+- Execução de sete testes de atualidade, todos aprovados.
+-Conferência dos totais por município, categoria e tipo de local.
+- Inspeção das datas e dos limites numéricos das coordenadas.
+- Identificação de 50 linhas com fato posterior ao registro.
+
+Na execussão de 22/11/2026, com janela experimental de 90 dias:
+-331.011 linhas foram selecionadas para São Paulo.
+- 39.770 passaram pelo critério temporal.
+dessas, 36,475 tinham coordenadas dentro dos limites numéricos.
+
+Limitações:
+- As contagens representam linhas, ainda sem duplica;cão.
+- Coordenadas numericamente válidas não confirmam localização dentro do município nem precisão geográfica.
+- A maior data de registro encontrada foi 30/09/2026.
+- A janela de 90 dias é configurável e aida precisa de avaliação.
+- Não há cálculo de segurança de rota nem atualização automática implementados nesta etapa.git add
