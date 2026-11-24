@@ -124,3 +124,23 @@ Limitações:
 - As contagens podem variar conforme a data da consulta e a janela temporal.
 
 Dependências utilizadas nesta etapa: openpyxl e shapely.
+## Reorganização das funções geográficas
+
+A IA apoiou a separação das funções geográficas em
+backend/src/geografia.py e a criação de testes automatizados.
+
+Validação realizada pela equipe:
+- Execução de 12 testes com unittest, todos aprovados.
+- Testes de coordenadas inválidas, contornos inválidos e vazios,
+  pontos internos, externos, na borda e em buraco do polígono.
+- Testes de distância e ordem latitude/longitude.
+- Execução completa do script de inspeção após a reorganização.
+- Em 24/11/2026, o relatório exportou 29 combinações pendentes,
+  representando 32 linhas originais.
+
+Limitações mantidas:
+- Referência espacial da base criminal não confirmada.
+- Identificação dos boletins provisória.
+- Distâncias e classificação espacial experimentais.
+- A janela móvel pode alterar as contagens entre execuções.
+- Nenhuma alteração foi feita na planilha original.
