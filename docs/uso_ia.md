@@ -78,5 +78,49 @@ Limitações:
 - As contagens representam linhas, ainda sem duplica;cão.
 - Coordenadas numericamente válidas não confirmam localização dentro do município nem precisão geográfica.
 - A maior data de registro encontrada foi 30/09/2026.
-- A janela de 90 dias é configurável e aida precisa de avaliação.
-- Não há cálculo de segurança de rota nem atualização automática implementados nesta etapa.git add
+- A janela de 90 dias é configurável e ainda precisa de avaliação.
+- Não há cálculo de segurança de rota nem atualização automática implementados nesta etapa.
+## Inspeção de boletins e validação geográfica experimental
+
+A IA apoiou a elaboração dos scripts de inspeção, download do
+contorno municipal, validação geométrica e classificação espacial.
+A validação crítica realizada pela equipe incluiu execução local,
+conferência dos resultados e testes com pontos simulados.
+
+Resultados da execução registrada:
+- 35.605 linhas candidatas após os filtros temporais e numéricos.
+- Nenhuma repetição exata entre as linhas candidatas.
+- 35.397 combinações provisórias de delegacia, ano e número do boletim.
+- 203 combinações repetidas, todas com mais de uma natureza criminal.
+- Uma combinação com quatro linhas e dois pontos separados por
+  aproximadamente 3,22 km foi marcada como pendência de localização.
+- 35.572 linhas dentro do contorno municipal.
+- 29 linhas fora do contorno.
+- Nenhuma linha exatamente na borda.
+- Quatro linhas divergentes permaneceram separadas da classificação.
+
+Fonte do contorno:
+- API de Malhas do IBGE, município 3550308.
+- URL, data de coleta e hash SHA-256 registrados no arquivo
+  backend/data/limites/municipio_3550308_fonte.json.
+
+Verificações realizadas:
+- Integridade do arquivo comparada ao hash registrado na coleta.
+- Estrutura, limites numéricos e fechamento dos anéis.
+- Validade geométrica com Shapely.
+- Testes de distância com pontos simulados.
+- Testes de classificação dentro, fora e na borda.
+- Teste da ordem latitude/longitude e conferência dos totais.
+
+Limitações:
+- A identificação dos boletins é provisória; combinações não são
+  necessariamente ocorrências únicas.
+- A referência espacial da planilha criminal ainda precisa ser confirmada.
+- A referência temporal e a simplificação da malha precisam ser avaliadas.
+- A classificação espacial é experimental, sem tolerância em metros na borda.
+- Pontos externos não foram automaticamente considerados erros.
+- Nenhum registro da planilha original foi alterado ou excluído.
+- Não foi calculada uma pontuação de segurança para as rotas.
+- As contagens podem variar conforme a data da consulta e a janela temporal.
+
+Dependências utilizadas nesta etapa: openpyxl e shapely.

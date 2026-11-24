@@ -1,0 +1,21 @@
+{
+  "fonte": "IBGE - API de Malhas",
+  "url": "https://servicodados.ibge.gov.br/api/v3/malhas/municipios/3550308?formato=application/vnd.geo+json&qualidade=maxima",
+  "codigo_municipio": "3550308",
+  "coletado_em_utc": "2026-11-24T01:54:12.993752+00:00",
+  "tipo_conteudo_http": "application/vnd.geo+json; charset=utf-8",
+  "ultima_modificacao_http": null,
+  "sha256": "f1bdf75deb96e3f7a990387b2e74cde752ddb8e87eebe448de006e36926bb718",
+  "quantidade_feicoes": 1,
+  "tipos_geometria": [
+    "Polygon"
+  ],
+  "crs_informado_no_arquivo": null,
+  "situacao": "BAIXADO_COM_VERIFICACAO_ESTRUTURAL_BASICA",
+  "pendencias": [
+    "Confirmar a referência temporal da malha.",
+    "Confirmar o sistema e a ordem das coordenadas.",
+    "Validar a geometria antes de classificar pontos.",
+    "Avaliar a simplificação do contorno e seus limites de uso."
+  ]
+}
