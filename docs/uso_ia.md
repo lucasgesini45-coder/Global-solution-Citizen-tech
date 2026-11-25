@@ -164,4 +164,22 @@ Limitações:
 - Não há pontuação de segurança calculada.
 - Identificadores sequenciais valem somente para cada exportação.
 - O JSON real foi mantido localmente, fora do repositório.
-- O leitor independente e seus testes ainda serão implementados.
+- O leitor independente e seus testes ainda serão implementados.## Leitura e validação do JSON de segurança
+
+A IA apoiou a criação do módulo backend/src/base_seguranca.py
+e dos testes em backend/tests/teste_base_seguranca.py.
+
+Validação realizada pela equipe:
+- Execução dos 13 testes automatizados com sucesso.
+- Leitura e validação do JSON real exportado.
+- Conferência de 34.460 grupos totais, 34.431 candidatos
+  experimentais e 29 pendentes.
+- Confirmação de que os pendentes ficaram fora da seleção.
+- Uso experimental permitido explicitamente na chamada.
+
+Limitações:
+- A validação verifica a estrutura e a coerência dos dados,
+  não sua veracidade nem a segurança de uma rota.
+- A janela temporal é conferida em relação à data de consulta
+  registrada no arquivo, não à data de uso pelo passageiro.
+- A referência espacial criminal permanece não confirmada.
