@@ -182,4 +182,26 @@ Limitações:
   não sua veracidade nem a segurança de uma rota.
 - A janela temporal é conferida em relação à data de consulta
   registrada no arquivo, não à data de uso pelo passageiro.
-- A referência espacial criminal permanece não confirmada.
+- A referência espacial criminal permanece não confirmada.## Reavaliação temporal na data de uso
+
+A IA apoiou a criação do módulo atualidade_base.py e de seus testes.
+
+Validação realizada pela equipe:
+- Nove testes automatizados executados com sucesso.
+- Fato com exatamente 90 dias permanece elegível.
+- Fato com 91 dias sai da seleção.
+- Grupos pendentes permanecem fora da seleção.
+- A base original não é modificada pela avaliação.
+- Uso experimental bloqueado por padrão.
+
+Teste com o JSON real em 24/11/2026:
+- 34.431 candidatos elegíveis.
+- Nenhum candidato excluído por idade nessa data.
+- 29 grupos pendentes mantidos fora da seleção.
+- Maior data de registro: 30/09/2026, com defasagem de 55 dias.
+- Atualização da fonte não confirmada.
+
+Limitações:
+- Elegibilidade temporal não comprova segurança ou cobertura recente.
+- A referência espacial criminal continua não confirmada.
+- Ainda não foi definido um limite operacional de defasagem da fonte.
