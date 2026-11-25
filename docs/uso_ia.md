@@ -144,3 +144,24 @@ Limitações mantidas:
 - Distâncias e classificação espacial experimentais.
 - A janela móvel pode alterar as contagens entre execuções.
 - Nenhuma alteração foi feita na planilha original.
+## Exportação JSON para integração experimental
+
+A IA apoiou a elaboração da exportação estruturada dos grupos,
+das pendências e do contexto da análise.
+
+Validação realizada pela equipe em 24/11/2026:
+- Execução completa do script de inspeção.
+- Exportação de 34.460 grupos provisórios:
+  34.431 candidatos experimentais e 29 pendentes.
+- Nenhuma linha candidata ficou sem identificação.
+- Conferência dos totais e dos identificadores da exportação.
+- Releitura do JSON e comparação com o documento preparado.
+- Grupos pendentes receberam null no ponto para integração.
+
+Limitações:
+- Grupos provisórios não equivalem a ocorrências únicas.
+- A referência espacial criminal continua não confirmada.
+- Não há pontuação de segurança calculada.
+- Identificadores sequenciais valem somente para cada exportação.
+- O JSON real foi mantido localmente, fora do repositório.
+- O leitor independente e seus testes ainda serão implementados.

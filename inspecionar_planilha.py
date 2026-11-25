@@ -30,7 +30,8 @@ def normalizar_texto(valor):
         return ""
 
     texto = unicodedata.normalize(
-        "NFKD", str(valor).strip().upper()
+        "NFKD",
+        str(valor).strip().upper(),
     )
 
     texto = "".join(
@@ -51,7 +52,12 @@ def converter_numero(valor):
 
 
 def verificar_coordenadas(latitude, longitude):
-    """Verifica formato e limites, sem confirmar localização."""
+    """
+    Verifica formato e limites numéricos.
+
+    Não confirma o sistema de referência, a localização
+    dentro do município nem a precisão do ponto.
+    """
     if esta_ausente(latitude) or esta_ausente(longitude):
         return "AUSENTES"
 
@@ -107,7 +113,9 @@ def carregar_contorno(pasta, codigo):
 
     conteudo = caminho_geojson.read_bytes()
     dados = json.loads(conteudo.decode("utf-8-sig"))
-    fonte = json.loads(caminho_fonte.read_text(encoding="utf-8"))
+    fonte = json.loads(
+        caminho_fonte.read_text(encoding="utf-8")
+    )
 
     hash_atual = hashlib.sha256(conteudo).hexdigest()
 
@@ -115,6 +123,7 @@ def carregar_contorno(pasta, codigo):
         hash_atual == fonte.get("sha256"),
         "O contorno difere do download registrado.",
     )
+
     conferir(
         dados.get("type") == "FeatureCollection",
         "Era esperado um FeatureCollection.",
@@ -131,21 +140,43 @@ def carregar_contorno(pasta, codigo):
 
     conferir(
         str(feicao.get("properties", {}).get("codarea")) == codigo,
-        "Código do município diferente do esperado.",
+        "Código municipal diferente do esperado.",
     )
 
     contorno = shape(feicao["geometry"])
     validar_contorno(contorno)
 
-    return contorno, hash_atual
+    return contorno, hash_atual, fonte
 
 
 def proteger_celula_csv(valor):
+    """Evita interpretar textos da fonte como fórmulas."""
     if isinstance(valor, str):
         if valor.lstrip().startswith(("=", "+", "-", "@")):
             return "'" + valor
 
     return valor
+
+
+def salvar_json(caminho_saida, documento):
+    caminho_saida.write_text(
+        json.dumps(
+            documento,
+            ensure_ascii=False,
+            indent=2,
+            allow_nan=False,
+        ),
+        encoding="utf-8",
+    )
+
+    documento_lido = json.loads(
+        caminho_saida.read_text(encoding="utf-8")
+    )
+
+    conferir(
+        documento_lido == documento,
+        f"O conteúdo gravado difere do esperado: {caminho_saida}",
+    )
 
 
 # ============================================================
@@ -163,9 +194,15 @@ caminho = (
 municipio_alvo = normalizar_texto("S.PAULO")
 codigo_municipio = "3550308"
 
-abas_dados = ["JAN-JUN_2026", "JUL-DEZ_2026"]
+abas_dados = [
+    "JAN-JUN_2026",
+    "JUL-DEZ_2026",
+]
 
-campos_datas = ["DATA_OCORRENCIA_BO", "DATA_REGISTRO"]
+campos_datas = [
+    "DATA_OCORRENCIA_BO",
+    "DATA_REGISTRO",
+]
 
 campos_obrigatorios = [
     "NOME_MUNICIPIO_CIRCUNSCRICAO",
@@ -194,17 +231,22 @@ situacoes_geograficas = (
     "NA_BORDA_DO_CONTORNO",
 )
 
-pasta_limites = raiz_projeto / "backend" / "data" / "limites"
+pasta_limites = (
+    raiz_projeto
+    / "backend"
+    / "data"
+    / "limites"
+)
 
-# Confere o contorno antes de percorrer a planilha grande.
-contorno_municipal, hash_contorno = carregar_contorno(
+# Confere o contorno antes de ler a planilha grande.
+contorno_municipal, hash_contorno, fonte_contorno = carregar_contorno(
     pasta_limites,
     codigo_municipio,
 )
 
 
 # ============================================================
-# CONTADORES
+# CONTADORES E ACUMULADORES
 # ============================================================
 
 categorias = Counter()
@@ -219,10 +261,22 @@ total_municipio = 0
 sem_categoria = 0
 datas_invertidas = 0
 
-tipos_datas = {campo: Counter() for campo in campos_datas}
-exemplos_datas = {campo: [] for campo in campos_datas}
-menores_datas = {campo: None for campo in campos_datas}
-maiores_datas = {campo: None for campo in campos_datas}
+tipos_datas = {
+    campo: Counter()
+    for campo in campos_datas
+}
+exemplos_datas = {
+    campo: []
+    for campo in campos_datas
+}
+menores_datas = {
+    campo: None
+    for campo in campos_datas
+}
+maiores_datas = {
+    campo: None
+    for campo in campos_datas
+}
 
 linhas_vistas = set()
 total_candidatas = 0
@@ -232,6 +286,7 @@ contagem_por_boletim = Counter()
 naturezas_por_boletim = {}
 datas_por_boletim = {}
 coordenadas_por_boletim = {}
+linhas_sem_natureza_por_boletim = Counter()
 
 linhas_sem_identificacao_boletim = 0
 linhas_sem_natureza_boletim = 0
@@ -242,7 +297,9 @@ linhas_sem_natureza_boletim = 0
 # ============================================================
 
 if not caminho.is_file():
-    raise FileNotFoundError(f"Planilha não encontrada: {caminho}")
+    raise FileNotFoundError(
+        f"Planilha não encontrada: {caminho}"
+    )
 
 print("Abrindo a planilha...", flush=True)
 print("Data da consulta:", data_consulta)
@@ -263,7 +320,9 @@ try:
 
         print(f"\nLendo aba: {nome_aba}", flush=True)
 
-        linhas = planilha[nome_aba].iter_rows(values_only=True)
+        linhas = planilha[nome_aba].iter_rows(
+            values_only=True
+        )
         cabecalho = next(linhas, None)
 
         conferir(
@@ -281,19 +340,21 @@ try:
 
             conferir(
                 nome not in colunas,
-                f"Coluna repetida na aba {nome_aba}: {nome}",
+                f"Coluna repetida em {nome_aba}: {nome}",
             )
+
             colunas[nome] = indice
 
-        ausentes = [
+        campos_ausentes = [
             campo
             for campo in campos_obrigatorios
             if campo not in colunas
         ]
 
         conferir(
-            not ausentes,
-            f"Campos ausentes em {nome_aba}: {', '.join(ausentes)}",
+            not campos_ausentes,
+            f"Campos ausentes em {nome_aba}: "
+            + ", ".join(campos_ausentes),
         )
 
         colunas_assinatura = sorted(colunas.items())
@@ -312,6 +373,7 @@ try:
             municipio = normalizar_texto(
                 linha[colunas["NOME_MUNICIPIO_CIRCUNSCRICAO"]]
             )
+
             municipios_encontrados[municipio] += 1
 
             if municipio != municipio_alvo:
@@ -320,14 +382,19 @@ try:
             total_aba += 1
             total_municipio += 1
 
-            # Tipos, exemplos e intervalos de datas.
+            # ------------------------------------------------
+            # DATAS
+            # ------------------------------------------------
+
             for campo in campos_datas:
                 valor = linha[colunas[campo]]
 
                 if esta_ausente(valor):
                     tipos_datas[campo]["AUSENTE"] += 1
                 else:
-                    tipos_datas[campo][type(valor).__name__] += 1
+                    tipo = type(valor).__name__
+                    tipos_datas[campo][tipo] += 1
+
                     exemplo = repr(valor)
 
                     if (
@@ -370,7 +437,12 @@ try:
                 data_consulta,
                 janela_dias=janela_dias,
             )
+
             resultados_atualidade[avaliacao["motivo"]] += 1
+
+            # ------------------------------------------------
+            # COORDENADAS
+            # ------------------------------------------------
 
             latitude_original = linha[colunas["LATITUDE"]]
             longitude_original = linha[colunas["LONGITUDE"]]
@@ -379,6 +451,7 @@ try:
                 latitude_original,
                 longitude_original,
             )
+
             qualidade_coordenadas[situacao] += 1
 
             if avaliacao["apta"]:
@@ -386,7 +459,10 @@ try:
 
             natureza_original = linha[colunas["NATUREZA_APURADA"]]
 
-            # Candidatas à investigação geográfica.
+            # ------------------------------------------------
+            # LINHAS CANDIDATAS E IDENTIFICAÇÃO PROVISÓRIA
+            # ------------------------------------------------
+
             if avaliacao["apta"] and situacao == "LIMITES_VALIDOS":
                 total_candidatas += 1
 
@@ -402,7 +478,11 @@ try:
 
                 chave = tuple(
                     normalizar_texto(linha[colunas[campo]])
-                    for campo in ("NOME_DELEGACIA", "ANO_BO", "NUM_BO")
+                    for campo in (
+                        "NOME_DELEGACIA",
+                        "ANO_BO",
+                        "NUM_BO",
+                    )
                 )
 
                 if any(esta_ausente(valor) for valor in chave):
@@ -419,6 +499,7 @@ try:
                         dia_fato is not None,
                         "Linha temporalmente apta sem data válida.",
                     )
+
                     datas_por_boletim[chave].add(dia_fato)
 
                     coordenadas_por_boletim[chave].add((
@@ -428,10 +509,15 @@ try:
 
                     if esta_ausente(natureza_original):
                         linhas_sem_natureza_boletim += 1
+                        linhas_sem_natureza_por_boletim[chave] += 1
                     else:
                         naturezas_por_boletim[chave].add(
                             normalizar_texto(natureza_original)
                         )
+
+            # ------------------------------------------------
+            # TIPOS DE LOCAL E CATEGORIAS
+            # ------------------------------------------------
 
             local = normalizar_texto(
                 linha[colunas["DESCR_TIPOLOCAL"]]
@@ -447,7 +533,9 @@ try:
             else:
                 categorias[str(natureza_original).strip()] += 1
 
-        print(f"Linhas de São Paulo nesta aba: {total_aba}")
+        print(
+            f"Linhas de São Paulo nesta aba: {total_aba}"
+        )
 
 finally:
     planilha.close()
@@ -486,8 +574,9 @@ conferir(
 )
 
 conferir(
-    total_candidatas == recentes_por_coordenadas["LIMITES_VALIDOS"],
-    "Contagem inconsistente das linhas candidatas.",
+    total_candidatas
+    == recentes_por_coordenadas["LIMITES_VALIDOS"],
+    "Contagem inconsistente das candidatas.",
 )
 
 conferir(
@@ -497,16 +586,26 @@ conferir(
     "Contagem inconsistente dos identificadores.",
 )
 
+conferir(
+    set(contagem_por_boletim)
+    == set(naturezas_por_boletim)
+    == set(datas_por_boletim)
+    == set(coordenadas_por_boletim),
+    "Os conjuntos de chaves dos boletins são diferentes.",
+)
+
 
 # ============================================================
 # RELATÓRIOS DA LEITURA
 # ============================================================
 
 print("\n--- TIPOS DE LOCAL EM SÃO PAULO ---")
+
 for local, quantidade in tipos_locais.most_common():
     print(f"{local}: {quantidade}")
 
 print("\n--- CATEGORIAS EM SÃO PAULO ---")
+
 for categoria, quantidade in categorias.most_common():
     print(f"{categoria}: {quantidade}")
 
@@ -516,6 +615,7 @@ print("Categorias distintas:", len(categorias))
 print("Atenção: linhas não equivalem a ocorrências únicas.")
 
 print("\n--- DIAGNÓSTICO DOS MUNICÍPIOS ---")
+
 print(
     "Total de linhas não vazias analisadas:",
     sum(municipios_encontrados.values()),
@@ -526,21 +626,27 @@ for municipio, quantidade in municipios_encontrados.most_common(20):
     print(repr(municipio), ":", quantidade)
 
 print("\n--- QUALIDADE DAS COORDENADAS ---")
+
 for situacao in situacoes_coordenadas:
     print(f"{situacao}: {qualidade_coordenadas[situacao]}")
 
 print("Limites numéricos válidos não confirmam localização.")
 
 print("\n--- DIAGNÓSTICO DAS DATAS ---")
+
 for campo in campos_datas:
     print(f"\nCampo: {campo}")
+
     for tipo, quantidade in tipos_datas[campo].most_common():
         print(f"{tipo}: {quantidade}")
+
     print("Exemplos:")
+
     for exemplo in exemplos_datas[campo]:
         print(exemplo)
 
 print("\n--- INTERVALO DAS DATAS ---")
+
 for campo in campos_datas:
     print(f"\nCampo: {campo}")
     print("Menor data:", menores_datas[campo])
@@ -550,6 +656,7 @@ print("Intervalos consideram valores date e datetime.")
 print("Os extremos não garantem cobertura completa dos dias.")
 
 print("\n--- ANOS DOS FATOS REGISTRADOS ---")
+
 for ano, quantidade in sorted(anos_ocorrencias.items()):
     print(f"{ano}: {quantidade}")
 
@@ -575,6 +682,7 @@ if ultima_data is not None:
 print("A maior data de registro não comprova atualização da fonte.")
 
 print("\n--- COORDENADAS DAS LINHAS RECENTES ---")
+
 for situacao in situacoes_coordenadas:
     print(f"{situacao}: {recentes_por_coordenadas[situacao]}")
 
@@ -627,15 +735,22 @@ print(
     "Linhas com identificação preenchida:",
     sum(contagem_por_boletim.values()),
 )
-print("Linhas com identificação incompleta:", linhas_sem_identificacao_boletim)
+print(
+    "Linhas com identificação incompleta:",
+    linhas_sem_identificacao_boletim,
+)
 print("Combinações distintas:", len(contagem_por_boletim))
 print("Combinações repetidas:", combinacoes_repetidas)
 print("Linhas nessas combinações:", linhas_repetidas)
 print("Combinações com mais de uma natureza:", multiplas_naturezas)
-print("Linhas identificadas sem natureza:", linhas_sem_natureza_boletim)
+print(
+    "Linhas identificadas sem natureza:",
+    linhas_sem_natureza_boletim,
+)
 print("A chave delegacia + ano + número é provisória.")
 
 print("\n--- CONSISTÊNCIA DAS COMBINAÇÕES REPETIDAS ---")
+
 for situacao in (
     "MESMA_DATA_MESMO_PONTO",
     "SOMENTE_DATAS_DIFERENTES",
@@ -703,13 +818,22 @@ print(
     "Combinações com coordenadas divergentes:",
     len(chaves_com_localizacao_pendente),
 )
-print("Linhas separadas por divergência:", linhas_com_localizacao_pendente)
-print("Linhas sem identificação:", linhas_sem_identificacao_boletim)
+print(
+    "Linhas separadas por divergência:",
+    linhas_com_localizacao_pendente,
+)
+print(
+    "Linhas sem identificação:",
+    linhas_sem_identificacao_boletim,
+)
 print(
     "Combinações sem divergência interna:",
     len(chaves_sem_divergencia_interna),
 )
-print("Linhas sem divergência interna:", linhas_sem_divergencia_interna)
+print(
+    "Linhas sem divergência interna:",
+    linhas_sem_divergencia_interna,
+)
 print("PASSOU: Todas as linhas candidatas foram contabilizadas.")
 
 
@@ -722,7 +846,9 @@ combinacoes_por_posicao = Counter()
 classificacao_por_boletim = {}
 
 for chave in sorted(chaves_sem_divergencia_interna):
-    latitude, longitude = next(iter(coordenadas_por_boletim[chave]))
+    latitude, longitude = next(
+        iter(coordenadas_por_boletim[chave])
+    )
 
     classificacao = classificar_ponto_no_contorno(
         latitude,
@@ -735,9 +861,11 @@ for chave in sorted(chaves_sem_divergencia_interna):
     linhas_por_posicao[classificacao] += contagem_por_boletim[chave]
 
 conferir(
-    sum(linhas_por_posicao.values()) == linhas_sem_divergencia_interna,
+    sum(linhas_por_posicao.values())
+    == linhas_sem_divergencia_interna,
     "Contagem inconsistente da classificação geográfica.",
 )
+
 conferir(
     sum(combinacoes_por_posicao.values())
     == len(chaves_sem_divergencia_interna),
@@ -748,10 +876,16 @@ print("\n--- CLASSIFICAÇÃO GEOGRÁFICA EXPERIMENTAL ---")
 
 for situacao in situacoes_geograficas:
     print(f"\n{situacao}")
-    print("Combinações provisórias:", combinacoes_por_posicao[situacao])
+    print(
+        "Combinações provisórias:",
+        combinacoes_por_posicao[situacao],
+    )
     print("Linhas:", linhas_por_posicao[situacao])
 
-print("\nLinhas divergentes separadas:", linhas_com_localizacao_pendente)
+print(
+    "\nLinhas divergentes separadas:",
+    linhas_com_localizacao_pendente,
+)
 print("Linhas sem identificação:", linhas_sem_identificacao_boletim)
 print("Total de linhas candidatas:", total_candidatas)
 print("PASSOU: Totais da classificação conferidos.")
@@ -781,7 +915,11 @@ transformador = Transformer.from_crs(
 
 
 def projetar_coordenadas(x, y, z=None):
-    return transformador.transform(x, y, errcheck=True)
+    return transformador.transform(
+        x,
+        y,
+        errcheck=True,
+    )
 
 
 contorno_em_metros = transform(
@@ -800,7 +938,9 @@ for chave in sorted(classificacao_por_boletim):
     if classificacao_por_boletim[chave] != "FORA_DO_CONTORNO":
         continue
 
-    latitude, longitude = next(iter(coordenadas_por_boletim[chave]))
+    latitude, longitude = next(
+        iter(coordenadas_por_boletim[chave])
+    )
 
     x, y = transformador.transform(
         longitude,
@@ -813,7 +953,9 @@ for chave in sorted(classificacao_por_boletim):
         "A projeção produziu coordenadas não finitas.",
     )
 
-    distancia = Point(x, y).distance(contorno_em_metros.boundary)
+    distancia = Point(x, y).distance(
+        contorno_em_metros.boundary
+    )
 
     conferir(
         math.isfinite(distancia),
@@ -842,6 +984,7 @@ conferir(
     == combinacoes_por_posicao["FORA_DO_CONTORNO"],
     "Contagem inconsistente das distâncias externas.",
 )
+
 conferir(
     sum(faixas_distancia.values())
     == linhas_por_posicao["FORA_DO_CONTORNO"],
@@ -849,6 +992,7 @@ conferir(
 )
 
 print("\nLinhas por faixa de distância:")
+
 for faixa in (
     "ATE_100_METROS",
     "MAIS_DE_100_ATE_1000_METROS",
@@ -872,12 +1016,11 @@ print("As faixas não são limites automáticos de aceitação.")
 
 
 # ============================================================
-# EXPORTAÇÃO LOCAL DAS PENDÊNCIAS
+# EXPORTAÇÃO LOCAL DAS PENDÊNCIAS GEOGRÁFICAS
 # ============================================================
 
 def montar_linha_revisao(chave, motivo):
     delegacia, ano_bo, numero_bo = chave
-
     distancia = distancias_por_boletim.get(chave)
 
     return {
@@ -898,7 +1041,9 @@ def montar_linha_revisao(chave, motivo):
             sorted(coordenadas_por_boletim[chave])
         ),
         "distancia_aproximada_borda_m": (
-            round(distancia, 1) if distancia is not None else ""
+            round(distancia, 1)
+            if distancia is not None
+            else ""
         ),
         "situacao_revisao": "PENDENTE",
         "observacao_revisor": "",
@@ -909,12 +1054,18 @@ pendencias_revisao = []
 
 for chave in sorted(chaves_com_localizacao_pendente):
     pendencias_revisao.append(
-        montar_linha_revisao(chave, "COORDENADAS_DIVERGENTES")
+        montar_linha_revisao(
+            chave,
+            "COORDENADAS_DIVERGENTES",
+        )
     )
 
 for chave in sorted(distancias_por_boletim):
     pendencias_revisao.append(
-        montar_linha_revisao(chave, "FORA_DO_CONTORNO")
+        montar_linha_revisao(
+            chave,
+            "FORA_DO_CONTORNO",
+        )
     )
 
 total_linhas_representadas = sum(
@@ -926,8 +1077,9 @@ conferir(
     len(pendencias_revisao)
     == len(chaves_com_localizacao_pendente)
     + combinacoes_por_posicao["FORA_DO_CONTORNO"],
-    "Quantidade inconsistente de pendências.",
+    "Quantidade inconsistente de pendências geográficas.",
 )
+
 conferir(
     total_linhas_representadas
     == linhas_com_localizacao_pendente
@@ -962,7 +1114,9 @@ campos_csv = [
 ]
 
 with caminho_csv.open(
-    "w", encoding="utf-8-sig", newline=""
+    "w",
+    encoding="utf-8-sig",
+    newline="",
 ) as arquivo:
     escritor = csv.DictWriter(
         arquivo,
@@ -1002,17 +1156,16 @@ contexto_revisao = {
 }
 
 caminho_contexto = pasta_revisao / "contexto_revisao.json"
-
-caminho_contexto.write_text(
-    json.dumps(contexto_revisao, ensure_ascii=False, indent=2),
-    encoding="utf-8",
-)
+salvar_json(caminho_contexto, contexto_revisao)
 
 with caminho_csv.open(
-    "r", encoding="utf-8-sig", newline=""
+    "r",
+    encoding="utf-8-sig",
+    newline="",
 ) as arquivo:
     quantidade_gravada = sum(
-        1 for _ in csv.DictReader(arquivo, delimiter=";")
+        1
+        for _ in csv.DictReader(arquivo, delimiter=";")
     )
 
 conferir(
@@ -1027,6 +1180,226 @@ print("CSV salvo em:", caminho_csv)
 print("Contexto salvo em:", caminho_contexto)
 print("PASSOU: Todas as combinações foram gravadas.")
 print("A planilha original não foi alterada.")
+
+
+# ============================================================
+# EXPORTAÇÃO JSON PARA INTEGRAÇÃO EXPERIMENTAL
+# ============================================================
+
+grupos_exportados = []
+contagem_situacoes_json = Counter()
+linhas_situacoes_json = Counter()
+
+# Os identificadores sequenciais valem somente nesta exportação.
+for numero, chave in enumerate(
+    sorted(contagem_por_boletim),
+    start=1,
+):
+    pontos = sorted(coordenadas_por_boletim[chave])
+    datas = sorted(datas_por_boletim[chave])
+    naturezas = sorted(naturezas_por_boletim[chave])
+
+    posicao = classificacao_por_boletim.get(chave)
+    motivos = []
+
+    if chave in chaves_com_localizacao_pendente:
+        motivos.append("COORDENADAS_DIVERGENTES")
+
+    if len(datas) > 1:
+        motivos.append("DATAS_DIVERGENTES")
+
+    # Também sinaliza ausência parcial de natureza no grupo.
+    if linhas_sem_natureza_por_boletim[chave] > 0:
+        motivos.append("NATUREZA_AUSENTE_EM_LINHA")
+
+    if posicao == "FORA_DO_CONTORNO":
+        motivos.append("FORA_DO_CONTORNO")
+    elif posicao == "NA_BORDA_DO_CONTORNO":
+        motivos.append("NA_BORDA_DO_CONTORNO")
+    elif (
+        posicao is None
+        and chave not in chaves_com_localizacao_pendente
+    ):
+        motivos.append("SEM_CLASSIFICACAO_GEOGRAFICA")
+
+    if motivos:
+        situacao_integracao = "PENDENTE_REVISAO"
+    else:
+        situacao_integracao = "CANDIDATO_EXPERIMENTAL"
+
+    ponto_integracao = None
+
+    if situacao_integracao == "CANDIDATO_EXPERIMENTAL":
+        conferir(
+            len(pontos) == 1
+            and len(datas) == 1
+            and bool(naturezas)
+            and posicao == "DENTRO_DO_CONTORNO",
+            "Grupo candidato com estrutura inesperada.",
+        )
+
+        latitude, longitude = pontos[0]
+
+        ponto_integracao = {
+            "latitude": latitude,
+            "longitude": longitude,
+        }
+
+    distancia_borda = distancias_por_boletim.get(chave)
+
+    grupo = {
+        "id_exportacao": f"G{numero:06d}",
+        "situacao_integracao": situacao_integracao,
+        "motivos_pendencia": motivos,
+        "quantidade_linhas_origem": contagem_por_boletim[chave],
+        "datas_fato": [
+            dia.isoformat()
+            for dia in datas
+        ],
+        "naturezas": naturezas,
+        "quantidade_pontos_distintos": len(pontos),
+        "classificacao_geografica": posicao,
+        "ponto_para_integracao_experimental": ponto_integracao,
+        "distancia_aproximada_borda_m": (
+            round(distancia_borda, 1)
+            if distancia_borda is not None
+            else None
+        ),
+    }
+
+    grupos_exportados.append(grupo)
+
+    contagem_situacoes_json[situacao_integracao] += 1
+    linhas_situacoes_json[situacao_integracao] += (
+        contagem_por_boletim[chave]
+    )
+
+
+# ------------------------------------------------------------
+# CONFERÊNCIA DOS GRUPOS
+# ------------------------------------------------------------
+
+conferir(
+    len(grupos_exportados) == len(contagem_por_boletim),
+    "Quantidade de grupos exportados diferente da esperada.",
+)
+
+conferir(
+    sum(
+        grupo["quantidade_linhas_origem"]
+        for grupo in grupos_exportados
+    ) + linhas_sem_identificacao_boletim == total_candidatas,
+    "Quantidade de linhas representadas no JSON inconsistente.",
+)
+
+conferir(
+    len({
+        grupo["id_exportacao"]
+        for grupo in grupos_exportados
+    }) == len(grupos_exportados),
+    "Identificadores repetidos nesta exportação.",
+)
+
+for grupo in grupos_exportados:
+    if grupo["situacao_integracao"] == "PENDENTE_REVISAO":
+        conferir(
+            grupo["ponto_para_integracao_experimental"] is None,
+            "Grupo pendente recebeu ponto para integração.",
+        )
+
+
+# ------------------------------------------------------------
+# DOCUMENTO DE INTEGRAÇÃO
+# ------------------------------------------------------------
+
+documento_integracao = {
+    "versao_esquema": "1.0",
+    "situacao_base": "EXPERIMENTAL",
+    "gerado_em": instante_exportacao.isoformat(),
+    "contexto": {
+        "municipio_filtro": municipio_alvo,
+        "codigo_municipio": codigo_municipio,
+        "data_consulta": data_consulta.isoformat(),
+        "janela_dias": janela_dias,
+        "criterio_temporal": (
+            "Data do fato dentro da janela, inclusive no limite, "
+            "com datas consistentes e sem registro futuro."
+        ),
+        "arquivo_criminal": caminho.name,
+        "abas_analisadas": abas_dados,
+        "maior_data_registro_encontrada": (
+            maiores_datas["DATA_REGISTRO"].isoformat()
+            if maiores_datas["DATA_REGISTRO"] is not None
+            else None
+        ),
+        "fonte_contorno": fonte_contorno.get("fonte"),
+        "url_contorno": fonte_contorno.get("url"),
+        "coleta_contorno": fonte_contorno.get("coletado_em_utc"),
+        "sha256_contorno": hash_contorno,
+        "referencia_espacial_base_criminal": "NAO_CONFIRMADA",
+        "hipotese_espacial_utilizada": "WGS84",
+    },
+    "resumo": {
+        "linhas_municipio": total_municipio,
+        "linhas_candidatas_antes_da_triagem": total_candidatas,
+        "grupos_provisorios_exportados": len(grupos_exportados),
+        "grupos_candidatos_experimentais": (
+            contagem_situacoes_json["CANDIDATO_EXPERIMENTAL"]
+        ),
+        "grupos_pendentes": (
+            contagem_situacoes_json["PENDENTE_REVISAO"]
+        ),
+        "linhas_em_grupos_candidatos": (
+            linhas_situacoes_json["CANDIDATO_EXPERIMENTAL"]
+        ),
+        "linhas_em_grupos_pendentes": (
+            linhas_situacoes_json["PENDENTE_REVISAO"]
+        ),
+        "linhas_sem_identificacao_nao_exportadas": (
+            linhas_sem_identificacao_boletim
+        ),
+    },
+    "limitacoes": [
+        "Não há pontuação de segurança calculada.",
+        "Não há autorização para decisões definitivas de rota.",
+        "Grupos provisórios não equivalem a ocorrências únicas.",
+        "Identificadores sequenciais não são estáveis entre exportações.",
+        "A referência espacial criminal ainda não foi confirmada.",
+        "A maior data de registro não comprova atualização da fonte.",
+        "A malha pode conter simplificações.",
+        "Ausência de registros não significa ausência de risco.",
+        "Datas, naturezas e pontos foram agregados por grupo.",
+        "A associação entre os campos de cada linha não foi preservada.",
+        "O hash da planilha criminal ainda não foi registrado.",
+    ],
+    "grupos": grupos_exportados,
+}
+
+caminho_integracao = pasta_revisao / "seguranca_integracao.json"
+
+salvar_json(
+    caminho_integracao,
+    documento_integracao,
+)
+
+print("\n--- JSON DE INTEGRAÇÃO EXPERIMENTAL ---")
+print("Grupos exportados:", len(grupos_exportados))
+print(
+    "Grupos candidatos experimentais:",
+    contagem_situacoes_json["CANDIDATO_EXPERIMENTAL"],
+)
+print(
+    "Grupos pendentes de revisão:",
+    contagem_situacoes_json["PENDENTE_REVISAO"],
+)
+print(
+    "Linhas sem identificação não exportadas:",
+    linhas_sem_identificacao_boletim,
+)
+print("Arquivo salvo em:", caminho_integracao)
+print("PASSOU: Totais e conteúdo gravado conferidos.")
+print("Grupos pendentes não receberam ponto para integração.")
+print("A base continua experimental e sem pontuação de segurança.")
 
 if total_municipio == 0:
     print(
