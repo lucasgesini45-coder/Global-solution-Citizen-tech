@@ -298,4 +298,21 @@ Limitações:
 - Último registro disponível: 30/09/2026, com defasagem de 56 dias.
 - Atualização da fonte e referência espacial criminal não confirmadas.
 - Nenhuma pontuação de segurança foi calculada.
-- O script depende do JSON local indicado no caminho configurado.
+- O script depende do JSON local indicado no caminho configurado.## Integração de acessibilidade e proximidade por rota
+
+A IA apoiou a criação de avaliacao_rota.py e seus testes.
+
+Validação realizada pela equipe:
+- Oito testes aprovados com dados simulados.
+- Uso dos mesmos trechos para acessibilidade e proximidade.
+- Preservação das barreiras e das informações pendentes.
+- Dados de acessibilidade inválidos bloqueiam a consulta geográfica.
+- Rota vazia não executa consulta de proximidade.
+- Contagem de grupos sem duplicação entre trechos.
+
+Limitações:
+- A acessibilidade verifica somente passagem sem degraus.
+- Compatibilidade com esse critério não comprova acessibilidade completa.
+- A proximidade não compensa uma barreira de acessibilidade.
+- Não há pontuação de segurança nem recomendação automática.
+- Tempo e custo ainda não são comparados neste módulo.
