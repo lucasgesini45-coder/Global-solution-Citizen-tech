@@ -276,4 +276,26 @@ Validação realizada pela equipe:
 Limitações:
 - Não há pontuação de segurança nem recomendação de rotas.
 - A referência espacial criminal permanece não confirmada.
-- O teste integrado desta etapa utilizou dados simulados.
+- O teste integrado desta etapa utilizou dados simulados.## Demonstração integrada com base real e rota simulada
+
+A IA apoiou a criação de demonstrar_analise_rota.py.
+
+Validação realizada pela equipe em 25/11/2026:
+- Leitura do JSON exportado em 24/11/2026.
+- Reavaliação temporal: 34.431 candidatos iniciais,
+  33.312 elegíveis e 1.119 excluídos por idade.
+- Os 29 grupos pendentes permaneceram fora da seleção.
+- Consulta com raio de 200 metros em uma caminhada e um
+  ponto de embarque fictícios.
+- Foram encontrados 28 grupos próximos da caminhada e
+  19 próximos do embarque.
+- Total de 28 grupos distintos e 47 associações com trechos.
+- Nenhum arquivo da base foi alterado.
+
+Limitações:
+- O trajeto e o embarque são simulados, não verificados no local.
+- Grupos provisórios não equivalem a ocorrências únicas.
+- Último registro disponível: 30/09/2026, com defasagem de 56 dias.
+- Atualização da fonte e referência espacial criminal não confirmadas.
+- Nenhuma pontuação de segurança foi calculada.
+- O script depende do JSON local indicado no caminho configurado.
