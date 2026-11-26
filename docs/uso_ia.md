@@ -240,4 +240,23 @@ Limitações:
 - Vértices limitados a 20 km do primeiro ponto e raio até 2 km.
 - Pré-filtro de processamento de 50 km ao redor do primeiro ponto.
 - Os candidatos precisam de validação e reavaliação temporal prévias.
-- Proximidade não constitui pontuação de risco ou garantia de segurança.
+- Proximidade não constitui pontuação de risco ou garantia de segurança.## Consulta integrada de proximidade por rota
+
+A IA apoiou a criação de consulta_rota.py e seus testes.
+
+Validação realizada pela equipe:
+- Onze testes automatizados aprovados com dados simulados.
+- Integração de trechos de caminhada e pontos de embarque.
+- Preservação das associações entre grupos e trechos.
+- Contagem única de cada grupo no total da rota.
+- Rejeição de trechos inválidos, identificadores repetidos
+  e grupos pendentes.
+- Preservação dos dados de entrada.
+
+Limitações:
+- Os candidatos devem vir da mesma exportação e passar
+  previamente pela validação e reavaliação temporal.
+- As caminhadas precisam representar o caminho real.
+- Não são analisados deslocamentos dentro dos veículos.
+- Distâncias aproximadas; não há pontuação de segurança.
+- Contagens brutas não determinam qual rota é mais segura.
