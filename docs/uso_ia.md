@@ -221,4 +221,23 @@ Limitações:
 - A distância é aproximada e não acompanha as ruas.
 - Os candidatos devem ser previamente validados e reavaliados temporalmente.
 - O raio é um parâmetro de consulta, não um limite de segurança.
-- Ausência de grupos próximos não significa ausência de risco.
+- Ausência de grupos próximos não significa ausência de risco.## Proximidade ao longo de trajetos
+
+A IA apoiou a criação de proximidade_trajeto.py e seus testes.
+
+Validação realizada pela equipe:
+- Dez testes automatizados aprovados com dados simulados.
+- Identificação de grupo próximo do meio do percurso.
+- Respeito aos segmentos de um trajeto em L.
+- Contagem única por grupo em trajetos de ida e volta.
+- Rejeição de pendentes, identificadores repetidos e entradas inválidas.
+- Preservação dos dados de entrada.
+
+Limitações:
+- A linha conecta os vértices na ordem fornecida e precisa representar
+  o caminho real.
+- Cálculo experimental em projeção local, pressupondo WGS 84.
+- Vértices limitados a 20 km do primeiro ponto e raio até 2 km.
+- Pré-filtro de processamento de 50 km ao redor do primeiro ponto.
+- Os candidatos precisam de validação e reavaliação temporal prévias.
+- Proximidade não constitui pontuação de risco ou garantia de segurança.
