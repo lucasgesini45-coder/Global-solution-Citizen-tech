@@ -204,4 +204,21 @@ Teste com o JSON real em 24/11/2026:
 Limitações:
 - Elegibilidade temporal não comprova segurança ou cobertura recente.
 - A referência espacial criminal continua não confirmada.
-- Ainda não foi definido um limite operacional de defasagem da fonte.
+- Ainda não foi definido um limite operacional de defasagem da fonte.## Consulta de proximidade de pontos
+
+A IA apoiou a criação de proximidade.py e dos testes automatizados.
+
+Validação realizada pela equipe:
+- Onze testes executados com sucesso, usando dados simulados.
+- Seleção de grupos dentro do raio, incluindo seu limite.
+- Ordenação por distância.
+- Rejeição de grupos pendentes e identificadores repetidos.
+- Rejeição de coordenadas e raios inválidos.
+- Confirmação de que os dados de entrada não foram alterados.
+
+Limitações:
+- A consulta considera um ponto isolado, não o percurso completo.
+- A distância é aproximada e não acompanha as ruas.
+- Os candidatos devem ser previamente validados e reavaliados temporalmente.
+- O raio é um parâmetro de consulta, não um limite de segurança.
+- Ausência de grupos próximos não significa ausência de risco.
