@@ -259,4 +259,21 @@ Limitações:
 - As caminhadas precisam representar o caminho real.
 - Não são analisados deslocamentos dentro dos veículos.
 - Distâncias aproximadas; não há pontuação de segurança.
-- Contagens brutas não determinam qual rota é mais segura.
+- Contagens brutas não determinam qual rota é mais segura.## Integração da análise experimental de rota
+
+A IA apoiou a criação de analise_rota.py e dos testes de integração.
+
+Validação realizada pela equipe:
+- Oito testes aprovados com JSON temporário e dados simulados.
+- Integração de leitura, validação, atualidade e proximidade.
+- Exclusão dos grupos pendentes da seleção.
+- Contagem única de grupos associados a vários trechos.
+- Distinção entre ausência de candidatos elegíveis e ausência
+  de grupos próximos da rota.
+- Bloqueio de base inconsistente e uso experimental não autorizado.
+- Preservação do arquivo original.
+
+Limitações:
+- Não há pontuação de segurança nem recomendação de rotas.
+- A referência espacial criminal permanece não confirmada.
+- O teste integrado desta etapa utilizou dados simulados.
