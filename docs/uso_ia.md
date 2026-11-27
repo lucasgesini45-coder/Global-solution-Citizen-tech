@@ -315,4 +315,21 @@ Limitações:
 - Compatibilidade com esse critério não comprova acessibilidade completa.
 - A proximidade não compensa uma barreira de acessibilidade.
 - Não há pontuação de segurança nem recomendação automática.
-- Tempo e custo ainda não são comparados neste módulo.
+- Tempo e custo ainda não são comparados neste módulo.### Bloqueio de acessibilidade não confirmada
+
+A IA auxiliou na revisão da seleção de rotas e na elaboração
+dos testes. A equipe executou e conferiu os resultados.
+
+Quando há necessidade de acessibilidade informada, rotas
+incompatíveis ou sem compatibilidade confirmada são retiradas
+da seleção. Ganhos de tempo ou custo não compensam esse bloqueio.
+
+O teste de integração anterior foi atualizado porque esperava
+rotas sem confirmação de acessibilidade. A nova expectativa
+verifica a ausência de recomendações e o motivo do bloqueio.
+
+Validação: 83 testes da pasta backend/tests/rotas passaram.
+
+Limitação: os testes verificam o comportamento do código.
+Não confirmam a acessibilidade física dos trajetos nem
+validam uma pontuação de segurança criminal.

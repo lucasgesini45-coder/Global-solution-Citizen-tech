@@ -17,20 +17,39 @@ PALAVRAS_PROIBIDAS = re.compile(
     r"\b(segura|seguro|garantida|garantido|pontual|sem risco)\b", re.IGNORECASE
 )
 
-
 def motivo_inviabilidade(rota: Rota, perfil: Perfil) -> str | None:
+    """
+    Verifica se a rota atende às restrições do passageiro.
+
+    Quando existe necessidade de acessibilidade, somente
+    uma rota com compatibilidade confirmada pode ser recomendada.
+    """
     if rota.caminhada_m > perfil.caminhada_max_m:
         return "caminhada_acima_do_limite"
-    if perfil.baldeacoes_max is not None and rota.baldeacoes > perfil.baldeacoes_max:
+
+    if (
+        perfil.baldeacoes_max is not None
+        and rota.baldeacoes > perfil.baldeacoes_max
+    ):
         return "baldeacoes_acima_do_limite"
+
     if (
         perfil.orcamento_max_centavos is not None
         and rota.custo.centavos is not None
         and rota.custo.centavos > perfil.orcamento_max_centavos
     ):
         return "orcamento_excedido"
+
+    # Preserva o bloqueio de uma incompatibilidade conhecida.
     if rota.acessibilidade == ACESS_INCOMPATIVEL:
         return "acessibilidade_incompativel"
+
+    # Se o usuário solicitou acessibilidade, informação ausente
+    # ou não verificada não é suficiente para recomendar a rota.
+    if perfil.acessibilidade:
+        if rota.acessibilidade != ACESS_COMPATIVEL:
+            return "acessibilidade_nao_confirmada"
+
     return None
 
 

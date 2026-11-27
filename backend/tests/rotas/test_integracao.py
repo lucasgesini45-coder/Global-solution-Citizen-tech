@@ -158,20 +158,41 @@ def test_t_i08_madrugada_sem_trajeto(rede_demo, regras_demo):
     assert resp["rotas"] == []
     assert resp["erro"]["codigo"] == "sem_trajeto"
 
-
 def test_t_i09_acessibilidade_gancho_padrao(rede_demo, regras_demo):
+    """
+    Sem um verificador de acessibilidade, a compatibilidade
+    permanece desconhecida e as rotas não são recomendadas
+    para quem solicitou passagem sem degraus.
+    """
     pedido = {
         "origem": {"lat": O[0], "lon": O[1]},
         "destino": {"lat": D1[0], "lon": D1[1]},
         "partida": PARTIDA_ISO,
-        "necessidades": {"acessibilidade": ["sem_degraus"]},
+        "necessidades": {
+            "acessibilidade": ["sem_degraus"]
+        },
     }
-    resp = processar_pedido(pedido, rede_demo, regras_demo)
-    assert resp["n_rotas"] == 3
-    for r in resp["rotas"]:
-        assert r["acessibilidade"] == ACESS_NAO_VERIFICADA
-        assert any("NÃO verificada" in m for m in r["motivos"])
 
+    resp = processar_pedido(
+        pedido,
+        rede_demo,
+        regras_demo,
+    )
+
+    # Nenhuma alternativa foi confirmada como compatível.
+    assert resp["n_rotas"] == 0
+    assert resp["rotas"] == []
+
+    # O sistema explica por que não apresentou alternativas.
+    assert resp["erro"] is not None
+    assert resp["erro"]["codigo"] == "nenhuma_rota_atende"
+
+    # Confirma que houve bloqueio por falta de confirmação.
+    assert (
+        resp["descartes"].get(
+            "acessibilidade_nao_confirmada", 0
+        ) > 0
+    )
 
 def test_t_i10_acessibilidade_filtro_m1(rede_demo, regras_demo):
     pedido = {
