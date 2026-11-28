@@ -359,4 +359,17 @@ A consulta preserva os dados originais.
 
 Limitações: a base é simulada e avalia somente passagem
 sem degraus. A validade declarada não comprova a condição
-física do local. Esta base ainda não foi conectada ao motor.
+física do local. Esta base ainda não foi conectada ao motor.### Conexão da base simulada ao adaptador de acessibilidade
+
+A IA auxiliou na implementação da conexão e dos testes.
+A equipe executou a verificação conjunta:
+116 testes e 2 subtestes aprovados.
+
+Os trechos são associados explicitamente aos registros da base.
+Associação ausente, registro inexistente ou informação vencida
+não confirmam acessibilidade. Uma barreira válida é preservada
+mesmo quando outro trecho possui informação desconhecida.
+
+A base simulada exige permitir_simulada=True.
+As associações dos testes são fictícias e não representam
+trajetos reais. A API ainda não utiliza essa conexão.
