@@ -316,3 +316,83 @@ def test_t_i17_nenhuma_palavra_proibida(rede_demo, regras_demo):
         for r in resp.get("rotas", []):
             for m in r.get("motivos", []):
                 assert not PALAVRAS_PROIBIDAS.search(m)
+# Integração do nosso avaliador com o motor de recomendação.
+# Todos os dados de acessibilidade destes testes são simulados.
+
+@pytest.mark.parametrize(
+    "passagem, motivo_bloqueio",
+    [
+        (True, None),
+        (None, "acessibilidade_nao_confirmada"),
+        (False, "acessibilidade_incompativel"),
+    ],
+    ids=[
+        "passagem_confirmada",
+        "informacao_ausente",
+        "barreira_conhecida",
+    ],
+)
+def test_adaptador_acessibilidade_no_motor(
+    rede_demo,
+    regras_demo,
+    passagem,
+    motivo_bloqueio,
+):
+    from backend.src.integracao_acessibilidade import (
+        criar_verificador_acessibilidade,
+    )
+
+    pedido = {
+        "origem": {"lat": O[0], "lon": O[1]},
+        "destino": {"lat": D1[0], "lon": D1[1]},
+        "partida": PARTIDA_ISO,
+        "necessidades": {
+            "acessibilidade": ["sem_degraus"]
+        },
+    }
+
+    trechos_consultados = []
+
+    def consultar_passagem(trecho):
+        # Neste cenário, todos os trechos recebem o mesmo
+        # valor simulado: True, False ou None.
+        trechos_consultados.append(trecho.tipo)
+        return passagem
+
+    verificar = criar_verificador_acessibilidade(
+        consultar_passagem
+    )
+
+    resposta = processar_pedido(
+        pedido,
+        rede_demo,
+        regras_demo,
+        verificar_acessibilidade=verificar,
+    )
+
+    # Confirma que o motor realmente chamou nosso adaptador.
+    assert len(trechos_consultados) > 0
+
+    if motivo_bloqueio is None:
+        assert resposta["erro"] is None
+        assert 1 <= resposta["n_rotas"] <= 3
+
+        for rota in resposta["rotas"]:
+            assert rota["acessibilidade"] == ACESS_COMPATIVEL
+
+            # Acessibilidade confirmada não cria uma
+            # pontuação de segurança criminal.
+            assert rota["seguranca"]["exposicao"] is None
+
+        assert "tempo" in resposta["criterios_usados"]
+        assert "custo" in resposta["criterios_usados"]
+        assert "exposicao" not in resposta["criterios_usados"]
+
+    else:
+        assert resposta["n_rotas"] == 0
+        assert resposta["rotas"] == []
+        assert resposta["erro"]["codigo"] == "nenhuma_rota_atende"
+
+        assert (
+            resposta["descartes"].get(motivo_bloqueio, 0) > 0
+        )

@@ -332,4 +332,19 @@ Validação: 83 testes da pasta backend/tests/rotas passaram.
 
 Limitação: os testes verificam o comportamento do código.
 Não confirmam a acessibilidade física dos trajetos nem
-validam uma pontuação de segurança criminal.
+validam uma pontuação de segurança criminal.### Integração da acessibilidade com o motor de rotas
+
+A IA auxiliou na criação do adaptador e dos testes.
+A equipe executou a suíte de rotas: 95 testes aprovados.
+
+O adaptador consulta os trechos e traduz o resultado da
+avaliação para os estados utilizados pelo motor.
+Informações ausentes, inválidas ou requisitos não suportados
+não são tratados como compatibilidade confirmada.
+
+Foram testados três cenários no motor completo:
+passagem confirmada, informação ausente e barreira conhecida.
+
+Limitações: os dados de acessibilidade dos testes são simulados.
+A API ainda não foi conectada a uma fonte real por esse adaptador.
+Esta etapa não calcula segurança criminal.
