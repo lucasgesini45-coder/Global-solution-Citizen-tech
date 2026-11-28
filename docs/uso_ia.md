@@ -347,4 +347,16 @@ passagem confirmada, informação ausente e barreira conhecida.
 
 Limitações: os dados de acessibilidade dos testes são simulados.
 A API ainda não foi conectada a uma fonte real por esse adaptador.
-Esta etapa não calcula segurança criminal.
+Esta etapa não calcula segurança criminal.### Leitura e validade da base simulada de acessibilidade
+
+A IA auxiliou na elaboração do leitor, das validações e dos testes.
+A equipe executou os 12 testes, todos aprovados.
+
+A consulta verifica identificador, condição de passagem,
+fonte, data de verificação e validade. Informação ausente,
+futura ou vencida não confirma acessibilidade.
+A consulta preserva os dados originais.
+
+Limitações: a base é simulada e avalia somente passagem
+sem degraus. A validade declarada não comprova a condição
+física do local. Esta base ainda não foi conectada ao motor.

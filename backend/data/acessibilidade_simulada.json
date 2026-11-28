@@ -1,0 +1,31 @@
+{
+  "versao_esquema": "1.0",
+  "tipo_base": "SIMULADA",
+  "criterio": "PASSAGEM_SEM_DEGRAUS",
+  "registros": [
+    {
+      "id_trecho": "TRECHO_SIMULADO_01",
+      "descricao": "Caminhada de teste até o ponto",
+      "passagem_sem_degraus": true,
+      "fonte": "Cenário fictício criado pela equipe",
+      "data_verificacao": "2026-11-27",
+      "valido_ate": "2026-12-04"
+    },
+    {
+      "id_trecho": "TRECHO_SIMULADO_02",
+      "descricao": "Embarque de teste com barreira",
+      "passagem_sem_degraus": false,
+      "fonte": "Cenário fictício criado pela equipe",
+      "data_verificacao": "2026-11-27",
+      "valido_ate": "2026-12-04"
+    },
+    {
+      "id_trecho": "TRECHO_SIMULADO_03",
+      "descricao": "Caminhada de teste sem informação",
+      "passagem_sem_degraus": null,
+      "fonte": null,
+      "data_verificacao": null,
+      "valido_ate": null
+    }
+  ]
+}
